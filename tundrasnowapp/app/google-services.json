@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1076848113096",
+    "project_id": "tundrasnow-486c1",
+    "storage_bucket": "tundrasnow-486c1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1076848113096:android:3efd1cd6f321e59da07cfd",
+        "android_client_info": {
+          "package_name": "com.example.tundra_snow_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAcF2TI_wQmtd12_PEORPNBwWsvCwdFNU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
