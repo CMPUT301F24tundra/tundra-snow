@@ -1,8 +1,11 @@
 package com.example.tundra_snow_app;
 
+import java.util.List;
+import java.util.Set;
+
 public class Organizers extends Users {
     public Organizers(
-            int userID,
+            String userID,
             String firstName,
             String lastName,
             String email,
@@ -10,12 +13,14 @@ public class Organizers extends Users {
             String profilePic,
             String dateOfBirth,
 
-            int phoneNumber,
+            String phoneNumber,
             boolean notificationsEnabled,
 
-            int deviceID,
-            boolean geolocationEnabled,
-            String location
+            String deviceID,
+            //boolean geolocationEnabled,
+            String location,
+            List<String> roles,
+            List<String> facilityList
     ) {
         super(
                 userID,
@@ -28,8 +33,10 @@ public class Organizers extends Users {
                 phoneNumber,
                 notificationsEnabled,
                 deviceID,
-                geolocationEnabled,
-                location
+                //geolocationEnabled,
+                location,
+                roles,
+                facilityList
         );
     }
 
