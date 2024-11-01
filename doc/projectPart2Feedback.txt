@@ -1,0 +1,18 @@
+We received the following feedback after the project part 2 meeting:
+- Pt 1: Product Backlog
+- Was private originally next time make sure it is not
+- It looks Good
+- Pt2 UI Mockups & Story Board
+- The storyboard is very disjoined and doesn’t have many connections especially since the organizer, admin, and entrant views are completely disjoint.
+- Too many Pop-ups try to move some of the content to different activities
+- The text is too small for a phone in a lot of places
+- Map is too small should at least give half the screen
+- UI is a bit too convoluted
+- Pt 3: CRC Cards
+- Great Job
+- Pt4: Tool Usage
+- It was oka
+
+In response to this we have made the following changes:
+Pt 2: UI Mockups and Storyboards
+- Adjusted the UI Mockups on Figma to address these issues, will continue to monitor feedback and update a necessary
