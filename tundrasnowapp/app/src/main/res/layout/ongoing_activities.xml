@@ -11,20 +11,29 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
-        android:padding="13dp">
+        android:paddingTop="13dp">
 
         <TextView
             android:id="@+id/ongoingEventTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Ongoing Event View"
-            android:textSize="17sp"
+            android:textSize="20sp"
             android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:textColor="#FFFFFF"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
+        <ToggleButton
+            android:id="@+id/modeToggle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textOff="Toggle Mode: User"
+            android:textOn="Toggle Mode: Organizer"
+            android:textColor="@drawable/toggle_button"
+            android:background="@drawable/toggle_button" />
     </LinearLayout>
 
     <LinearLayout
@@ -97,6 +106,19 @@
             android:layout_height="match_parent"
             android:clipToPadding="false" />
     </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addEventButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="Add Event"
+        android:src="@drawable/addevent_black"
+        android:backgroundTint="#D3D3D3"
+        android:tint="#FFFFFF"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp" />
 
     <!-- "No Events to List" message -->
     <LinearLayout

@@ -4,34 +4,41 @@ import java.util.Date;
 
 public class Events {
     // Variables
-    private int eventID;
-    private int ownerID;
+    private String eventID;
+    private String organizer;
     private String title;
     private String description;
     private String posterImageURL;
     private String location;
+    private String published;
+    private String qrHash;
+    private String status;
+    private int capacity;
+
     private Date dateStart;
     private Date dateEnd;
     private Date registrationStart;
     private Date registrationEnd;
-    private int capacity;
-    private String qrHash;
-    private String status;
-    private int[] entrantList;
-    private int[] confirmedList;
-    private int[] declinedList;
-    private int[] cancelledList;
 
+    private String[] entrantList;
+    private String[] confirmedList;
+    private String[] declinedList;
+    private String[] cancelledList;
 
-    // Constructor
+    // Constructors
 
+    // No-argument constructor (required for Firebase)
+    public Events() {}
+
+    // Constructor with all fields
     public Events(
-            int eventID,
-            int ownerID,
+            String eventID,
+            String ownerID,
             String title,
             String description,
             String posterImageURL,
             String location,
+            String published,
             Date dateStart,
             Date dateEnd,
             Date registrationEnd,
@@ -39,17 +46,18 @@ public class Events {
             int capacity,
             String qrHash,
             String status,
-            int[] confirmedList,
-            int[] declinedList,
-            int[] entrantList,
-            int[] cancelledList
+            String[] confirmedList,
+            String[] declinedList,
+            String[] entrantList,
+            String[] cancelledList
     ) {
         this.eventID = eventID;
-        this.ownerID = ownerID;
+        this.organizer = ownerID;
         this.title = title;
         this.description = description;
         this.posterImageURL = posterImageURL;
         this.location = location;
+        this.published = published;
         this.dateStart = dateStart;
         this.dateEnd = dateEnd;
         this.registrationEnd = registrationEnd;
@@ -65,20 +73,20 @@ public class Events {
 
     // Getters/Setters
 
-    public int getEventID() {
+    public String getEventID() {
         return eventID;
     }
 
-    public void setEventID(int eventID) {
+    public void setEventID(String eventID) {
         this.eventID = eventID;
     }
 
-    public int getOwnerID() {
-        return ownerID;
+    public String getOrganizer() {
+        return organizer;
     }
 
-    public void setOwnerID(int ownerID) {
-        this.ownerID = ownerID;
+    public void setOrganizer(String organizer) {
+        this.organizer = organizer;
     }
 
     public String getTitle() {
@@ -137,6 +145,10 @@ public class Events {
         this.location = location;
     }
 
+    public String getPublished() { return published; }
+
+    public void setPublished(String published) { this.published = published; }
+
     public Date getRegistrationEnd() {
         return registrationEnd;
     }
@@ -169,35 +181,35 @@ public class Events {
         this.status = status;
     }
 
-    public int[] getEntrantList() {
+    public String[] getEntrantList() {
         return entrantList;
     }
 
-    public void setEntrantList(int[] entrantList) {
+    public void setEntrantList(String[] entrantList) {
         this.entrantList = entrantList;
     }
 
-    public int[] getConfirmedList() {
+    public String[] getConfirmedList() {
         return confirmedList;
     }
 
-    public void setConfirmedList(int[] confirmedList) {
+    public void setConfirmedList(String[] confirmedList) {
         this.confirmedList = confirmedList;
     }
 
-    public int[] getDeclinedList() {
+    public String[] getDeclinedList() {
         return declinedList;
     }
 
-    public void setDeclinedList(int[] declinedList) {
+    public void setDeclinedList(String[] declinedList) {
         this.declinedList = declinedList;
     }
 
-    public int[] getCancelledList() {
+    public String[] getCancelledList() {
         return cancelledList;
     }
 
-    public void setCancelledList(int[] cancelledList) {
+    public void setCancelledList(String[] cancelledList) {
         this.cancelledList = cancelledList;
     }
 }

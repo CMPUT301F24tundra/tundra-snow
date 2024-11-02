@@ -16,36 +16,38 @@ import java.util.Locale;
 
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
-    private Context context;
-    private List<Events> eventList;
-
+    private final List<Events> eventList;
     // Date formatter
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy, h:mm a", Locale.getDefault());
 
     public EventAdapter(Context context, List<Events> eventList) {
-        this.context = context;
         this.eventList = eventList;
     }
 
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_event, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_event, parent, false);
         return new EventViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
+        // Get the current event
         Events event = eventList.get(position);
-        // Setting event title
-        holder.eventName.setText(event.getTitle());
 
-        // Formatting and setting event date and time
-        String dateTime = dateFormat.format(event.getDateStart());
-        holder.eventLocation.setText(dateTime);
+        // Bind data to item_event.xml views
+        holder.titleTextView.setText(event.getTitle());
+        holder.locationTextView.setText(event.getLocation());
 
-        // Setting event location
-        holder.eventLocation.setText(event.getLocation());
+        // Format and set the event date if not null
+        if (event.getDateStart() != null) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
+            String formattedDate = dateFormat.format(event.getDateStart());
+            holder.dateTextView.setText(formattedDate);
+        } else {
+            holder.dateTextView.setText("Date TBD");
+        }
     }
 
     @Override
@@ -54,13 +56,13 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     }
 
     public static class EventViewHolder extends RecyclerView.ViewHolder {
-        TextView eventDateTime, eventName, eventLocation;
+        TextView dateTextView, titleTextView, locationTextView;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
-            eventDateTime = itemView.findViewById(R.id.eventDateTime);
-            eventName = itemView.findViewById(R.id.eventName);
-            eventLocation = itemView.findViewById(R.id.eventLocation);
+            dateTextView = itemView.findViewById(R.id.eventDateTime);
+            titleTextView = itemView.findViewById(R.id.eventName);
+            locationTextView = itemView.findViewById(R.id.eventLocation);
         }
     }
 }
