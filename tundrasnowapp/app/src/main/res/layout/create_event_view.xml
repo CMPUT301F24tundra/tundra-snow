@@ -137,10 +137,17 @@
 
 
         <Button
-            android:id="@+id/buttonSaveEvent"
+            android:id="@+id/buttonBack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Save Event">
+            android:text="Back">
+        </Button>
+
+        <Button
+            android:id="@+id/buttonCreateEvent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Create Event">
         </Button>
 
     </LinearLayout>
