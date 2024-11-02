@@ -1,154 +1,188 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#000000">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Create Event"
-            android:textAlignment="center"
-            android:textSize="30sp">
-        </TextView>
+            android:orientation="vertical"
+            android:padding="16dp">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Create Event"
+                android:textAlignment="center"
+                android:textSize="30sp"
+                android:textColor="#FFFFFF"
+                android:padding="10dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Event Title">
-        </TextView>
-        <EditText
-            android:id="@+id/editTextEventTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter Title">
-        </EditText>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Event Title"
+                android:textColor="#FFFFFF" />
 
+            <EditText
+                android:id="@+id/editTextEventTitle"
+                style="@style/CustomEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Title" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Event Description">
-        </TextView>
-        <EditText
-            android:id="@+id/editTextEventDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter Description"
-            android:inputType="textMultiLine">
-        </EditText>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Event Description"
+                android:textColor="#FFFFFF" />
 
+            <EditText
+                android:id="@+id/editTextEventDescription"
+                android:layout_width="match_parent"
+                style="@style/CustomEditText"
+                android:layout_height="wrap_content"
+                android:hint="Enter Description"
+                android:inputType="textMultiLine" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Poster Image URL">
-        </TextView>
-        <EditText
-            android:id="@+id/editTextPosterImageURL"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter Image URL"
-            android:inputType="textUri">
-        </EditText>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Poster Image URL"
+                android:textColor="#FFFFFF" />
 
+            <EditText
+                android:id="@+id/editTextPosterImageURL"
+                style="@style/CustomEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Image URL"
+                android:inputType="textUri" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Location">
-        </TextView>
-        <EditText
-            android:id="@+id/editTextLocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter Event Location">
-        </EditText>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Location"
+                android:textColor="#FFFFFF" />
 
+            <EditText
+                android:id="@+id/editTextLocation"
+                style="@style/CustomEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Event Location" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Start Date">
-        </TextView>
-        <DatePicker
-            android:id="@+id/datePickerStartDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        </DatePicker>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start Date"
+                android:textColor="#FFFFFF" />
 
+            <EditText
+                android:id="@+id/editTextStartDate"
+                style="@style/CustomEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Select Start Date"
+                android:focusable="false"
+                android:clickable="true" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="End Date">
-        </TextView>
-        <DatePicker
-            android:id="@+id/datePickerEndDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        </DatePicker>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="End Date"
+                android:textColor="#FFFFFF" />
 
+            <EditText
+                android:id="@+id/editTextEndDate"
+                style="@style/CustomEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Select End Date"
+                android:focusable="false"
+                android:clickable="true" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Registration Start Date">
-        </TextView>
-        <DatePicker
-            android:id="@+id/datePickerRegistrationStart"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        </DatePicker>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Registration Start Date"
+                android:textColor="#FFFFFF" />
 
+            <EditText
+                android:id="@+id/editRegistrationStartDate"
+                style="@style/CustomEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Select Start Date"
+                android:focusable="false"
+                android:clickable="true" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Registration End Date">
-        </TextView>
-        <DatePicker
-            android:id="@+id/datePickerRegistrationEnd"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        </DatePicker>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Registration End Date"
+                android:textColor="#FFFFFF" />
 
+            <EditText
+                android:id="@+id/editRegistrationEndDate"
+                style="@style/CustomEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Select End Date"
+                android:focusable="false"
+                android:clickable="true" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Capacity">
-        </TextView>
-        <EditText
-            android:id="@+id/editTextCapacity"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter Capacity"
-            android:inputType="number">
-        </EditText>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Maximum Participant Capacity"
+                android:textColor="#FFFFFF" />
 
+            <EditText
+                android:id="@+id/editTextCapacity"
+                style="@style/CustomEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Capacity"
+                android:inputType="number" />
 
-        <Button
-            android:id="@+id/buttonBack"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Back">
-        </Button>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:padding="25dp">
 
-        <Button
-            android:id="@+id/buttonCreateEvent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Create Event">
-        </Button>
+                <Button
+                    android:id="@+id/buttonBack"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Back" />
 
-    </LinearLayout>
-</ScrollView>
+                <Button
+                    android:id="@+id/saveButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Save"
+                    android:layout_marginStart="20dp"/>
+
+                <Button
+                    android:id="@+id/buttonCreateEvent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Publish"
+                    android:layout_marginStart="20dp"/>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

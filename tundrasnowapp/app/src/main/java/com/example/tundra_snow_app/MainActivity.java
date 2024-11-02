@@ -20,6 +20,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,6 +39,13 @@ public class MainActivity extends AppCompatActivity {
         // Initializing Firebase instances
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
+        // Check if a user is already logged in
+        if (auth.getCurrentUser() != null) {
+            startMainContent();
+            finish();
+            return;
+        }
 
         // Set up input fields and buttons
         usernameEditText = findViewById(R.id.usernameEditText);
@@ -101,9 +111,9 @@ public class MainActivity extends AppCompatActivity {
                             if (storedPassword != null && storedPassword.equals(password)) {
                                 // Password matches
                                 Toast.makeText(MainActivity.this, "Login successful!", Toast.LENGTH_LONG).show();
-                                // Navigate to OngoingEventActivity
-                                Intent intent = new Intent(MainActivity.this, OngoingEventActivity.class);
-                                startActivity(intent);
+                                // Log current user in a session
+                                logUserSession(document.getId());
+                                startMainContent();
                                 return;
                             } else {
                                 // Password does not match
@@ -132,9 +142,9 @@ public class MainActivity extends AppCompatActivity {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Toast.makeText(MainActivity.this, "Device login successful!", Toast.LENGTH_LONG).show();
-                            // Navigate to OngoingEventActivity
-                            Intent intent = new Intent(MainActivity.this, OngoingEventActivity.class);
-                            startActivity(intent);
+                            // Log current user in a session
+                            logUserSession(document.getId());
+                            startMainContent();
                             return;
                         }
                     } else {
@@ -146,5 +156,52 @@ public class MainActivity extends AppCompatActivity {
                     // Logging error for testing
                     Log.e("DeviceLogin", "Error fetching deviceID", e);
                 });
+    }
+
+    // Log user session to Firestore
+    private void logUserSession(String userId) {
+        String sessionId = db.collection("sessions").document().getId();
+
+        // Fetch user information from the "users" collection
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Prepare session data with all user details
+                        Map<String, Object> sessionData = new HashMap<>();
+                        sessionData.put("userId", userId);
+                        sessionData.put("loginTimestamp", System.currentTimeMillis());
+                        sessionData.put("sessionId", sessionId);
+
+                        // Add user-specific fields to the session
+                        sessionData.put("email", documentSnapshot.getString("email"));
+                        sessionData.put("firstName", documentSnapshot.getString("firstName"));
+                        sessionData.put("lastName", documentSnapshot.getString("lastName"));
+                        sessionData.put("deviceID", documentSnapshot.getString("deviceID"));
+                        sessionData.put("roles", documentSnapshot.get("roles")); // Assuming roles is stored as an array
+                        sessionData.put("facilityList", documentSnapshot.get("facility"));
+                        sessionData.put("notificationsEnabled", documentSnapshot.getBoolean("notificationsEnabled"));
+                        sessionData.put("dateOfBirth", documentSnapshot.getString("dateOfBirth"));
+                        sessionData.put("organizerEventList", documentSnapshot.get("organizerEventList"));
+                        sessionData.put("permissions", documentSnapshot.get("permissions"));
+                        sessionData.put("userEventList", documentSnapshot.get("userEventList"));
+                        sessionData.put("phoneNumber", documentSnapshot.getString("phoneNumber"));
+
+                        // Save session data to Firestore
+                        db.collection("sessions").document(sessionId)
+                                .set(sessionData)
+                                .addOnSuccessListener(aVoid -> Log.d("Session", "User session logged with all user data"))
+                                .addOnFailureListener(e -> Log.e("Session", "Error logging session data", e));
+                    } else {
+                        Log.e("Session", "User document not found for session logging.");
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Session", "Error fetching user data for session", e));
+    }
+
+    // Navigate to EventViewActivity
+    private void startMainContent() {
+        Intent intent = new Intent(MainActivity.this, EventViewActivity.class);
+        startActivity(intent);
     }
 }

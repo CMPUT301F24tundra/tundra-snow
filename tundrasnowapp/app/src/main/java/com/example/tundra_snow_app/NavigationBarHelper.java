@@ -22,8 +22,8 @@ public class NavigationBarHelper {
         Intent intent;
 
         if (item.getItemId() == R.id.nav_calendar) {
-            if (!(activity instanceof OngoingEventActivity)) {
-                intent = new Intent(activity, OngoingEventActivity.class);
+            if (!(activity instanceof EventViewActivity)) {
+                intent = new Intent(activity, EventViewActivity.class);
                 startActivityWithTransition(activity, intent);
             }
             return true;
@@ -66,7 +66,7 @@ public class NavigationBarHelper {
 
     // Helper method to set the selected item in the bottom navigation view
     private static void setSelectedItem(Activity activity, BottomNavigationView bottomNavigationView) {
-        if (activity instanceof OngoingEventActivity) {
+        if (activity instanceof EventViewActivity) {
             bottomNavigationView.setSelectedItemId(R.id.nav_calendar);
         } else if (activity instanceof MyEventViewActivity) {
             bottomNavigationView.setSelectedItemId(R.id.nav_events);
