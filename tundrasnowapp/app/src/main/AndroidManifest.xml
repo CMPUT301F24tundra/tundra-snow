@@ -27,6 +27,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".EntrantSignupActivity" />
+        <activity android:name=".OngoingEventActivity" />
     </application>
 
 </manifest>

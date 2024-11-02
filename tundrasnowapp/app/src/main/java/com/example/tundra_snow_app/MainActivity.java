@@ -101,8 +101,9 @@ public class MainActivity extends AppCompatActivity {
                             if (storedPassword != null && storedPassword.equals(password)) {
                                 // Password matches
                                 Toast.makeText(MainActivity.this, "Login successful!", Toast.LENGTH_LONG).show();
-                                // Switch activity to home page
-
+                                // Navigate to OngoingEventActivity
+                                Intent intent = new Intent(MainActivity.this, OngoingEventActivity.class);
+                                startActivity(intent);
                                 return;
                             } else {
                                 // Password does not match
@@ -131,8 +132,9 @@ public class MainActivity extends AppCompatActivity {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Toast.makeText(MainActivity.this, "Device login successful!", Toast.LENGTH_LONG).show();
-                            // Switch activity to home page
-
+                            // Navigate to OngoingEventActivity
+                            Intent intent = new Intent(MainActivity.this, OngoingEventActivity.class);
+                            startActivity(intent);
                             return;
                         }
                     } else {
