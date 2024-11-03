@@ -31,6 +31,8 @@
         <activity android:name=".CreateEventActivity" />
         <activity android:name=".EventDetailActivity" />
         <activity android:name=".ProfileViewActivity"/>
+        <activity android:name=".MyEventViewActivity" />
+
     </application>
 
 </manifest>
