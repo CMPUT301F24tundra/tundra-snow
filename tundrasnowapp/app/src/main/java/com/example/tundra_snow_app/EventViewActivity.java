@@ -85,6 +85,14 @@ public class EventViewActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (modeToggle.isChecked()) {  // Only reload if in Organizer Mode
+            loadOrganizerEventsFromFirestore();
+        }
+    }
+
     private void loadUserEventFromFirestore() {
         db.collection("events")
                 .whereEqualTo("published", "yes")

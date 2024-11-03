@@ -1,22 +1,26 @@
 package com.example.tundra_snow_app;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.Query;
 
 public class EventDetailActivity extends AppCompatActivity {
 
     private TextView titleTextView, dateTextView, locationTextView, descriptionTextView;
     private Button signUpButton;
     private FirebaseFirestore db;
-    private String eventID;
+    private String eventID, currentUserID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +37,10 @@ public class EventDetailActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         eventID = getIntent().getStringExtra("eventID");  // Get event ID from intent
 
-        loadEventDetails();
-
-        signUpButton.setOnClickListener(v -> signUpForEvent());
+        fetchSessionUserId(() -> {
+            loadEventDetails();
+            signUpButton.setOnClickListener(v -> signUpForEvent());
+        });
     }
 
     private void loadEventDetails() {
@@ -57,15 +62,30 @@ public class EventDetailActivity extends AppCompatActivity {
     }
 
     private void signUpForEvent() {
-        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
         db.collection("events")
                 .document(eventID)
-                .update("entrantList", FieldValue.arrayUnion(currentUserId))
+                .update("entrantList", FieldValue.arrayUnion(currentUserID))
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Signed up successfully!", Toast.LENGTH_SHORT).show();
-                    signUpButton.setEnabled(false);  // Disable button after signing up
+                    finish();
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Sign-up failed", Toast.LENGTH_SHORT).show());
+    }
+
+    // Fetch userId from latest session in "sessions" collection
+    private void fetchSessionUserId(@NonNull Runnable onComplete) {
+        CollectionReference sessionsRef = db.collection("sessions");
+        sessionsRef.orderBy("loginTimestamp", Query.Direction.DESCENDING).limit(1)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                        DocumentSnapshot latestSession = task.getResult().getDocuments().get(0);
+                        currentUserID = latestSession.getString("userId");
+                        onComplete.run();
+                    } else {
+                        Toast.makeText(this, "No active session found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Session", "Error fetching session data", e));
     }
 }
