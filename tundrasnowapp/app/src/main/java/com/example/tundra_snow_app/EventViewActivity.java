@@ -1,6 +1,7 @@
 package com.example.tundra_snow_app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -26,6 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EventViewActivity extends AppCompatActivity {
+
+    private static final String PREFS_NAME = "ModePrefs";
+    private static final String MODE_KEY = "isOrganizerMode";
 
     private RecyclerView recyclerViewEvents;
     private LinearLayout noEventsLayout;
@@ -62,6 +66,11 @@ public class EventViewActivity extends AppCompatActivity {
         recyclerViewEvents.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewEvents.setAdapter(eventAdapter);
 
+        // Retrieve mode from SharedPreferences and set the toggle accordingly
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        boolean isOrganizerMode = preferences.getBoolean(MODE_KEY, false);
+        modeToggle.setChecked(isOrganizerMode);
+
         // Setting listener for addEventButton
         addEventButton.setOnClickListener(view -> {
             Intent intent = new Intent(EventViewActivity.this, CreateEventActivity.class);
@@ -69,19 +78,13 @@ public class EventViewActivity extends AppCompatActivity {
         });
 
         fetchSessionUserId(() -> {
+            setMode(isOrganizerMode);
+
             modeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                if (isChecked) {
-                    eventTitle.setText("Draft Events View");
-                    addEventButton.setVisibility(View.VISIBLE);
-                    loadOrganizerEventsFromFirestore();
-                } else {
-                    eventTitle.setText("Ongoing Events View");
-                    addEventButton.setVisibility(View.GONE);
-                    loadUserEventFromFirestore();
-                }
+                // Update mode and save state in SharedPreferences
+                setMode(isChecked);
+                preferences.edit().putBoolean("isOrganizerMode", isChecked).apply();
             });
-            // Load initial events for user mode by default
-            loadUserEventFromFirestore();
         });
     }
 
@@ -90,6 +93,18 @@ public class EventViewActivity extends AppCompatActivity {
         super.onResume();
         if (modeToggle.isChecked()) {  // Only reload if in Organizer Mode
             loadOrganizerEventsFromFirestore();
+        }
+    }
+
+    private void setMode(boolean isOrganizerMode) {
+        if (isOrganizerMode) {
+            loadOrganizerEventsFromFirestore();
+            eventTitle.setText("Draft Events View");
+            addEventButton.setVisibility(View.VISIBLE);
+        } else {
+            loadUserEventFromFirestore();
+            eventTitle.setText("Ongoing Events View");
+            addEventButton.setVisibility(View.GONE);
         }
     }
 

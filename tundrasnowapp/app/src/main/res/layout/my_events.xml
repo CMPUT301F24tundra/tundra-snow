@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -14,7 +15,7 @@
         android:paddingTop="13dp">
 
         <TextView
-            android:id="@+id/ongoingEventTitle"
+            android:id="@+id/myEventTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
@@ -101,24 +102,11 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/eventsRecyclerView"
+            android:id="@+id/myEventsRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false" />
     </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/addEventButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="Add Event"
-        android:src="@drawable/addevent_black"
-        android:backgroundTint="#D3D3D3"
-        android:tint="#FFFFFF"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="16dp" />
 
     <!-- "No Events to List" message -->
     <LinearLayout
