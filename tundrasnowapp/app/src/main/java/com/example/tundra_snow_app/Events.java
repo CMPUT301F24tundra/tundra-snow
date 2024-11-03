@@ -1,6 +1,8 @@
 package com.example.tundra_snow_app;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class Events {
     // Variables
@@ -28,7 +30,12 @@ public class Events {
     // Constructors
 
     // No-argument constructor (required for Firebase)
-    public Events() {}
+    public Events() {
+        this.entrantList = new String[]{"placeholder"};
+        this.confirmedList = new String[]{"placeholder"};
+        this.declinedList = new String[]{"placeholder"};
+        this.cancelledList = new String[]{"placeholder"};
+    }
 
     // Constructor with all fields
     public Events(
@@ -65,10 +72,10 @@ public class Events {
         this.capacity = capacity;
         this.qrHash = qrHash;
         this.status = status;
-        this.confirmedList = confirmedList;
-        this.declinedList = declinedList;
-        this.entrantList = entrantList;
-        this.cancelledList = cancelledList;
+        this.entrantList = new String[]{"placeholder"};
+        this.confirmedList = new String[]{"placeholder"};
+        this.declinedList = new String[]{"placeholder"};
+        this.cancelledList = new String[]{"placeholder"};
     }
 
     // Getters/Setters
@@ -211,5 +218,13 @@ public class Events {
 
     public void setCancelledList(String[] cancelledList) {
         this.cancelledList = cancelledList;
+    }
+
+    public String getFormattedStartDate() {
+        if (dateStart == null) {
+            return "Date TBD";  // or any default message
+        }
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
+        return dateFormat.format(dateStart);
     }
 }

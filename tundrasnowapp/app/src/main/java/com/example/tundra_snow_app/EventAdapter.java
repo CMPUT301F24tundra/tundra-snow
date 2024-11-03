@@ -3,6 +3,7 @@ package com.example.tundra_snow_app;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +20,10 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     private final List<Events> eventList;
     // Date formatter
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy, h:mm a", Locale.getDefault());
+    private final Context context;
 
     public EventAdapter(Context context, List<Events> eventList) {
+        this.context = context;
         this.eventList = eventList;
     }
 
@@ -48,6 +51,12 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         } else {
             holder.dateTextView.setText("Date TBD");
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, EventDetailActivity.class);
+            intent.putExtra("eventID", event.getEventID());  // Pass event ID to the detail activity
+            context.startActivity(intent);
+        });
     }
 
     @Override
