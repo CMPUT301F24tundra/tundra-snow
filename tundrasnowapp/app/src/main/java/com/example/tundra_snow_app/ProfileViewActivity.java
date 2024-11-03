@@ -8,6 +8,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -25,6 +26,9 @@ public class ProfileViewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.profile_view);
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        NavigationBarHelper.setupBottomNavigation(this, bottomNavigationView);
 
         // Initialize UI elements
         profileName = findViewById(R.id.profileName);
