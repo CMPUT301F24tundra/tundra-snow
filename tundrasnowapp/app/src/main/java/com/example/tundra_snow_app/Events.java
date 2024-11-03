@@ -1,8 +1,13 @@
 package com.example.tundra_snow_app;
 
+import android.bluetooth.le.ScanCallback;
+
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+
 
 public class Events {
     // Variables
@@ -22,19 +27,19 @@ public class Events {
     private Date registrationStart;
     private Date registrationEnd;
 
-    private String[] entrantList;
-    private String[] confirmedList;
-    private String[] declinedList;
-    private String[] cancelledList;
+    private List<String> entrantList;
+    private List<String> confirmedList;
+    private List<String> declinedList;
+    private List<String> cancelledList;
 
     // Constructors
 
-    // No-argument constructor (required for Firebase)
+    // No-argument constructor (required by Firestore)
     public Events() {
-        this.entrantList = new String[]{"placeholder"};
-        this.confirmedList = new String[]{"placeholder"};
-        this.declinedList = new String[]{"placeholder"};
-        this.cancelledList = new String[]{"placeholder"};
+        this.entrantList = new ArrayList<>();
+        this.confirmedList = new ArrayList<>();
+        this.declinedList = new ArrayList<>();
+        this.cancelledList = new ArrayList<>();
     }
 
     // Constructor with all fields
@@ -53,10 +58,10 @@ public class Events {
             int capacity,
             String qrHash,
             String status,
-            String[] confirmedList,
-            String[] declinedList,
-            String[] entrantList,
-            String[] cancelledList
+            List<String> confirmedList,
+            List<String> declinedList,
+            List<String> entrantList,
+            List<String> cancelledList
     ) {
         this.eventID = eventID;
         this.organizer = ownerID;
@@ -72,10 +77,10 @@ public class Events {
         this.capacity = capacity;
         this.qrHash = qrHash;
         this.status = status;
-        this.entrantList = new String[]{"placeholder"};
-        this.confirmedList = new String[]{"placeholder"};
-        this.declinedList = new String[]{"placeholder"};
-        this.cancelledList = new String[]{"placeholder"};
+        this.entrantList = entrantList;
+        this.confirmedList = confirmedList;
+        this.declinedList = declinedList;
+        this.cancelledList = cancelledList;
     }
 
     // Getters/Setters
@@ -188,36 +193,69 @@ public class Events {
         this.status = status;
     }
 
-    public String[] getEntrantList() {
+    public List<String> getEntrantList() {
         return entrantList;
     }
 
-    public void setEntrantList(String[] entrantList) {
+    public void setEntrantList(List<String> entrantList) {
         this.entrantList = entrantList;
     }
 
-    public String[] getConfirmedList() {
+    public void addEntrant(String userID) {
+        entrantList.add(userID);
+    }
+
+    public void removeEntrant(String userID) {
+        entrantList.remove(userID);
+    }
+
+
+    public List<String> getConfirmedList() {
         return confirmedList;
     }
 
-    public void setConfirmedList(String[] confirmedList) {
+    public void setConfirmedList(List<String> confirmedList) {
         this.confirmedList = confirmedList;
     }
 
-    public String[] getDeclinedList() {
+    public void addConfirmed(String userID) {
+        confirmedList.add(userID);
+    }
+
+    public void removeConfirmed(String userID) {
+        confirmedList.remove(userID);
+    }
+
+    public List<String> getDeclinedList() {
         return declinedList;
     }
 
-    public void setDeclinedList(String[] declinedList) {
+    public void setDeclinedList(List<String> declinedList) {
         this.declinedList = declinedList;
     }
 
-    public String[] getCancelledList() {
+    public void addDeclined(String userID) {
+        declinedList.add(userID);
+    }
+
+    public void removeDeclined(String userID) {
+        declinedList.remove(userID);
+    }
+
+    public List<String> getCancelledList() {
         return cancelledList;
     }
 
-    public void setCancelledList(String[] cancelledList) {
+    public void setCancelledList(List<String> cancelledList) {
         this.cancelledList = cancelledList;
+    }
+
+    public void addCancelled(String userID) {
+        cancelledList.add(userID);
+    }
+
+    public void removeCancelled(String userID) {
+        cancelledList.remove(userID);
     }
 
     public String getFormattedStartDate() {

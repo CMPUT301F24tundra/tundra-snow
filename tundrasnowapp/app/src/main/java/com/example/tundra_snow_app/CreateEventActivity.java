@@ -1,6 +1,7 @@
 package com.example.tundra_snow_app;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -40,6 +41,7 @@ public class CreateEventActivity extends AppCompatActivity{
     private EditText eventRegistrationStartDatePicker, eventRegistrationEndDatePicker, eventCapacityEditText;
     private Button createEventButton, backButton, saveButton;
     private String eventID, currentUserID, facility;
+    private String[] entrantList, confirmedList, declinedList, cancelledList;
 
     private FirebaseFirestore db;
     private FirebaseStorage storage;
@@ -142,6 +144,12 @@ public class CreateEventActivity extends AppCompatActivity{
         Date registrationStartDate = parseDate(eventRegistrationStartDatePicker.getText().toString());
         Date registrationEndDate = parseDate(eventRegistrationEndDatePicker.getText().toString());
 
+        // Initialize empty lists for entrants and statuses
+        List<String> entrantList = new ArrayList<>();
+        List<String> confirmedList = new ArrayList<>();
+        List<String> declinedList = new ArrayList<>();
+        List<String> cancelledList = new ArrayList<>();
+
         Map<String, Object> event = new HashMap<>();
         event.put("eventID", eventID);
         event.put("title", eventTitle);
@@ -156,6 +164,12 @@ public class CreateEventActivity extends AppCompatActivity{
         event.put("organizer", currentUserID);
         event.put("published", publishedStatus);
         event.put("facility", facility);
+
+        // Initialize lists as empty arrays
+        event.put("entrantList", entrantList);
+        event.put("confirmedList", confirmedList);
+        event.put("declinedList", declinedList);
+        event.put("cancelledList", cancelledList);
 
         return event;
     }
