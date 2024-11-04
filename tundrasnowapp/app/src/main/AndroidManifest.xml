@@ -36,6 +36,7 @@
         <activity android:name=".ViewParticipantListActivity" />
         <activity android:name=".MyEventDetailActivity" />
         <activity android:name=".SettingsViewActivity" />
+        <activity android:name=".ViewConfirmedParticipantListActivity" />
 
 
     </application>
