@@ -1,11 +1,13 @@
 package com.example.tundra_snow_app;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -31,6 +33,7 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
     private Button saveButton, editButton, backButton;
     private FirebaseFirestore db;
     private String eventID, currentUserID;
+    private TextView viewWaitingList, viewEnrolledList, viewChosenList, viewCancelledList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +44,12 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
         eventDate = findViewById(R.id.organizerEventDate);
         eventLocation = findViewById(R.id.organizerEventLocation);
         eventDescription = findViewById(R.id.organizerEventDescription);
+
+        viewWaitingList = findViewById(R.id.viewWaitingList);
+        viewEnrolledList = findViewById(R.id.viewEnrolledList);
+        viewChosenList = findViewById(R.id.viewChosenList);
+        viewCancelledList = findViewById(R.id.viewCancelledList);
+
         backButton = findViewById(R.id.backButton);
         editButton = findViewById(R.id.editButton);
         saveButton = findViewById(R.id.saveButton);
@@ -50,6 +59,14 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
 
         fetchSessionUserId(() -> {
             loadEventDetails();
+
+            // Transition to ViewParticipantListActivity on viewEnrolledList click
+            viewWaitingList.setOnClickListener(v -> {
+                Intent intent = new Intent(this, ViewParticipantListActivity.class);
+                intent.putExtra("eventID", eventID);  // Pass event ID to the detail activity
+                startActivity(intent);
+            });
+
             backButton.setOnClickListener(view -> finish());
             editButton.setOnClickListener(view -> enableEditing(true));
             saveButton.setOnClickListener(v -> saveEventUpdates());

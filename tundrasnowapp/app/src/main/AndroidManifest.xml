@@ -33,6 +33,8 @@
         <activity android:name=".MyEventViewActivity" />
         <activity android:name=".ProfileViewActivity"/>
         <activity android:name=".OrganizerEventDetailActivity" />
+        <activity android:name=".ViewParticipantListActivity" />
+        <activity android:name=".MyEventDetailActivity" />
 
     </application>
 

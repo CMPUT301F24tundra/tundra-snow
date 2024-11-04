@@ -2,6 +2,7 @@ package com.example.tundra_snow_app;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -28,13 +29,15 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
     private final String currentUserID;
     private final FirebaseFirestore db;
     private boolean isOrganizerMode;
+    private int requestCode;
 
-    public MyEventsAdapter(Context context, List<Events> eventList, String currentUserID, boolean isOrganizerMode) {
+    public MyEventsAdapter(Context context, List<Events> eventList, String currentUserID, boolean isOrganizerMode, int requestCode) {
         this.context = context;
         this.eventList = eventList;
         this.currentUserID = currentUserID;
         this.db = FirebaseFirestore.getInstance();
         this.isOrganizerMode = isOrganizerMode;
+        this.requestCode = requestCode;
         Log.d("MyEventsAdapter", "Adapter initialized in mode: " + (isOrganizerMode ? "Organizer" : "User"));
         Log.d("MyEventsAdapter", "User ID: " + currentUserID);
     }
@@ -82,16 +85,16 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
 
         // Set the onClickListener with a conditional to check the mode
         holder.itemView.setOnClickListener(v -> {
-            Intent intent;
+            Intent intent = new Intent(context, MyEventDetailActivity.class);
             if (isOrganizerMode) {
                 // Organizer mode: Navigate to OrganizerEventActivity
                 intent = new Intent(context, OrganizerEventDetailActivity.class);
             } else {
                 // User mode: Navigate to EventDetailActivity
-                intent = new Intent(context, EventDetailActivity.class);
+                intent = new Intent(context, MyEventDetailActivity.class);
             }
             intent.putExtra("eventID", event.getEventID());  // Pass event ID to the detail activity
-            context.startActivity(intent);
+            ((Activity) context).startActivityForResult(intent, requestCode);
         });
     }
 
@@ -101,6 +104,7 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
         final List<String> confirmedList = new ArrayList<>();
         final List<String> cancelledList = new ArrayList<>();
         final List<String> declinedList = new ArrayList<>();
+        final List<String> chosenList = new ArrayList<>();
 
         // Query the database to determine the user's status for this event
         db.collection("events").document(eventID)
@@ -112,18 +116,21 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
                         List<String> tempConfirmedList = (List<String>) documentSnapshot.get("confirmedList");
                         List<String> tempCancelledList = (List<String>) documentSnapshot.get("cancelledList");
                         List<String> tempDeclinedList = (List<String>) documentSnapshot.get("declinedList");
+                        List<String> tempChosenList = (List<String>) documentSnapshot.get("chosenList");
 
                         // Populate final lists without reassigning
                         if (tempEntrantList != null) entrantList.addAll(tempEntrantList);
                         if (tempConfirmedList != null) confirmedList.addAll(tempConfirmedList);
                         if (tempCancelledList != null) cancelledList.addAll(tempCancelledList);
                         if (tempDeclinedList != null) declinedList.addAll(tempDeclinedList);
+                        if (tempChosenList != null) chosenList.addAll(tempChosenList);
 
                         // Log the retrieved lists for troubleshooting
                         Log.d("MyEventsView", "EntrantList: " + entrantList);
                         Log.d("MyEventsView", "ConfirmedList: " + confirmedList);
                         Log.d("MyEventsView", "CancelledList: " + cancelledList);
                         Log.d("MyEventsView", "DeclinedList: " + declinedList);
+                        Log.d("MyEventsView", "ChosenList: " + chosenList);
 
                         // Determine and set status based on lists, ensuring null-safe checks
                         String status;
@@ -142,6 +149,9 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
                         } else if (declinedList.contains(currentUserID)) {
                             Log.d("MyEventsAdapter", "User in declined list");
                             status = "Declined";
+                        } else if (chosenList.contains(currentUserID)) {
+                            Log.d("MyEventsAdapter", "User in chosen list");
+                            status = "Chosen, awaiting response..";
                         } else {
                             status = "";  // No status if not found in any list
                         }
