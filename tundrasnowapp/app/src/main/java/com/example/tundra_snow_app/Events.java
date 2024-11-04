@@ -1,7 +1,5 @@
 package com.example.tundra_snow_app;
 
-import android.bluetooth.le.ScanCallback;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -22,10 +20,10 @@ public class Events {
     private String status;
     private int capacity;
 
-    private Date dateStart;
-    private Date dateEnd;
-    private Date registrationStart;
-    private Date registrationEnd;
+    private Date startDate;
+    private Date endDate;
+    private Date registrationStartDate;
+    private Date registrationEndDate;
 
     private List<String> entrantList;
     private List<String> confirmedList;
@@ -51,10 +49,10 @@ public class Events {
             String posterImageURL,
             String location,
             String published,
-            Date dateStart,
-            Date dateEnd,
-            Date registrationEnd,
-            Date registrationStart,
+            Date startDate,
+            Date endDate,
+            Date registrationEndDate,
+            Date registrationStartDate,
             int capacity,
             String qrHash,
             String status,
@@ -70,10 +68,10 @@ public class Events {
         this.posterImageURL = posterImageURL;
         this.location = location;
         this.published = published;
-        this.dateStart = dateStart;
-        this.dateEnd = dateEnd;
-        this.registrationEnd = registrationEnd;
-        this.registrationStart = registrationStart;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.registrationEndDate = registrationEndDate;
+        this.registrationStartDate = registrationStartDate;
         this.capacity = capacity;
         this.qrHash = qrHash;
         this.status = status;
@@ -125,28 +123,43 @@ public class Events {
         this.posterImageURL = posterImageURL;
     }
 
-    public Date getDateEnd() {
-        return dateEnd;
+    public Date getEndDate() {
+        return endDate;
     }
 
-    public void setDateEnd(Date dateEnd) {
-        this.dateEnd = dateEnd;
+    public String getFormattedDateEnd() {
+        Date date = endDate;
+        return getFormattedDate(date);
     }
 
-    public Date getRegistrationStart() {
-        return registrationStart;
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
     }
 
-    public void setRegistrationStart(Date registrationStart) {
-        this.registrationStart = registrationStart;
+    public Date getRegistrationStartDate() {
+        return registrationStartDate;
     }
 
-    public Date getDateStart() {
-        return dateStart;
+    public String getFormattedRegStart() {
+        Date date = registrationStartDate;
+        return getFormattedDate(date);
     }
 
-    public void setDateStart(Date dateStart) {
-        this.dateStart = dateStart;
+    public void setRegistrationStartDate(Date registrationStartDate) {
+        this.registrationStartDate = registrationStartDate;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public String getFormattedDateStart() {
+        Date date = startDate;
+        return getFormattedDate(date);
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
     }
 
     public String getLocation() {
@@ -161,12 +174,17 @@ public class Events {
 
     public void setPublished(String published) { this.published = published; }
 
-    public Date getRegistrationEnd() {
-        return registrationEnd;
+    public Date getRegistrationEndDate() {
+        return registrationEndDate;
     }
 
-    public void setRegistrationEnd(Date registrationEnd) {
-        this.registrationEnd = registrationEnd;
+    public String getFormattedRegDateEnd() {
+        Date date = registrationEndDate;
+        return getFormattedDate(date);
+    }
+
+    public void setRegistrationEndDate(Date registrationEndDate) {
+        this.registrationEndDate = registrationEndDate;
     }
 
     public int getCapacity() {
@@ -258,11 +276,11 @@ public class Events {
         cancelledList.remove(userID);
     }
 
-    public String getFormattedStartDate() {
-        if (dateStart == null) {
+    public String getFormattedDate(Date date) {
+        if (date == null) {
             return "Date TBD";  // or any default message
         }
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
-        return dateFormat.format(dateStart);
+        return dateFormat.format(date);
     }
 }
