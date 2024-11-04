@@ -75,6 +75,12 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
                 intent.putExtra("eventID", eventID);  // Pass event ID to the detail activity
                 startActivity(intent);
             });
+            // Transition to ViewConfirmedParticipantListActivity on viewEnrolledList
+            viewEnrolledList.setOnClickListener(v -> {
+                Intent intent = new Intent(this, ViewConfirmedParticipantListActivity.class);
+                intent.putExtra("eventID", eventID);  // Pass event ID to the detail activity
+                startActivity(intent);
+            });
 
             backButton.setOnClickListener(view -> finish());
             editButton.setOnClickListener(view -> enableEditing(true));
