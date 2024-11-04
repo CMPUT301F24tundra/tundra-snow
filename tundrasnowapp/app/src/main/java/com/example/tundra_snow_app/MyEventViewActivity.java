@@ -29,6 +29,7 @@ public class MyEventViewActivity extends AppCompatActivity {
 
     private static final String PREFS_NAME = "ModePrefs";
     private static final String MODE_KEY = "isOrganizerMode";
+    private static final int REQUEST_CODE_UPDATE_STATUS = 1;
 
     private RecyclerView recyclerViewEvents;
     private LinearLayout noEventsLayout;
@@ -65,7 +66,7 @@ public class MyEventViewActivity extends AppCompatActivity {
 
         fetchSessionUserId(() -> {
             // Set up Recycler View
-            myEventsAdapter = new MyEventsAdapter(this, eventList, currentUserID, isOrganizerMode);
+            myEventsAdapter = new MyEventsAdapter(this, eventList, currentUserID, isOrganizerMode, REQUEST_CODE_UPDATE_STATUS);
             recyclerViewEvents.setLayoutManager(new LinearLayoutManager(this));
             recyclerViewEvents.setAdapter(myEventsAdapter);
 
@@ -76,6 +77,17 @@ public class MyEventViewActivity extends AppCompatActivity {
                 preferences.edit().putBoolean("isOrganizerMode", isChecked).apply();
             });
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_UPDATE_STATUS && resultCode == RESULT_OK) {
+            // Refresh the adapter to re-bind data and update status
+            if (myEventsAdapter != null) {
+                myEventsAdapter.notifyDataSetChanged();
+            }
+        }
     }
 
     private void setMode(boolean isOrganizerMode) {
@@ -106,7 +118,16 @@ public class MyEventViewActivity extends AppCompatActivity {
 
                             // Checking  if currentUserID is in the entrantList
                             List<String> entrantList = (List<String>) document.get("entrantList");
-                            if (entrantList != null && entrantList.contains(currentUserID)) {
+                            List<String> declinedList = (List<String>) document.get("declinedList");
+                            List<String> cancelledList = (List<String>) document.get("cancelledList");
+                            List<String> confirmedList = (List<String>) document.get("confirmedList");
+                            List<String> chosenList = (List<String>) document.get("chosenList");
+
+                            if ((entrantList != null && entrantList.contains(currentUserID))
+                                    || (declinedList != null && declinedList.contains(currentUserID))
+                                    || (cancelledList != null && cancelledList.contains(currentUserID))
+                                    || (confirmedList != null && confirmedList.contains(currentUserID))
+                                    || (chosenList != null && chosenList.contains(currentUserID))) {
                                 eventList.add(event);  // Add to list if user is an entrant
                                 Log.d("FirestoreQuery", "Event added: " + event.getTitle());
                             }

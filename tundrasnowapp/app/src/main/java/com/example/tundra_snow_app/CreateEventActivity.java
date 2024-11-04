@@ -42,7 +42,7 @@ public class CreateEventActivity extends AppCompatActivity{
     private Button createEventButton, backButton, saveButton;
     private String eventID, currentUserID;
     private ToggleButton toggleGeolocationButton;
-    private List<String> facility, entrantList, confirmedList, declinedList, cancelledList;
+    private List<String> facility, entrantList, confirmedList, declinedList, cancelledList, chosenList;
 
     private FirebaseFirestore db;
     private FirebaseStorage storage;
@@ -171,6 +171,7 @@ public class CreateEventActivity extends AppCompatActivity{
         List<String> confirmedList = new ArrayList<>();
         List<String> declinedList = new ArrayList<>();
         List<String> cancelledList = new ArrayList<>();
+        List<String> chosenList = new ArrayList<>();
 
         // Determine geolocation requirement based on toggle state
         String geolocationRequirement = toggleGeolocationButton.isChecked() ? "Remote" : "In-person";
@@ -196,6 +197,7 @@ public class CreateEventActivity extends AppCompatActivity{
         event.put("confirmedList", confirmedList);
         event.put("declinedList", declinedList);
         event.put("cancelledList", cancelledList);
+        event.put("chosenList", chosenList);
 
         return event;
     }

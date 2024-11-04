@@ -29,6 +29,7 @@ public class Events {
     private List<String> confirmedList;
     private List<String> declinedList;
     private List<String> cancelledList;
+    private List<String> chosenList;
 
     // Constructors
 
@@ -38,6 +39,7 @@ public class Events {
         this.confirmedList = new ArrayList<>();
         this.declinedList = new ArrayList<>();
         this.cancelledList = new ArrayList<>();
+        this.chosenList = new ArrayList<>();
     }
 
     // Constructor with all fields
@@ -59,7 +61,8 @@ public class Events {
             List<String> confirmedList,
             List<String> declinedList,
             List<String> entrantList,
-            List<String> cancelledList
+            List<String> cancelledList,
+            List<String> chosenList
     ) {
         this.eventID = eventID;
         this.organizer = ownerID;
@@ -79,9 +82,27 @@ public class Events {
         this.confirmedList = confirmedList;
         this.declinedList = declinedList;
         this.cancelledList = cancelledList;
+        this.chosenList = chosenList;
     }
 
     // Getters/Setters
+
+
+    public List<String> getChosenList() {
+        return chosenList;
+    }
+
+    public void setChosenList(List<String> chosenList) {
+        this.chosenList = chosenList;
+    }
+
+    public void addChosen(String userID) {
+        chosenList.add(userID);
+    }
+
+    public void removeChosen(String userID) {
+        chosenList.remove(userID);
+    }
 
     public String getEventID() {
         return eventID;
