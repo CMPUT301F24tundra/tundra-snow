@@ -13,7 +13,9 @@
         android:orientation="vertical"
         android:gravity="center"
         android:paddingTop="13dp"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:id="@+id/profileTitle"
@@ -24,16 +26,25 @@
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:textColor="#FFFFFF" />
+
+        <ToggleButton
+            android:id="@+id/modeToggle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textOff="Toggle Mode: User"
+            android:textOn="Toggle Mode: Organizer"
+            android:textColor="@drawable/toggle_button"
+            android:background="@drawable/toggle_button" />
     </LinearLayout>
 
-    <!-- Profile Information Section -->
+    <!-- Profile Information Section (Visible in User mode) -->
     <LinearLayout
+        android:id="@+id/profileSection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp"
         app:layout_constraintTop_toBottomOf="@id/header"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -49,7 +60,7 @@
         <!-- Editable Name Field -->
         <EditText
             android:id="@+id/profileName"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textColor="#FFFFFF"
@@ -68,7 +79,7 @@
         <!-- Editable Email Field -->
         <EditText
             android:id="@+id/profileEmail"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textColor="#FFFFFF"
@@ -87,39 +98,74 @@
         <!-- Editable Phone Field -->
         <EditText
             android:id="@+id/profilePhone"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp"
             android:enabled="false" />
+    </LinearLayout>
 
-        <!-- Buttons for Edit and Save -->
-        <LinearLayout
+    <!-- Organizer Facilities Section (Visible only in Organizer mode) -->
+    <LinearLayout
+        android:id="@+id/facilitiesSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/facilitiesLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end"
-            android:padding="16dp"
-            app:layout_constraintTop_toBottomOf="@id/profilePhone">
+            android:text="Facilities:"
+            android:textSize="16sp"
+            android:textColor="#AAAAAA"
+            android:layout_marginTop="8dp" />
 
-            <Button
-                android:id="@+id/editButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Edit"
-                android:textColor="#FFFFFF" />
+        <!-- Editable Facilities Field -->
+        <EditText
+            android:id="@+id/profileFacilities"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter facilities separated by commas"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:background="#1E1E1E"
+            android:padding="8dp"
+            android:layout_marginBottom="16dp" />
+    </LinearLayout>
 
-            <Button
-                android:id="@+id/saveButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Save"
-                android:visibility="gone"
-                android:textColor="#FFFFFF"
-                android:layout_marginStart="16dp" />
-        </LinearLayout>
+    <!-- Buttons for Edit and Save (placed outside the sections) -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/facilitiesSection"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <Button
+            android:id="@+id/editButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:visibility="gone"
+            android:textColor="#FFFFFF"
+            android:layout_marginStart="16dp" />
     </LinearLayout>
 
     <!-- Bottom Navigation View -->
