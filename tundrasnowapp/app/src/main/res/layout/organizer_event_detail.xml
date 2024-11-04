@@ -105,6 +105,7 @@
                         android:id="@+id/toggleGeolocationRequirement"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:enabled="false"
                         android:textOff="In-person"
                         android:textOn="Remote"
                         android:textSize="12sp" />

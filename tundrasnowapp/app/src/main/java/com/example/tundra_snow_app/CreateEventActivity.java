@@ -58,7 +58,6 @@ public class CreateEventActivity extends AppCompatActivity{
         storage = FirebaseStorage.getInstance();
 
         // TODO ADD IMAGE
-        // TODO ADD USERID
         eventTitleEditText = findViewById(R.id.editTextEventTitle);
         eventDescriptionEditText = findViewById(R.id.editTextEventDescription);
         eventLocationEditText = findViewById(R.id.editTextLocation);

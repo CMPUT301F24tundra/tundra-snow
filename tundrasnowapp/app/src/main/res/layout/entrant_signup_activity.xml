@@ -129,9 +129,9 @@
     <LinearLayout
         android:id="@+id/facilityLayout"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:orientation="vertical"
+        android:layout_height="wrap_content"
         android:visibility="gone"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/checkBoxOrganizer">
@@ -142,6 +142,16 @@
             android:layout_height="wrap_content"
             android:backgroundTint="#D3D3D3"
             android:hint="Facility Name"
+            android:minHeight="48dp"
+            android:padding="8dp"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/editTextFacilityLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#D3D3D3"
+            android:hint="Facility Location"
             android:minHeight="48dp"
             android:padding="8dp"
             android:textSize="14sp" />

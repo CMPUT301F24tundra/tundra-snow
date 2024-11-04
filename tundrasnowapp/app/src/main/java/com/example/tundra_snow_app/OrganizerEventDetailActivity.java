@@ -10,6 +10,8 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -34,6 +36,7 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private String eventID, currentUserID;
     private TextView viewWaitingList, viewEnrolledList, viewChosenList, viewCancelledList;
+    private ToggleButton toggleGeolocationButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +47,7 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
         eventDate = findViewById(R.id.organizerEventDate);
         eventLocation = findViewById(R.id.organizerEventLocation);
         eventDescription = findViewById(R.id.organizerEventDescription);
+        toggleGeolocationButton = findViewById(R.id.toggleGeolocationRequirement);
 
         viewWaitingList = findViewById(R.id.viewWaitingList);
         viewEnrolledList = findViewById(R.id.viewEnrolledList);
@@ -56,6 +60,11 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         eventID = getIntent().getStringExtra("eventID");  // Get event ID from intent
+
+        // Set listener to update button text based on toggle state
+        toggleGeolocationButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            toggleGeolocationButton.setText(isChecked ? "Remote" : "In-person");
+        });
 
         fetchSessionUserId(() -> {
             loadEventDetails();
@@ -101,6 +110,13 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
                             eventLocation.setText(event.getLocation());
                             eventDescription.setText(event.getDescription());
                         }
+
+                        // Set the toggle state based on the geoLocationRequirement in Firestore
+                        String geoLocationRequirement = documentSnapshot.getString("geoLocationRequirement");
+                        if (geoLocationRequirement != null) {
+                            toggleGeolocationButton.setChecked(geoLocationRequirement.equals("Remote"));
+                            toggleGeolocationButton.setText(geoLocationRequirement.equals("Remote") ? "Remote" : "In-person");
+                        }
                     } else {
                         Toast.makeText(this, "Event not found", Toast.LENGTH_SHORT).show();
                     }
@@ -119,12 +135,16 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
             return;
         }
 
+        // Determine the geoLocationRequirement value based on the toggle state
+        String geoLocationRequirement = toggleGeolocationButton.isChecked() ? "Remote" : "In-person";
+
         // Update the user profile in the "users" collection
         db.collection("events").document(eventID)
                 .update("title", editedEventTitle,
                         "startDate", new Timestamp(editedEventDate),
                         "location", editedEventLocation,
-                        "description", editedEventDescription)
+                        "description", editedEventDescription,
+                        "geoLocationRequirement", geoLocationRequirement)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Event Entry Updated Successfully.", Toast.LENGTH_LONG).show();
                     enableEditing(false);
@@ -190,6 +210,7 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
         eventDate.setClickable(isEditable);
         eventLocation.setEnabled(isEditable);
         eventDescription.setEnabled(isEditable);
+        toggleGeolocationButton.setEnabled(isEditable);
 
         // Toggle visibility of buttons
         editButton.setVisibility(isEditable ? View.GONE : View.VISIBLE);
