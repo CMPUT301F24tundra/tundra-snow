@@ -29,7 +29,7 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="10dp"
                 android:paddingBottom="20dp"
-                android:text="Confirmed Participant List"
+                android:text="Enrolled Participant List"
                 android:textColor="#000000"
                 android:textSize="25sp"
                 android:textStyle="bold" />
@@ -58,30 +58,6 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="35dp"
-                        android:layout_gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:padding="7dp"
-                            android:text="Set Max Participant List: "
-                            android:textColor="#FFFFFF"
-                            android:textSize="11.5sp" />
-
-                        <EditText
-                            android:id="@+id/maxParticipantEdit"
-                            android:layout_width="60dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="10dp"
-                            android:background="#A8A8A8A8"
-                            android:textSize="12sp"
-                            android:enabled="false"/>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="35dp"
                         android:gravity="center_vertical">
 
                         <TextView
@@ -100,31 +76,6 @@
                             android:layout_height="match_parent"
                             android:backgroundTint="#48A700"
                             android:text="Send"
-                            android:textSize="10sp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="35dp"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/viewWaitingList"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:padding="7dp"
-                            android:text="Select Random Registration Sample"
-                            android:textColor="#FFFFFF"
-                            android:textSize="11.5sp" />
-
-                        <Button
-                            android:id="@+id/selectRegSampleButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:backgroundTint="#48A700"
-                            android:text="Select"
                             android:textSize="10sp" />
 
                     </LinearLayout>
@@ -175,24 +126,6 @@
                     android:backgroundTint="#7A7A7A"
                     android:text="Back"
                     android:textColor="#000000" />
-                <!-- Save and Edit Button -->
-                <Button
-                    android:id="@+id/editButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="30dp"
-                    android:backgroundTint="#C80000"
-                    android:text="Edit" />
-
-                <Button
-                    android:id="@+id/saveButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="30dp"
-                    android:backgroundTint="#48A700"
-                    android:text="Save"
-                    android:textColor="#FFFFFF"
-                    android:visibility="gone" />
 
             </LinearLayout>
         </LinearLayout>
