@@ -39,6 +39,9 @@ public class Users {
     private List<String> facilityList;
     private List<String> organizerEventList;
 
+    public Users() {
+        // Initialize fields if necessary
+    }
 
     public Users (
             String userID,

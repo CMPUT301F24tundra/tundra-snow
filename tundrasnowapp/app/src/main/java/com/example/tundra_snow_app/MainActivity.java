@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private Button loginButton, signInWithDeviceButton;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
+    private boolean isAdmin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,8 +112,13 @@ public class MainActivity extends AppCompatActivity {
                             String storedPassword = document.getString("password");
 
                             if (storedPassword != null && storedPassword.equals(password)) {
+                                // Get roles list and check for "admin"
+                                List<String> roles = (List<String>) document.get("roles");
+                                isAdmin = roles != null && roles.contains("admin");
+
                                 // Password matches
                                 Toast.makeText(MainActivity.this, "Login successful!", Toast.LENGTH_LONG).show();
+
                                 // Log current user in a session
                                 logUserSession(document.getId());
                                 startMainContent();
@@ -143,7 +149,12 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
+                            // Get roles list and check for "admin"
+                            List<String> roles = (List<String>) document.get("roles");
+                            isAdmin = roles != null && roles.contains("admin");
+
                             Toast.makeText(MainActivity.this, "Device login successful!", Toast.LENGTH_LONG).show();
+
                             // Log current user in a session
                             logUserSession(document.getId());
                             startMainContent();
@@ -208,9 +219,14 @@ public class MainActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e("Session", "Error fetching user data for session", e));
     }
 
-    // Navigate to EventViewActivity
+    // Navigate to EventViewActivity or Admin activity depending on if they're an admin or not
     private void startMainContent() {
-        Intent intent = new Intent(MainActivity.this, EventViewActivity.class);
+        Intent intent;
+        if (isAdmin) {
+            intent = new Intent(MainActivity.this, AdminEventViewActivity.class); // Admin view
+        } else {
+            intent = new Intent(MainActivity.this, EventViewActivity.class); // Regular user view
+        }
         startActivity(intent);
     }
 }

@@ -35,6 +35,9 @@
         <activity android:name=".OrganizerEventDetailActivity" />
         <activity android:name=".ViewParticipantListActivity" />
         <activity android:name=".MyEventDetailActivity" />
+        <activity android:name=".AdminEventViewActivity" />
+        <activity android:name=".AdminFacilityViewActivity" />
+        <activity android:name=".AdminUsersViewActivity" />
 
     </application>
 
