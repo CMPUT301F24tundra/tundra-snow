@@ -38,6 +38,8 @@
         <activity android:name=".AdminEventViewActivity" />
         <activity android:name=".AdminFacilityViewActivity" />
         <activity android:name=".AdminUsersViewActivity" />
+        <activity android:name=".SettingsViewActivity" />
+
 
     </application>
 
