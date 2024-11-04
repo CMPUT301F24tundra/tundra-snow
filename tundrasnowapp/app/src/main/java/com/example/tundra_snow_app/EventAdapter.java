@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -43,9 +44,8 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         holder.locationTextView.setText(event.getLocation());
 
         // Format and set the event date if not null
-        if (event.getDateStart() != null) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
-            String formattedDate = dateFormat.format(event.getDateStart());
+        if (event.getStartDate() != null) {
+            String formattedDate = event.getFormattedDate(event.getStartDate());
             holder.dateTextView.setText(formattedDate);
         } else {
             holder.dateTextView.setText("Date TBD");

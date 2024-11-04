@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="25dp">
+
+        <LinearLayout
+            android:background="@drawable/event_detail_background"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="5dp">
+
+            <!-- View Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="My Event:"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:paddingTop="10dp"
+                android:textColor="#000000" />
+
+            <EditText
+                android:id="@+id/organizerEventTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#5B5B5B"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:padding="8dp"
+                android:enabled="false"/>
+
+            <!-- Event Date -->
+            <EditText
+                android:id="@+id/organizerEventDate"
+                android:layout_width="wrap_content"
+                android:text=""
+                android:textSize="13dp"
+                android:layout_height="wrap_content"
+                android:textColor="#FF7171"
+                android:padding="8dp"
+                android:enabled="false"
+                android:focusable="false"
+                android:clickable="false" />
+
+            <!-- Event Location -->
+            <EditText
+                android:id="@+id/organizerEventLocation"
+                android:layout_width="wrap_content"
+                android:text=""
+                android:textSize="13dp"
+                android:layout_height="wrap_content"
+                android:textColor="#000000"
+                android:padding="8dp"
+                android:enabled="false"/>
+
+            <!-- Event Description -->
+            <EditText
+                android:id="@+id/organizerEventDescription"
+                android:text=""
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:textColor="#494949"
+                android:padding="8dp"
+                android:layout_marginBottom="10dp"
+                android:enabled="false"/>
+
+
+            <LinearLayout
+                android:id="@+id/viewOptionBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:orientation="vertical"
+                android:background="@drawable/organizer_event_background">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:gravity="center" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Geolocation Requirement: "
+                        android:textColor="#FFFFFF"
+                        android:textSize="15dp"
+                        android:layout_marginStart="10dp"/>
+
+                    <ToggleButton
+                        android:id="@+id/toggleGeolocationRequirement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textOff="In-person"
+                        android:textOn="Remote"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical" >
+
+                    <TextView
+                        android:id="@+id/viewWaitingList"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="View Participant Waiting List"
+                        android:textSize="14sp"
+                        android:textColor="#FFFFFF"
+                        android:padding="11dp"
+                        android:layout_weight="1"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text=">"
+                        android:textColor="#FFFFFF"
+                        android:paddingEnd="10dp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical" >
+
+                    <TextView
+                        android:id="@+id/viewEnrolledList"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="View Enrolled Participants"
+                        android:textSize="14sp"
+                        android:textColor="#FFFFFF"
+                        android:padding="11dp"
+                        android:layout_weight="1"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text=">"
+                        android:textColor="#FFFFFF"
+                        android:paddingEnd="10dp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical" >
+
+                    <TextView
+                        android:id="@+id/viewChosenList"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="View Chosen Participants"
+                        android:textSize="14sp"
+                        android:textColor="#FFFFFF"
+                        android:padding="11dp"
+                        android:layout_weight="1"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text=">"
+                        android:textColor="#FFFFFF"
+                        android:paddingEnd="10dp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical" >
+
+                    <TextView
+                        android:id="@+id/viewCancelledList"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="View Cancelled Participants"
+                        android:textSize="14sp"
+                        android:textColor="#FFFFFF"
+                        android:padding="11dp"
+                        android:layout_weight="1"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text=">"
+                        android:textColor="#FFFFFF"
+                        android:paddingEnd="10dp"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/buttonBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="12dp"
+                android:layout_gravity="center_horizontal">
+
+                <!-- Back Button -->
+                <Button
+                    android:id="@+id/backButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Back"
+                    android:textColor="#000000"
+                    android:backgroundTint="#7A7A7A"/>
+                <!-- Save and Edit Button -->
+                <Button
+                    android:id="@+id/editButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Edit"
+                    android:layout_marginStart="30dp"
+                    android:backgroundTint="#C80000"/>
+
+                <Button
+                    android:id="@+id/saveButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="30dp"
+                    android:text="Save"
+                    android:visibility="gone"
+                    android:backgroundTint="#48A700"
+                    android:textColor="#FFFFFF" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

@@ -20,7 +20,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -179,13 +181,20 @@ public class MainActivity extends AppCompatActivity {
                         sessionData.put("lastName", documentSnapshot.getString("lastName"));
                         sessionData.put("deviceID", documentSnapshot.getString("deviceID"));
                         sessionData.put("roles", documentSnapshot.get("roles")); // Assuming roles is stored as an array
-                        sessionData.put("facilityList", documentSnapshot.get("facility"));
                         sessionData.put("notificationsEnabled", documentSnapshot.getBoolean("notificationsEnabled"));
                         sessionData.put("dateOfBirth", documentSnapshot.getString("dateOfBirth"));
                         sessionData.put("organizerEventList", documentSnapshot.get("organizerEventList"));
                         sessionData.put("permissions", documentSnapshot.get("permissions"));
                         sessionData.put("userEventList", documentSnapshot.get("userEventList"));
                         sessionData.put("phoneNumber", documentSnapshot.getString("phoneNumber"));
+
+                        // Add all facilities from the user's facility list
+                        List<String> facilityList = (List<String>) documentSnapshot.get("facilityList");
+                        if (facilityList != null) {
+                            sessionData.put("facilityList", facilityList);
+                        } else {
+                            sessionData.put("facilityList", new ArrayList<>()); // Default to empty list if null
+                        }
 
                         // Save session data to Firestore
                         db.collection("sessions").document(sessionId)

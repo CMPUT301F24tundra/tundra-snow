@@ -9,14 +9,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -67,9 +63,9 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
         holder.locationTextView.setText(event.getLocation());
 
         // Format and set the event date if not null
-        if (event.getDateStart() != null) {
+        if (event.getStartDate() != null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
-            String formattedDate = dateFormat.format(event.getDateStart());
+            String formattedDate = dateFormat.format(event.getStartDate());
             holder.dateTextView.setText(formattedDate);
         } else {
             holder.dateTextView.setText("Date TBD");
@@ -84,8 +80,16 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
             holder.statusTextView.setTextSize(20);
         }
 
+        // Set the onClickListener with a conditional to check the mode
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, EventDetailActivity.class);
+            Intent intent;
+            if (isOrganizerMode) {
+                // Organizer mode: Navigate to OrganizerEventActivity
+                intent = new Intent(context, OrganizerEventDetailActivity.class);
+            } else {
+                // User mode: Navigate to EventDetailActivity
+                intent = new Intent(context, EventDetailActivity.class);
+            }
             intent.putExtra("eventID", event.getEventID());  // Pass event ID to the detail activity
             context.startActivity(intent);
         });

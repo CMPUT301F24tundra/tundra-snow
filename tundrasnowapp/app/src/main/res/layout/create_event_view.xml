@@ -68,6 +68,21 @@
                 android:hint="Enter Image URL"
                 android:inputType="textUri" />
 
+            <!-- Geolocation Requirement Toggle Button -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Geolocation Requirement"
+                android:textColor="#FFFFFF" />
+
+            <ToggleButton
+                android:id="@+id/toggleGeolocationRequirement"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textOff="In-person"
+                android:textOn="Remote"
+                android:layout_marginBottom="10dp" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

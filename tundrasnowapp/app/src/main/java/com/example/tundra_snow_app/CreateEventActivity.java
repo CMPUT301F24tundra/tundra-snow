@@ -40,8 +40,9 @@ public class CreateEventActivity extends AppCompatActivity{
     private EditText eventTitleEditText, eventDescriptionEditText, eventImageURLEditText, eventLocationEditText, eventStartDatePicker, eventEndDatePicker;
     private EditText eventRegistrationStartDatePicker, eventRegistrationEndDatePicker, eventCapacityEditText;
     private Button createEventButton, backButton, saveButton;
-    private String eventID, currentUserID, facility;
-    private String[] entrantList, confirmedList, declinedList, cancelledList;
+    private String eventID, currentUserID;
+    private ToggleButton toggleGeolocationButton;
+    private List<String> facility, entrantList, confirmedList, declinedList, cancelledList;
 
     private FirebaseFirestore db;
     private FirebaseStorage storage;
@@ -61,6 +62,7 @@ public class CreateEventActivity extends AppCompatActivity{
         eventTitleEditText = findViewById(R.id.editTextEventTitle);
         eventDescriptionEditText = findViewById(R.id.editTextEventDescription);
         eventLocationEditText = findViewById(R.id.editTextLocation);
+        toggleGeolocationButton = findViewById(R.id.toggleGeolocationRequirement);
         eventCapacityEditText = findViewById(R.id.editTextCapacity);
 
         // Date sliders
@@ -83,6 +85,15 @@ public class CreateEventActivity extends AppCompatActivity{
         createEventButton.setOnClickListener(v -> createEvent());
         saveButton.setOnClickListener(v -> saveEvent());
         backButton.setOnClickListener(v -> finish());
+
+        // Set listener to update based on toggle state
+        toggleGeolocationButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                toggleGeolocationButton.setText("Remote");
+            } else {
+                toggleGeolocationButton.setText("In-person");
+            }
+        });
 
         // Set default or passed eventID
         eventID = getIntent().getStringExtra("eventID");
@@ -107,7 +118,18 @@ public class CreateEventActivity extends AppCompatActivity{
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         DocumentSnapshot latestSession = task.getResult().getDocuments().get(0);
                         currentUserID = latestSession.getString("userId");
-                        facility = latestSession.getString("facility"); // Assuming facility is part of session data
+
+                        List<String> facilityList = (List<String>) latestSession.get("facilityList");
+                        if (facilityList != null) {
+                            // Process each facility string if needed, or assign it directly
+                            for (String facility : facilityList) {
+                                Log.d("Session", "Facility: " + facility);
+                            }
+                            // Or, if you have a field for facility in the class, store the list:
+                            this.facility = facilityList; // assuming facility is a List<String>
+                        } else {
+                            Log.d("Session", "No facilities found.");
+                        }
                         onComplete.run();
                     } else {
                         Toast.makeText(this, "No active session found.", Toast.LENGTH_SHORT).show();
@@ -150,6 +172,9 @@ public class CreateEventActivity extends AppCompatActivity{
         List<String> declinedList = new ArrayList<>();
         List<String> cancelledList = new ArrayList<>();
 
+        // Determine geolocation requirement based on toggle state
+        String geolocationRequirement = toggleGeolocationButton.isChecked() ? "Remote" : "In-person";
+
         Map<String, Object> event = new HashMap<>();
         event.put("eventID", eventID);
         event.put("title", eventTitle);
@@ -164,6 +189,7 @@ public class CreateEventActivity extends AppCompatActivity{
         event.put("organizer", currentUserID);
         event.put("published", publishedStatus);
         event.put("facility", facility);
+        event.put("geolocationRequirement", geolocationRequirement);
 
         // Initialize lists as empty arrays
         event.put("entrantList", entrantList);
