@@ -1,13 +1,16 @@
 package com.example.tundra_snow_app;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.Toast;
+import android.widget.ListView;
 import android.widget.ToggleButton;
+import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -17,17 +20,19 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 
 public class ProfileViewActivity extends AppCompatActivity {
 
-    private EditText profileName, profileEmail, profilePhone, profileFacilities;
-    private Button editButton, saveButton;
-    private ToggleButton modeToggle;
-    private LinearLayout profileSection, facilitiesSection;
+    private EditText profileName, profileEmail, profilePhone;
+    private Button editButton, saveButton, addFacilityButton;
+    private ListView facilitiesListView;
     private FirebaseFirestore db;
     private String userId;
     private ArrayList<String> facilitiesList;
+    private ArrayAdapter<String> facilitiesAdapter;
+    private ToggleButton modeToggle;
+    private View profileSection, facilitiesSection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,27 +46,40 @@ public class ProfileViewActivity extends AppCompatActivity {
         profileName = findViewById(R.id.profileName);
         profileEmail = findViewById(R.id.profileEmail);
         profilePhone = findViewById(R.id.profilePhone);
-        profileFacilities = findViewById(R.id.profileFacilities);
         editButton = findViewById(R.id.editButton);
         saveButton = findViewById(R.id.saveButton);
+        addFacilityButton = findViewById(R.id.addFacilityButton);
+        facilitiesListView = findViewById(R.id.facilitiesListView);
         modeToggle = findViewById(R.id.modeToggle);
-
         profileSection = findViewById(R.id.profileSection);
         facilitiesSection = findViewById(R.id.facilitiesSection);
 
         db = FirebaseFirestore.getInstance();
+        facilitiesList = new ArrayList<>();
+
+        facilitiesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, facilitiesList);
+        facilitiesListView.setAdapter(facilitiesAdapter);
 
         fetchUserIdFromSession();
 
         editButton.setOnClickListener(v -> enableEditing(true));
         saveButton.setOnClickListener(v -> saveProfileUpdates());
+        addFacilityButton.setOnClickListener(v -> showFacilityDialog(null));
 
-        // Toggle visibility between profile and facilities section
+        facilitiesListView.setOnItemClickListener((parent, view, position, id) -> showFacilityDialog(position));
+        facilitiesListView.setOnItemLongClickListener((parent, view, position, id) -> {
+            removeFacility(position);
+            return true;
+        });
+
+        // Toggle between User and Organizer mode
         modeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
+                // Organizer Mode: Show facilities section, hide profile section
                 profileSection.setVisibility(View.GONE);
                 facilitiesSection.setVisibility(View.VISIBLE);
             } else {
+                // User Mode: Show profile section, hide facilities section
                 profileSection.setVisibility(View.VISIBLE);
                 facilitiesSection.setVisibility(View.GONE);
             }
@@ -102,8 +120,12 @@ public class ProfileViewActivity extends AppCompatActivity {
                         profileEmail.setText(documentSnapshot.getString("email") != null ? documentSnapshot.getString("email") : getString(R.string.default_email));
                         profilePhone.setText(documentSnapshot.getString("phoneNumber") != null ? documentSnapshot.getString("phoneNumber") : getString(R.string.default_phone));
 
-                        facilitiesList = (ArrayList<String>) documentSnapshot.get("facilityList");
-                        profileFacilities.setText(facilitiesList != null ? String.join(", ", facilitiesList) : "");
+                        List<String> facilitiesFromDB = (List<String>) documentSnapshot.get("facilityList");
+                        facilitiesList.clear();
+                        if (facilitiesFromDB != null) {
+                            facilitiesList.addAll(facilitiesFromDB);
+                        }
+                        facilitiesAdapter.notifyDataSetChanged();
                         enableEditing(false);
                     } else {
                         Toast.makeText(this, "User profile not found.", Toast.LENGTH_SHORT).show();
@@ -119,21 +141,18 @@ public class ProfileViewActivity extends AppCompatActivity {
         profileName.setEnabled(isEditable);
         profileEmail.setEnabled(isEditable);
         profilePhone.setEnabled(isEditable);
-        profileFacilities.setEnabled(isEditable);
 
         editButton.setVisibility(isEditable ? View.GONE : View.VISIBLE);
         saveButton.setVisibility(isEditable ? View.VISIBLE : View.GONE);
+        addFacilityButton.setEnabled(isEditable);
     }
 
     private void saveProfileUpdates() {
         String[] nameParts = profileName.getText().toString().split(" ");
-        String firstName = nameParts.length > 0 ? nameParts[0] : "";
+        String firstName = nameParts[0];
         String lastName = nameParts.length > 1 ? nameParts[1] : "";
         String email = profileEmail.getText().toString();
         String phone = profilePhone.getText().toString();
-
-        String facilitiesInput = profileFacilities.getText().toString();
-        facilitiesList = new ArrayList<>(Arrays.asList(facilitiesInput.split("\\s*,\\s*")));
 
         db.collection("users").document(userId)
                 .update("firstName", firstName,
@@ -149,5 +168,33 @@ public class ProfileViewActivity extends AppCompatActivity {
                     Toast.makeText(this, "Failed to update profile.", Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 });
+    }
+
+    private void showFacilityDialog(Integer position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(position == null ? "Add Facility" : "Edit Facility");
+
+        final EditText input = new EditText(this);
+        input.setHint("Enter facility name");
+        if (position != null) input.setText(facilitiesList.get(position));
+        builder.setView(input);
+
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            String facility = input.getText().toString().trim();
+            if (position == null) {
+                facilitiesList.add(facility);
+            } else {
+                facilitiesList.set(position, facility);
+            }
+            facilitiesAdapter.notifyDataSetChanged();
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private void removeFacility(int position) {
+        facilitiesList.remove(position);
+        facilitiesAdapter.notifyDataSetChanged();
     }
 }

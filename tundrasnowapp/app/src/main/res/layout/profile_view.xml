@@ -116,7 +116,7 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/header"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent">>
 
         <TextView
             android:id="@+id/facilitiesLabel"
@@ -127,17 +127,23 @@
             android:textColor="#AAAAAA"
             android:layout_marginTop="8dp" />
 
-        <!-- Editable Facilities Field -->
-        <EditText
-            android:id="@+id/profileFacilities"
+        <ListView
+            android:id="@+id/facilitiesListView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter facilities separated by commas"
-            android:textSize="18sp"
-            android:textColor="#FFFFFF"
-            android:background="#1E1E1E"
+            android:divider="@android:color/darker_gray"
+            android:dividerHeight="1dp"
+            android:background="#000000"
             android:padding="8dp"
-            android:layout_marginBottom="16dp" />
+            android:textColor="#FFFFFF"/>
+
+        <Button
+            android:id="@+id/addFacilityButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Facility"
+            android:layout_marginTop="16dp"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
     <!-- Buttons for Edit and Save (placed outside the sections) -->
