@@ -1,14 +1,15 @@
 package com.example.tundra_snow_app;
 
 /**
- * The Facilities class represents a facility where an event can occur.
- * Each facility includes details such as a unique facility ID, the name 
- * of the facility, and its location.
+ * Represents a facility where an event can occur. It encapsulates details
+ * such as a unique facility ID, the name of the facility, and its location.
  */
 public class Facilities {
-    public String facilityID; // Unique facility ID
-    public String facilityName; // Name of the facility
-    public String facilityLocation; // Location of the facility
+    
+    // Facility properties
+    private String facilityID; // Unique facility ID
+    private String facilityName; // Name of the facility
+    private String facilityLocation; // Location of the facility
 
     /**
      * No-argument constructor (required by Firestore).

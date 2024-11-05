@@ -8,9 +8,8 @@ import java.util.Locale;
 
 
 /**
- * The events class represents an event within the application, encapsulating details such as
+ * Represents an event within the application. It encapsulates details such as
  * the event's ID, organizer, title, description, dates, location, and participants.
- * It also includes functionality for adding/removing participants from various lists.
  */
 public class Events {
 
