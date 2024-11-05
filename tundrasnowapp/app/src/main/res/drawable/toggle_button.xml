@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background color when checked (toggled on) -->
+    <item android:drawable="@color/toggle_checked_background" android:color="@color/toggle_checked_text" android:state_checked="true" />
+    <!-- Background color when not checked (toggled off) -->
+    <item android:drawable="@color/toggle_unchecked_background" android:color="@color/toggle_unchecked_text"/>
+</selector>

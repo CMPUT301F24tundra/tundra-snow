@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="Entrant Account Creation"
+        android:text="Register New Account"
         android:textColor="#000000"
         android:textSize="28sp"
         android:textStyle="bold"
@@ -29,12 +29,9 @@
         android:layout_marginTop="4dp"
         android:contentDescription="Profile Picture"
         android:scaleType="centerCrop"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.116"
+        app:layout_constraintTop_toBottomOf="@id/title_create_profile"
         tools:srcCompat="@tools:sample/avatars" />
 
     <EditText
@@ -46,12 +43,9 @@
         android:minHeight="48dp"
         android:padding="8dp"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.285" />
+        app:layout_constraintTop_toBottomOf="@id/imageViewProfilePicture"/>
 
     <EditText
         android:id="@+id/editTextLastName"
@@ -62,12 +56,9 @@
         android:minHeight="48dp"
         android:padding="8dp"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.355" />
+        app:layout_constraintTop_toBottomOf="@id/editTextFirstName"/>
 
 
     <EditText
@@ -79,12 +70,9 @@
         android:minHeight="48dp"
         android:padding="8dp"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.426" />
+        app:layout_constraintTop_toBottomOf="@id/editTextLastName" />
 
 
     <EditText
@@ -96,12 +84,9 @@
         android:minHeight="48dp"
         android:padding="8dp"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.499" />
+        app:layout_constraintTop_toBottomOf="@id/editTextEmail"/>
 
     <EditText
         android:id="@+id/editTextPhoneNumber"
@@ -112,12 +97,9 @@
         android:minHeight="48dp"
         android:padding="8dp"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.569" />
+        app:layout_constraintTop_toBottomOf="@id/editTextDateOfBirth"/>
 
 
     <EditText
@@ -129,50 +111,80 @@
         android:minHeight="48dp"
         android:padding="8dp"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.639" />
+        app:layout_constraintTop_toBottomOf="@id/editTextPhoneNumber"/>
+
+    <!-- Organizer Role Selection -->
+    <CheckBox
+        android:id="@+id/checkBoxOrganizer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Register as Organizer"
+        android:layout_margin="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/editTextPassword"/>
+
+    <!-- Facility Input - Hidden Initially -->
+    <LinearLayout
+        android:id="@+id/facilityLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/checkBoxOrganizer">
+
+        <EditText
+            android:id="@+id/editTextFacility"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#D3D3D3"
+            android:hint="Facility Name"
+            android:minHeight="48dp"
+            android:padding="8dp"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/editTextFacilityLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#D3D3D3"
+            android:hint="Facility Location"
+            android:minHeight="48dp"
+            android:padding="8dp"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <ToggleButton
+        android:id="@+id/toggleButtonNotification"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOff="Notifications Disabled"
+        android:textOn="Notifications Enabled"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/facilityLayout" />
 
     <Button
         android:id="@+id/signupButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Sign Up"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.745"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.737" />
+        app:layout_constraintTop_toBottomOf="@id/toggleButtonNotification" />
 
     <Button
         android:id="@+id/backButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Back"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.278"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.737" />
-
-    <ToggleButton
-        android:id="@+id/toggleButtonNotification"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="211dp"
-        android:textOff="Notifications Disabled"
-        android:textOn="Notifications Enabled"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.879" />
+        app:layout_constraintTop_toBottomOf="@id/toggleButtonNotification" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
