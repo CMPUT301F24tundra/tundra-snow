@@ -2,7 +2,13 @@ package com.example.tundra_snow_app;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Date;
 
+/**
+ * Represents an organizer of events. It encapsulates details such as the organizer's
+ * unique ID, first name, last name, email, password, profile picture, date of birth,
+ * phone number, notification settings, device ID, location, roles, and list of facilities.
+ */
 public class Organizers extends Users {
     public Organizers(
             String userID,
@@ -11,11 +17,9 @@ public class Organizers extends Users {
             String email,
             String password,
             String profilePic,
-            String dateOfBirth,
-
+            Date dateOfBirth,
             String phoneNumber,
             boolean notificationsEnabled,
-
             String deviceID,
             //boolean geolocationEnabled,
             String location,
