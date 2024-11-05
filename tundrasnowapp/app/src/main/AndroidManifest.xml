@@ -40,6 +40,8 @@
         <activity android:name=".AdminUsersViewActivity" />
         <activity android:name=".SettingsViewActivity" />
         <activity android:name=".ViewConfirmedParticipantListActivity" />
+        <activity android:name=".ViewChosenParticipantListActivity" />
+        <activity android:name=".ViewCancelledParticipantListActivity" />
 
 
     </application>
