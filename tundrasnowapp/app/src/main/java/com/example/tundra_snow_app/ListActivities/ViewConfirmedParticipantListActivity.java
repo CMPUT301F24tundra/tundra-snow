@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-// 
 import com.example.tundra_snow_app.ListAdapters.ConfirmedListAdapter;
 
 import com.example.tundra_snow_app.R;
@@ -15,6 +14,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
+/**
+ * Activity to view the list of confirmed participants for an event.
+ */
 public class ViewConfirmedParticipantListActivity extends AppCompatActivity {
 
     private RecyclerView participantRecyclerView;
@@ -23,6 +25,10 @@ public class ViewConfirmedParticipantListActivity extends AppCompatActivity {
     private String eventID;
     private Button backButton;
 
+    /**
+     * Called when the activity is starting. Initializes the activity view and loads the confirmed participant list.
+     * @param savedInstanceState The saved instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +47,9 @@ public class ViewConfirmedParticipantListActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Loads the list of confirmed participants for the event from Firestore.
+     */
     private void loadParticipantList() {
         db.collection("events").document(eventID).get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {

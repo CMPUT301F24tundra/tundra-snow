@@ -22,6 +22,10 @@ import com.google.firebase.firestore.Query;
 
 import java.util.List;
 
+/**
+ * Activity class for the event detail view. This class is responsible for displaying
+ * the details of an event.
+ */
 public class MyEventDetailActivity extends AppCompatActivity {
 
     private TextView titleTextView, dateTextView, locationTextView, descriptionTextView, geoLocationTextView, statusMessage;
@@ -29,6 +33,10 @@ public class MyEventDetailActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private String eventID, currentUserID, userStatus;
 
+    /**
+     * Initializes the views and loads the event details.
+     * @param savedInstanceState The saved instance state.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +57,10 @@ public class MyEventDetailActivity extends AppCompatActivity {
 
         fetchSessionUserId(this::loadEventDetails);
     }
-
+    
+    /**
+     * Loads the event details from the Firestore database and populates the view with the event data.
+     */
     private void loadEventDetails() {
         db.collection("events").document(eventID).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -97,7 +108,10 @@ public class MyEventDetailActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to load event details", Toast.LENGTH_SHORT).show());
     }
-
+    
+    /**
+     * Configures the buttons based on the user's status for the event.
+     */
     private void configureChosenButtons() {
 
         if (userStatus.equals("entrant")) {
@@ -152,7 +166,10 @@ public class MyEventDetailActivity extends AppCompatActivity {
         }
     }
 
-    // Fetch userId from latest session in "sessions" collection
+    /**
+     * Fetches the user ID from the latest session in the "sessions" collection.
+     * @param onComplete The callback to execute after fetching the user ID.
+     */
     private void fetchSessionUserId(@NonNull Runnable onComplete) {
         CollectionReference sessionsRef = db.collection("sessions");
         sessionsRef.orderBy("loginTimestamp", Query.Direction.DESCENDING).limit(1)
@@ -169,6 +186,9 @@ public class MyEventDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e("Session", "Error fetching session data", e));
     }
 
+    /**
+     * Finishes the activity with a result.
+     */
     private void finishWithResult() {
         Intent resultIntent = new Intent();
         setResult(Activity.RESULT_OK, resultIntent);

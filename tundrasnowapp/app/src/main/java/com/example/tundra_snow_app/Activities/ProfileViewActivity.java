@@ -23,6 +23,9 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Activity for viewing and editing the user's profile information.
+ */
 public class ProfileViewActivity extends AppCompatActivity {
 
     private EditText profileName, profileEmail, profilePhone;
@@ -37,6 +40,10 @@ public class ProfileViewActivity extends AppCompatActivity {
     private View profileSection;
     private View facilitiesSection;
 
+    /**
+     * Initializes the activity and sets up the UI elements.
+     * @param savedInstanceState The saved instance state.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,6 +86,9 @@ public class ProfileViewActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Shows the user view and hides the organizer view.
+     */
     private void showUserView() {
         profileSection.setVisibility(View.VISIBLE);
         facilitiesSection.setVisibility(View.GONE);
@@ -86,6 +96,9 @@ public class ProfileViewActivity extends AppCompatActivity {
         saveButton.setVisibility(View.GONE);     // Hide Save button initially in User mode
     }
 
+    /**
+     * Shows the organizer view and hides the user view.
+     */
     private void showOrganizerView() {
         profileSection.setVisibility(View.GONE);
         facilitiesSection.setVisibility(View.VISIBLE);
@@ -94,6 +107,9 @@ public class ProfileViewActivity extends AppCompatActivity {
         setupFacilitiesListView();               // Ensure the facilities are displayed in Organizer mode
     }
 
+    /**
+     * Fetches the user ID from the latest session in Firestore.
+     */
     private void fetchUserIdFromSession() {
         CollectionReference sessionsRef = db.collection("sessions");
 
@@ -114,6 +130,9 @@ public class ProfileViewActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Fetches the user's profile information from Firestore.
+     */
     private void fetchUserProfile() {
         if (userId == null) return;
 
@@ -141,11 +160,18 @@ public class ProfileViewActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Sets up the facilities ListView with the user's facilities.
+     */
     private void setupFacilitiesListView() {
         adapter = new FacilityListAdapter(this, facilities, this::showFacilityOptionsDialog);
         facilitiesListView.setAdapter(adapter);
     }
 
+    /**
+     * Enables or disables editing of the profile information.
+     * @param isEditable True to enable editing, false to disable.
+     */
     private void enableEditing(boolean isEditable) {
         profileName.setEnabled(isEditable);
         profileEmail.setEnabled(isEditable);
@@ -155,6 +181,9 @@ public class ProfileViewActivity extends AppCompatActivity {
         saveButton.setVisibility(isEditable ? View.VISIBLE : View.GONE);
     }
 
+    /**
+     * Saves the updated profile information to Firestore.
+     */
     private void saveProfileUpdates() {
         String[] nameParts = profileName.getText().toString().split(" ");
         String firstName = nameParts.length > 0 ? nameParts[0] : "";
@@ -178,6 +207,9 @@ public class ProfileViewActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Shows a dialog to add a new facility to the user's profile.
+     */
     private void showAddFacilityDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add Facility");
@@ -200,6 +232,11 @@ public class ProfileViewActivity extends AppCompatActivity {
         builder.show();
     }
 
+    /**
+     * Shows a dialog with options to edit or delete a facility.
+     * @param position The position of the facility in the list.
+     * @param facility The name of the facility.
+     */
     private void showFacilityOptionsDialog(int position, String facility) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Facility Options")
@@ -210,6 +247,11 @@ public class ProfileViewActivity extends AppCompatActivity {
                 .show();
     }
 
+    /**
+     * Shows a dialog to edit the name of a facility.
+     * @param position The position of the facility in the list.
+     * @param facility The name of the facility.
+     */
     private void showEditFacilityDialog(int position, String facility) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Edit Facility");
@@ -232,6 +274,10 @@ public class ProfileViewActivity extends AppCompatActivity {
         builder.show();
     }
 
+    /**
+     * Shows a dialog to confirm deletion of a facility.
+     * @param position The position of the facility in the list.
+     */
     private void showDeleteFacilityDialog(int position) {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Facility")

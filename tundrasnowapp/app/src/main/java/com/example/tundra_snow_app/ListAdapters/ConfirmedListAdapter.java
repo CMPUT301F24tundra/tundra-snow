@@ -18,6 +18,10 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.List;
 
+/**
+ * Adapter class for the RecyclerView in the ViewConfirmedParticipantListActivity. This class
+ * handles the list of confirmed participants for an event.
+ */
 public class ConfirmedListAdapter extends RecyclerView.Adapter<ConfirmedListAdapter.UserViewHolder> {
 
     private final List<String> confirmedList;
@@ -25,6 +29,13 @@ public class ConfirmedListAdapter extends RecyclerView.Adapter<ConfirmedListAdap
     private final FirebaseFirestore db;
     private String eventID;
 
+    /**
+     * Constructor for the ConfirmedListAdapter class. Initializes the adapter with the given context,
+     * list of confirmed participants, and the event ID.
+     * @param context Context of the activity
+     * @param confirmedList List of confirmed participants
+     * @param eventID ID of the event
+     */
     public ConfirmedListAdapter(Context context, List<String> confirmedList, String eventID) {
         this.context = context;
         this.confirmedList = confirmedList;
@@ -32,6 +43,12 @@ public class ConfirmedListAdapter extends RecyclerView.Adapter<ConfirmedListAdap
         this.db = FirebaseFirestore.getInstance();
     }
 
+    /**
+     * Creates a new ViewHolder object for the RecyclerView.
+     * @param parent The ViewGroup into which the new View will be added
+     * @param viewType The view type of the new View
+     * @return A new ViewHolder that holds a View of the given view type
+     */
     @NonNull
     @Override
     public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -39,6 +56,11 @@ public class ConfirmedListAdapter extends RecyclerView.Adapter<ConfirmedListAdap
         return new UserViewHolder(view);
     }
 
+    /**
+     * Binds the data to the ViewHolder.
+     * @param holder The ViewHolder
+     * @param position The position of the item in the list
+     */
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         String userId = confirmedList.get(position);
@@ -74,11 +96,18 @@ public class ConfirmedListAdapter extends RecyclerView.Adapter<ConfirmedListAdap
         });
     }
 
+    /**
+     * Returns the number of items in the list.
+     * @return The number of items in the list
+     */
     @Override
     public int getItemCount() {
         return confirmedList.size();
     }
 
+    /**
+     * ViewHolder class for the RecyclerView.
+     */
     public static class UserViewHolder extends RecyclerView.ViewHolder {
         TextView fullNameTextView, emailTextView;
         Button cancelUserButton;

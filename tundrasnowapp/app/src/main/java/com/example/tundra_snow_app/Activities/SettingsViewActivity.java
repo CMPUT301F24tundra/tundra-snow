@@ -13,12 +13,20 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
+/**
+ * Activity class for the settings view. This class is responsible for displaying
+ * the user's settings and updating them in Firestore.
+ */
 public class SettingsViewActivity extends AppCompatActivity {
 
     private CheckBox notificationsCheckbox;
     private FirebaseFirestore db;
     private String userId;
 
+    /**
+     * This method is called when the activity is first created.
+     * @param savedInstanceState The saved instance state.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,6 +43,9 @@ public class SettingsViewActivity extends AppCompatActivity {
         fetchUserIdFromSession();
     }
 
+    /**
+     * Fetches the user ID from the latest session in Firestore.
+     */
     private void fetchUserIdFromSession() {
         CollectionReference sessionsRef = db.collection("sessions");
         sessionsRef.orderBy("loginTimestamp", Query.Direction.DESCENDING).limit(1)
@@ -55,6 +66,9 @@ public class SettingsViewActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Loads the user's settings from Firestore.
+     */
     private void loadUserSettings() {
         if (userId == null) return;
 
@@ -77,6 +91,10 @@ public class SettingsViewActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Updates the user's notification setting in Firestore.
+     * @param isChecked True if notifications are enabled, false otherwise.
+     */
     private void onNotificationToggle(boolean isChecked) {
         // Update the user's notification setting in Firestore
         db.collection("users").document(userId)

@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Adapter class for the RecyclerView in the My Events view.
+ */
 public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventViewHolder> {
 
     private final List<Events> eventList;
@@ -36,6 +39,14 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
     private boolean isOrganizerMode;
     private int requestCode;
 
+    /**
+     * Constructor for the MyEventsAdapter class.
+     * @param context The context of the activity
+     * @param eventList The list of events
+     * @param currentUserID The current user's ID
+     * @param isOrganizerMode The mode of the adapter
+     * @param requestCode The request code for the activity result
+     */
     public MyEventsAdapter(Context context, List<Events> eventList, String currentUserID, boolean isOrganizerMode, int requestCode) {
         this.context = context;
         this.eventList = eventList;
@@ -47,7 +58,10 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
         Log.d("MyEventsAdapter", "User ID: " + currentUserID);
     }
 
-    // Method to update the mode and refresh the adapter
+    /**
+     * Sets the mode of the adapter and refreshes the list.
+     * @param isOrganizerMode The mode of the adapter
+     */
     public void setMode(boolean isOrganizerMode) {
         this.isOrganizerMode = isOrganizerMode;
         Log.d("MyEventsAdapter", "Mode switched to: " + (isOrganizerMode ? "Organizer" : "User"));

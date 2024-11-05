@@ -30,6 +30,10 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Activity class for the event view for the current user. This class is responsible for
+ * displaying the events that the user is participating in.
+ */
 public class MyEventViewActivity extends AppCompatActivity {
 
     private static final String PREFS_NAME = "ModePrefs";
@@ -45,6 +49,10 @@ public class MyEventViewActivity extends AppCompatActivity {
     private TextView eventTitle;
     private String currentUserID;
 
+    /**
+     * Initializes the views and loads the events based on the user's mode.
+     * @param savedInstanceState The saved instance state.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,6 +92,15 @@ public class MyEventViewActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Handles the result from a launched activity. If the result is successful 
+     * and matches {@code REQUEST_CODE_UPDATE_STATUS}, refreshes the adapter to 
+     * update the displayed data.
+     *
+     * @param requestCode Identifier for the request.
+     * @param resultCode  Result code returned by the child activity.
+     * @param data        Intent containing result data.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -95,6 +112,10 @@ public class MyEventViewActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sets the mode of the activity to either Organizer or User.
+     * @param isOrganizerMode True if the mode is Organizer, false if User.
+     */
     private void setMode(boolean isOrganizerMode) {
         Log.d("MyEventViewActivity", "Setting mode to: " + (isOrganizerMode ? "Organizer" : "User"));
 
@@ -111,6 +132,9 @@ public class MyEventViewActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Loads the current user's events from Firestore, where the user is an entrant.
+     */
     private void loadMyUserEventFromFirestore() {
         db.collection("events")
                 .whereEqualTo("published", "yes")
@@ -159,6 +183,9 @@ public class MyEventViewActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Loads the current user's events from Firestore, where the user is the organizer.
+     */
     private void loadMyOrganizerEventsFromFirestore() {
         Log.d("FirestoreQuery", "Starting to load organizer events with published='no' and organizer=" + currentUserID);
 
@@ -209,9 +236,10 @@ public class MyEventViewActivity extends AppCompatActivity {
                 });
     }
 
-
-
-    // Fetch userId from latest session in "sessions" collection
+    /**
+     * Fetches the user ID from the latest session in the "sessions" collection.
+     * @param onComplete The callback to execute after fetching the user ID.
+     */
     private void fetchSessionUserId(@NonNull Runnable onComplete) {
         CollectionReference sessionsRef = db.collection("sessions");
         sessionsRef.orderBy("loginTimestamp", Query.Direction.DESCENDING).limit(1)

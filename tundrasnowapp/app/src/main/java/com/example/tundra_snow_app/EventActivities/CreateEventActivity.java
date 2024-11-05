@@ -31,10 +31,11 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * CreateEventActivity is an activity that allows users to create a new event.
+ * Activity class for creating an event. This class handles the creation of an event
+ * and saving it to the Firestore database.
  */
 public class CreateEventActivity extends AppCompatActivity{
-    private EditText eventTitleEditText; 
+    private EditText eventTitleEditText;
     private EditText eventDescriptionEditText;
     private EditText eventImageURLEditText;
     private EditText eventLocationEditText;
@@ -51,6 +52,10 @@ public class CreateEventActivity extends AppCompatActivity{
     private FirebaseStorage storage;
     private FirebaseAuth auth;
 
+    /**
+     * onCreate method for the CreateEventActivity. Initializes the activity and sets up the UI.
+     * @param savedInstanceState The saved instance state.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,7 +116,10 @@ public class CreateEventActivity extends AppCompatActivity{
         });
     }
 
-    // Fetch userId from latest session in "sessions" collection
+    /**
+     * Fetches the userId from the latest session in the "sessions" collection.
+     * @param onComplete The runnable to execute after fetching the userId.
+     */
     private void fetchSessionUserId(@NonNull Runnable onComplete) {
         CollectionReference sessionsRef = db.collection("sessions");
         sessionsRef.orderBy("loginTimestamp", Query.Direction.DESCENDING).limit(1)
@@ -140,7 +148,9 @@ public class CreateEventActivity extends AppCompatActivity{
                 .addOnFailureListener(e -> Log.e("Session", "Error fetching session data", e));
     }
 
-
+    /**
+     * Creates an event in the Firestore database.
+     */
     private void createEvent() {
         Log.d("Debug", "createEvent called");
         Map<String, Object> event = collectEventDetails("yes");
@@ -157,6 +167,11 @@ public class CreateEventActivity extends AppCompatActivity{
                 });
     }
 
+    /**
+     * Collects the details of the event from the UI.
+     * @param publishedStatus The status of the event.
+     * @return A map of the event details.
+     */
     private Map<String, Object> collectEventDetails(String publishedStatus) {
         String eventTitle = eventTitleEditText.getText().toString().trim();
         String eventDescription = eventDescriptionEditText.getText().toString().trim();
@@ -204,6 +219,9 @@ public class CreateEventActivity extends AppCompatActivity{
         return event;
     }
 
+    /**
+     * Saves the event as a draft in the Firestore database.
+     */
     private void saveEvent() {
         Log.d("Debug", "saveEvent called");
         Map<String, Object> event = collectEventDetails("no");
@@ -220,6 +238,10 @@ public class CreateEventActivity extends AppCompatActivity{
                 });
     }
 
+    /**
+     * Shows a DatePickerDialog for the given EditText.
+     * @param editText The EditText to set the date to.
+     */
     public void showDatePickerDialog(final EditText editText) {
         // Set default to todays date
         Calendar calendar = Calendar.getInstance();
@@ -243,6 +265,11 @@ public class CreateEventActivity extends AppCompatActivity{
         datePickerDialog.show();
     }
 
+    /**
+     * Parses a date string into a Date object.
+     * @param dateString The date string to parse.
+     * @return The parsed Date object.
+     */
     public Date parseDate(String dateString) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 

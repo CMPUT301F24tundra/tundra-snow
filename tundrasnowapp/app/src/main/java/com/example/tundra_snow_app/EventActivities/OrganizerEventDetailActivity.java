@@ -33,6 +33,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * Activity class for the Organizer Event Detail screen. This class is responsible for
+ * displaying the details of an event and allowing the organizer to edit the event details.
+ */
 public class OrganizerEventDetailActivity extends AppCompatActivity {
 
     private EditText eventTitle, eventDate, eventLocation, eventDescription;
@@ -42,6 +46,10 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
     private TextView viewWaitingList, viewEnrolledList, viewChosenList, viewCancelledList;
     private ToggleButton toggleGeolocationButton;
 
+    /**
+     * Initializes the views and loads the event details.
+     * @param savedInstanceState The saved instance state.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,6 +112,9 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Load the event details from Firestore and populate the view with the event data.
+     */
     private void loadEventDetails() {
         db.collection("events").document(eventID).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -139,6 +150,9 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to load event details", Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Save the updated event details to Firestore.
+     */
     private void saveEventUpdates() {
         String editedEventTitle = eventTitle.getText().toString();
         Date editedEventDate = parseDate(eventDate.getText().toString());
@@ -170,7 +184,10 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
                 });
     }
 
-    // Show DatePicker dialog
+    /**
+     * Show a date picker dialog to select a date.
+     * @param editText The EditText view to set the selected date.
+     */
     public void showDatePickerDialog(final EditText editText) {
         Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
@@ -191,7 +208,11 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    // Parse date from String
+    /**
+     * Parse a date string in the format "dd/MM/yyyy" to a Date object.
+     * @param dateString The date string to parse.
+     * @return The parsed Date object.
+     */
     public Date parseDate(String dateString) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         try {
@@ -202,7 +223,10 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
         }
     }
 
-    // Fetch userId from latest session in "sessions" collection
+    /**
+     * Fetch the userId of the current user from the latest session in the "sessions" collection.
+     * @param onComplete The callback to execute after fetching the userId
+     */
     private void fetchSessionUserId(@NonNull Runnable onComplete) {
         CollectionReference sessionsRef = db.collection("sessions");
         sessionsRef.orderBy("loginTimestamp", Query.Direction.DESCENDING).limit(1)
@@ -219,6 +243,10 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e("Session", "Error fetching session data", e));
     }
 
+    /**
+     * Enable or disable editing of the event details.
+     * @param isEditable True to enable editing, false to disable.
+     */
     private void enableEditing(boolean isEditable) {
         eventTitle.setEnabled(isEditable);
         eventDate.setEnabled(isEditable);

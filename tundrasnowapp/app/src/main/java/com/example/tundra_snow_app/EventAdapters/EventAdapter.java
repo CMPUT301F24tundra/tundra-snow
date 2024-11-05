@@ -19,6 +19,9 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Adapter class for the RecyclerView in the event list view.
+ */
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
     private final List<Events> eventList;
@@ -26,11 +29,22 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy, h:mm a", Locale.getDefault());
     private final Context context;
 
+    /**
+     * Constructor for the EventAdapter class.
+     * @param context The context of the activity
+     * @param eventList The list of events
+     */
     public EventAdapter(Context context, List<Events> eventList) {
         this.context = context;
         this.eventList = eventList;
     }
 
+    /**
+     * Creates a new ViewHolder instance.
+     * @param parent The parent view group
+     * @param viewType The view type
+     * @return A new EventViewHolder instance
+     */
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -38,6 +52,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         return new EventViewHolder(view);
     }
 
+    /**
+     * Binds the data to the views in the RecyclerView.
+     * @param holder The EventViewHolder instance
+     * @param position The position of the item in the RecyclerView
+     */
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         // Get the current event
@@ -62,11 +81,18 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         });
     }
 
+    /**
+     * Returns the number of items in the RecyclerView.
+     * @return The number of items in the event list
+     */
     @Override
     public int getItemCount() {
         return eventList.size();
     }
 
+    /**
+     * ViewHolder class for the event list items.
+     */
     public static class EventViewHolder extends RecyclerView.ViewHolder {
         TextView dateTextView, titleTextView, locationTextView;
 

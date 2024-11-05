@@ -33,6 +33,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Activity for user registration (Entrant and Organizer).
+ */
 public class EntrantSignupActivity extends AppCompatActivity{
     private String deviceID;
     private Button createAccountButton, backButton;
@@ -51,6 +54,10 @@ public class EntrantSignupActivity extends AppCompatActivity{
     // Profile Picture
     private Uri profilePictureUri;
 
+    /**
+     * OnCreate method for EntrantSignupActivity. Initializes UI elements and sets up event listeners.
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,6 +102,9 @@ public class EntrantSignupActivity extends AppCompatActivity{
         backButton.setOnClickListener(v -> finish());
     }
 
+    /**
+     * Method to register a new user. Collects user details, validates input fields, and uploads user data to Firestore.
+     */
     public void registerUser() {
         Log.d("Debug", "registerUser called");
 
@@ -175,6 +185,10 @@ public class EntrantSignupActivity extends AppCompatActivity{
         }
     }
 
+    /**
+     * Method to save user data to Firestore.
+     * @param newUser The user object to save
+     */
     private void saveUserToFirestore(Users newUser) {
         // Prepare user data for Fire-store
         Map<String, Object> userMap = new HashMap<>();
@@ -216,6 +230,12 @@ public class EntrantSignupActivity extends AppCompatActivity{
                 });
     }
 
+    /**
+     * Method to check if a facility with the same name already exists in Firestore. If not, adds the facility.
+     * @param facilityID The facility ID
+     * @param facilityName The facility name
+     * @param facilityLocation The facility location
+     */
     private void checkAndAddFacility(String facilityID, String facilityName, String facilityLocation) {
         db.collection("facilities")
                 .whereEqualTo("facilityName", facilityName)
@@ -231,6 +251,12 @@ public class EntrantSignupActivity extends AppCompatActivity{
                 .addOnFailureListener(e -> Log.e("FacilityCheck", "Error checking facility existence", e));
     }
 
+    /**
+     * Method to save facility data to Firestore.
+     * @param facilityID The facility ID
+     * @param facilityName The facility name
+     * @param facilityLocation The facility location
+     */
     private void saveFacilityToFirestore(String facilityID, String facilityName, String facilityLocation) {
         // Create a map for facility data
         Map<String, Object> facilityData = new HashMap<>();

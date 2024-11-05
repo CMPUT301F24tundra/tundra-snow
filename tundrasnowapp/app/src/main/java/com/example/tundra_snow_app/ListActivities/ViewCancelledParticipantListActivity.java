@@ -14,6 +14,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
+/**
+ * Activity to view the list of cancelled participants for an event.
+ */
 public class ViewCancelledParticipantListActivity extends AppCompatActivity {
 
     private RecyclerView participantRecyclerView;
@@ -22,6 +25,10 @@ public class ViewCancelledParticipantListActivity extends AppCompatActivity {
     private String eventID;
     private Button backButton;
 
+    /**
+     * Called when the activity is starting. Initializes the activity view and loads the cancelled participant list.
+     * @param savedInstanceState The saved instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +47,9 @@ public class ViewCancelledParticipantListActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Loads the list of cancelled participants for the event from Firestore.
+     */
     private void loadParticipantList() {
         db.collection("events").document(eventID).get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
@@ -52,7 +62,5 @@ public class ViewCancelledParticipantListActivity extends AppCompatActivity {
 
             }
         });
-    }
-
-
+    }  
 }

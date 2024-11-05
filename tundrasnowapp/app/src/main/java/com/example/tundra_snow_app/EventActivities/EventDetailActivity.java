@@ -18,6 +18,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.Query;
 
+/**
+ * Activity class for the event detail view. This class is responsible for displaying
+ * the details of an event and allowing the user to sign up for the event.
+ */
 public class EventDetailActivity extends AppCompatActivity {
 
     private TextView titleTextView, dateTextView, locationTextView, descriptionTextView, geoLocationTextView;
@@ -49,6 +53,9 @@ public class EventDetailActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Load event details from Firestore and populate the view with the event data.
+     */
     private void loadEventDetails() {
         db.collection("events").document(eventID).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -74,6 +81,9 @@ public class EventDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to load event details", Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Sign up the current user for the event by adding their userId to the event's entrantList.
+     */
     private void signUpForEvent() {
         db.collection("events")
                 .document(eventID)
@@ -85,7 +95,10 @@ public class EventDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Sign-up failed", Toast.LENGTH_SHORT).show());
     }
 
-    // Fetch userId from latest session in "sessions" collection
+    /**
+     * Fetch the userId of the current user from the latest session in the "sessions" collection.
+     * @param onComplete Runnable to execute after fetching the userId
+     */
     private void fetchSessionUserId(@NonNull Runnable onComplete) {
         CollectionReference sessionsRef = db.collection("sessions");
         sessionsRef.orderBy("loginTimestamp", Query.Direction.DESCENDING).limit(1)

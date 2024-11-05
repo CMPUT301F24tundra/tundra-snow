@@ -18,7 +18,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
-
+/**
+ * Adapter class for the RecyclerView in the ViewCancelledParticipantListActivity. This class
+ * handles the list of cancelled participants for an event.
+ */
 public class CancelledListAdapter extends RecyclerView.Adapter<CancelledListAdapter.UserViewHolder> {
 
     private final List<String> cancelledList;
@@ -26,6 +29,13 @@ public class CancelledListAdapter extends RecyclerView.Adapter<CancelledListAdap
     private final FirebaseFirestore db;
     private String eventID;
 
+    /**
+     * Constructor for the CancelledListAdapter class. Initializes the adapter with the
+     * given context, list of cancelled participants, and the event ID.
+     * @param context Context of the activity
+     * @param cancelledList List of cancelled participants
+     * @param eventID ID of the event
+     */
     public CancelledListAdapter(Context context, List<String> cancelledList, String eventID) {
         this.context = context;
         this.cancelledList = cancelledList;
@@ -33,6 +43,12 @@ public class CancelledListAdapter extends RecyclerView.Adapter<CancelledListAdap
         this.db = FirebaseFirestore.getInstance();
     }
 
+    /**
+     * Creates a new ViewHolder object for the RecyclerView.
+     * @param parent The ViewGroup into which the new View will be added
+     * @param viewType The view type of the new View
+     * @return A new ViewHolder that holds a View of the given view type
+     */
     @NonNull
     @Override
     public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -40,6 +56,11 @@ public class CancelledListAdapter extends RecyclerView.Adapter<CancelledListAdap
         return new UserViewHolder(view);
     }
 
+    /**
+     * Binds the data to the ViewHolder.
+     * @param holder The ViewHolder
+     * @param position The position of the item in the list
+     */
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         String userId = cancelledList.get(position);
@@ -74,11 +95,18 @@ public class CancelledListAdapter extends RecyclerView.Adapter<CancelledListAdap
         });
     }
 
+    /**
+     * Returns the number of items in the list of cancelled participants.
+     * @return The number of items in the list of cancelled participants
+     */
     @Override
     public int getItemCount() {
         return cancelledList.size();
     }
 
+    /**
+     * ViewHolder class for the RecyclerView.
+     */
     public static class UserViewHolder extends RecyclerView.ViewHolder {
         TextView fullNameTextView, emailTextView;
         Button removeUserButton;

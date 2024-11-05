@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-// 
 
 import com.example.tundra_snow_app.ListAdapters.UserListAdapter;
 import com.example.tundra_snow_app.R;
@@ -18,6 +17,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
+/**
+ * Activity to view the list of participants for an event.
+ */
 public class ViewParticipantListActivity extends AppCompatActivity {
 
     private RecyclerView participantRecyclerView;
@@ -27,6 +29,10 @@ public class ViewParticipantListActivity extends AppCompatActivity {
     private Button backButton, editButton, saveButton;
     private EditText maxParticipantEdit;
 
+    /**
+     * Called when the activity is starting. Initializes the activity view and loads the participant list.
+     * @param savedInstanceState The saved instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +56,9 @@ public class ViewParticipantListActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Loads the list of participants for the event from Firestore.
+     */
     private void loadParticipantList() {
         db.collection("events").document(eventID).get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
@@ -66,6 +75,9 @@ public class ViewParticipantListActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Saves the updated event details to Firestore.
+     */
     private void saveEventUpdates() {
         // Convert the text from EditText to an integer for maxParticipants
         int maxParticipantsEdited;
@@ -89,6 +101,10 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Enables or disables editing of the event details.
+     * @param isEditable True if editing should be enabled, false otherwise
+     */
     private void enableEditing(boolean isEditable) {
         maxParticipantEdit.setEnabled(isEditable);
 

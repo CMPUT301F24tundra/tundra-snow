@@ -20,9 +20,9 @@ public class Events {
     private String description; // Description of the event
     private String posterImageURL; // URL of the event's poster image
     private String location; // Physical or virtual location of the event
-    private String published; // Publication status (e.g., published or draft)
+    private String published; // Publication status of the event
     private String qrHash; // Unique QR code hash for event validation
-    private String status; // Current status of the event (e.g., active, cancelled)
+    private String status; // Current status of the event
     private int capacity; // Maximum number of participants allowed
 
     // Event Timing
@@ -535,7 +535,7 @@ public class Events {
 
     /**
      * Returns a formatted date string for the given date.
-     * @param date
+     * @param date Date to format
      * @return Formatted date string
      */
     public String getFormattedDate(Date date) {

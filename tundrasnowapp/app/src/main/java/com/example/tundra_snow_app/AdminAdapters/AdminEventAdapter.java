@@ -111,7 +111,11 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
     public static class EventViewHolder extends RecyclerView.ViewHolder {
         TextView eventDateTime, eventName, eventLocation;
         Button removeEventButton;
-
+        
+        /**
+         * Constructor for the EventViewHolder class. Initializes the views in the ViewHolder.
+         * @param itemView The view for the ViewHolder
+         */
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
             eventDateTime = itemView.findViewById(R.id.eventDateTime);
