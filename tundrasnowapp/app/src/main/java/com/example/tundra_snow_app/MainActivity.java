@@ -16,6 +16,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
+import com.example.tundra_snow_app.EventActivities.EventViewActivity;
+import com.example.tundra_snow_app.Helpers.DeviceUtils;
+import com.example.tundra_snow_app.ListActivities.EntrantSignupActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
