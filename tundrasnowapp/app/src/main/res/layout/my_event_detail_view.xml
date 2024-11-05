@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="25dp">
+
+        <LinearLayout
+            android:background="@drawable/event_detail_background"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <!-- Event Title -->
+            <TextView
+                android:id="@+id/detailEventTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:padding="10dp"
+                android:textColor="#000000" />
+
+            <!-- Event Date -->
+            <TextView
+                android:id="@+id/detailEventDate"
+                android:layout_width="wrap_content"
+                android:text=""
+                android:layout_height="wrap_content"
+                android:textColor="#FF7171" />
+
+            <!-- Event Location -->
+            <TextView
+                android:id="@+id/detailEventLocation"
+                android:layout_width="wrap_content"
+                android:text=""
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:textColor="#000000" />
+
+            <!-- Event Description -->
+            <TextView
+                android:id="@+id/detailEventDescription"
+                android:text=""
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:textColor="#494949" />
+
+            <TextView
+                android:id="@+id/geoLocationNotification"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp"
+                android:text="Notice: Event Signup Requires Geolocation!"
+                android:textColor="#C80000"
+                android:visibility="gone"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/statusMessage"
+                android:layout_width="315dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Sample"
+                android:textColor="#C80000"
+                android:textSize="19sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/buttonBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="12dp"
+                android:layout_gravity="center_horizontal">
+
+                <!-- Back Button -->
+                <Button
+                    android:id="@+id/leftButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="left"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#C80000"/>
+                <!-- Sign-Up Button -->
+                <Button
+                    android:id="@+id/rightButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="30dp"
+                    android:text="right"
+                    android:backgroundTint="#48A700"
+                    android:textColor="#FFFFFF" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

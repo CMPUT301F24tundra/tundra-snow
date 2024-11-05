@@ -28,7 +28,7 @@ import java.util.UUID;
 public class EntrantSignupActivity extends AppCompatActivity{
     private String deviceID;
     private Button createAccountButton, backButton;
-    private EditText firstNameEditText, lastNameEditText, emailEditText, passwordEditText, dateOfBirthEditText, phoneNumberEditText;
+    private EditText firstNameEditText, lastNameEditText, emailEditText, passwordEditText, dateOfBirthEditText, phoneNumberEditText, editFacilityLocation;
     private ToggleButton notificationToggleButton;
 
     // Organizer Fields
@@ -68,6 +68,7 @@ public class EntrantSignupActivity extends AppCompatActivity{
         organizerCheckbox = findViewById(R.id.checkBoxOrganizer);
         facilityLayout = findViewById(R.id.facilityLayout);
         facilityEditText = findViewById(R.id.editTextFacility);
+        editFacilityLocation = findViewById(R.id.editTextFacilityLocation);
 
         // Toggling visibility of facility input based on organizer selection
         organizerCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -107,7 +108,19 @@ public class EntrantSignupActivity extends AppCompatActivity{
         if (organizerCheckbox.isChecked()) {
             roles.add("organizer");
             String facilityName = facilityEditText.getText().toString();
-            facilityList.add(facilityName);
+            String facilityLocation = editFacilityLocation.getText().toString();
+            String facilityID = UUID.randomUUID().toString();
+
+            if (facilityName.isEmpty() || facilityLocation.isEmpty()) {
+                Toast.makeText(this, "Please enter facility name and location.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Check for existing facility with the same name
+            checkAndAddFacility(facilityID, facilityName, facilityLocation);
+
+            // Save facility information to Firestore
+            saveFacilityToFirestore(facilityID, facilityName, facilityLocation);
         }
 
         // Validating input fields
@@ -193,5 +206,34 @@ public class EntrantSignupActivity extends AppCompatActivity{
                     Log.w("UserRegistration", "Error adding user to Fire-store", e);
                     Toast.makeText(this, "Error creating account. Please try again later..", Toast.LENGTH_LONG).show();
                 });
+    }
+
+    private void checkAndAddFacility(String facilityID, String facilityName, String facilityLocation) {
+        db.collection("facilities")
+                .whereEqualTo("facilityName", facilityName)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult().isEmpty()) {
+                        // No facility with the same name exists, proceed to add it
+                        saveFacilityToFirestore(facilityID, facilityName, facilityLocation);
+                    } else {
+                        Log.d("FacilityCheck", "Facility with this name already exists, skipping addition.");
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("FacilityCheck", "Error checking facility existence", e));
+    }
+
+    private void saveFacilityToFirestore(String facilityID, String facilityName, String facilityLocation) {
+        // Create a map for facility data
+        Map<String, Object> facilityData = new HashMap<>();
+        facilityData.put("facilityID", facilityID);
+        facilityData.put("facilityName", facilityName);
+        facilityData.put("facilityLocation", facilityLocation);
+
+        // Add the facility document to Firestore
+        db.collection("facilities").document(facilityID)
+                .set(facilityData)
+                .addOnSuccessListener(aVoid -> Log.d("FacilityRegistration", "Facility saved with ID: " + facilityID))
+                .addOnFailureListener(e -> Log.e("FacilityRegistration", "Error saving facility", e));
     }
 }

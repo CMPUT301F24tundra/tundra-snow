@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="toggle_checked_background">#FFFFFF</color>
+    <color name="toggle_checked_text">#000000</color>
+    <color name="toggle_unchecked_background">#222222</color>
+    <color name="toggle_unchecked_text">#D3D3D3</color>
 </resources>

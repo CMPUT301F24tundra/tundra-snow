@@ -27,6 +27,23 @@
             </intent-filter>
         </activity>
         <activity android:name=".EntrantSignupActivity" />
+        <activity android:name=".EventViewActivity" />
+        <activity android:name=".CreateEventActivity" />
+        <activity android:name=".EventDetailActivity" />
+        <activity android:name=".MyEventViewActivity" />
+        <activity android:name=".ProfileViewActivity"/>
+        <activity android:name=".OrganizerEventDetailActivity" />
+        <activity android:name=".ViewParticipantListActivity" />
+        <activity android:name=".MyEventDetailActivity" />
+        <activity android:name=".AdminEventViewActivity" />
+        <activity android:name=".AdminFacilityViewActivity" />
+        <activity android:name=".AdminUsersViewActivity" />
+        <activity android:name=".SettingsViewActivity" />
+        <activity android:name=".ViewConfirmedParticipantListActivity" />
+        <activity android:name=".ViewChosenParticipantListActivity" />
+        <activity android:name=".ViewCancelledParticipantListActivity" />
+
+
     </application>
 
 </manifest>

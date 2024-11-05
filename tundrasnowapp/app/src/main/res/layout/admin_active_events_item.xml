@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="10dp"
+    android:background="#000000"
+    android:gravity="center_vertical">
+
+    <!-- Left Section with Icon -->
+    <ImageView
+        android:id="@+id/eventIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="10dp" />
+
+    <!-- Center Section with Event Details -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Event Date and Time -->
+        <TextView
+            android:id="@+id/eventDateTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FF0000"
+            android:textSize="11sp"
+            android:text="September 15th, 2024, 9:30 AM - 1:00 PM" />
+
+        <!-- Event Name -->
+        <TextView
+            android:id="@+id/eventName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:text="Networking Conference" />
+
+        <!-- Event Location -->
+        <TextView
+            android:id="@+id/eventLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#D3D3D3"
+            android:textSize="11sp"
+            android:text="In-Person, Edmonton, Alberta" />
+    </LinearLayout>
+
+    <!-- Right Button to delete -->
+    <Button
+        android:id="@+id/removeEventButton"
+        android:layout_width="82dp"
+        android:layout_height="45dp"
+        android:text="Delete"
+        android:textSize="11sp"
+        android:backgroundTint="#C80000"/>
+</LinearLayout>

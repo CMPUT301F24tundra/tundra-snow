@@ -1,84 +1,123 @@
 package com.example.tundra_snow_app;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
 
 public class Events {
     // Variables
-    private int eventID;
-    private int ownerID;
+    private String eventID;
+    private String organizer;
     private String title;
     private String description;
     private String posterImageURL;
     private String location;
-    private Date dateStart;
-    private Date dateEnd;
-    private Date registrationStart;
-    private Date registrationEnd;
-    private int capacity;
+    private String published;
     private String qrHash;
     private String status;
-    private int[] entrantList;
-    private int[] confirmedList;
-    private int[] declinedList;
-    private int[] cancelledList;
+    private int capacity;
 
+    private Date startDate;
+    private Date endDate;
+    private Date registrationStartDate;
+    private Date registrationEndDate;
 
-    // Constructor
+    private List<String> entrantList;
+    private List<String> confirmedList;
+    private List<String> declinedList;
+    private List<String> cancelledList;
+    private List<String> chosenList;
 
+    // Constructors
+
+    // No-argument constructor (required by Firestore)
+    public Events() {
+        this.entrantList = new ArrayList<>();
+        this.confirmedList = new ArrayList<>();
+        this.declinedList = new ArrayList<>();
+        this.cancelledList = new ArrayList<>();
+        this.chosenList = new ArrayList<>();
+    }
+
+    // Constructor with all fields
     public Events(
-            int eventID,
-            int ownerID,
+            String eventID,
+            String ownerID,
             String title,
             String description,
             String posterImageURL,
             String location,
-            Date dateStart,
-            Date dateEnd,
-            Date registrationEnd,
-            Date registrationStart,
+            String published,
+            Date startDate,
+            Date endDate,
+            Date registrationEndDate,
+            Date registrationStartDate,
             int capacity,
             String qrHash,
             String status,
-            int[] confirmedList,
-            int[] declinedList,
-            int[] entrantList,
-            int[] cancelledList
+            List<String> confirmedList,
+            List<String> declinedList,
+            List<String> entrantList,
+            List<String> cancelledList,
+            List<String> chosenList
     ) {
         this.eventID = eventID;
-        this.ownerID = ownerID;
+        this.organizer = ownerID;
         this.title = title;
         this.description = description;
         this.posterImageURL = posterImageURL;
         this.location = location;
-        this.dateStart = dateStart;
-        this.dateEnd = dateEnd;
-        this.registrationEnd = registrationEnd;
-        this.registrationStart = registrationStart;
+        this.published = published;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.registrationEndDate = registrationEndDate;
+        this.registrationStartDate = registrationStartDate;
         this.capacity = capacity;
         this.qrHash = qrHash;
         this.status = status;
+        this.entrantList = entrantList;
         this.confirmedList = confirmedList;
         this.declinedList = declinedList;
-        this.entrantList = entrantList;
         this.cancelledList = cancelledList;
+        this.chosenList = chosenList;
     }
 
     // Getters/Setters
 
-    public int getEventID() {
+
+    public List<String> getChosenList() {
+        return chosenList;
+    }
+
+    public void setChosenList(List<String> chosenList) {
+        this.chosenList = chosenList;
+    }
+
+    public void addChosen(String userID) {
+        chosenList.add(userID);
+    }
+
+    public void removeChosen(String userID) {
+        chosenList.remove(userID);
+    }
+
+    public String getEventID() {
         return eventID;
     }
 
-    public void setEventID(int eventID) {
+    public void setEventID(String eventID) {
         this.eventID = eventID;
     }
 
-    public int getOwnerID() {
-        return ownerID;
+    public String getOrganizer() {
+        return organizer;
     }
 
-    public void setOwnerID(int ownerID) {
-        this.ownerID = ownerID;
+    public void setOrganizer(String organizer) {
+        this.organizer = organizer;
     }
 
     public String getTitle() {
@@ -105,28 +144,43 @@ public class Events {
         this.posterImageURL = posterImageURL;
     }
 
-    public Date getDateEnd() {
-        return dateEnd;
+    public Date getEndDate() {
+        return endDate;
     }
 
-    public void setDateEnd(Date dateEnd) {
-        this.dateEnd = dateEnd;
+    public String getFormattedDateEnd() {
+        Date date = endDate;
+        return getFormattedDate(date);
     }
 
-    public Date getRegistrationStart() {
-        return registrationStart;
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
     }
 
-    public void setRegistrationStart(Date registrationStart) {
-        this.registrationStart = registrationStart;
+    public Date getRegistrationStartDate() {
+        return registrationStartDate;
     }
 
-    public Date getDateStart() {
-        return dateStart;
+    public String getFormattedRegStart() {
+        Date date = registrationStartDate;
+        return getFormattedDate(date);
     }
 
-    public void setDateStart(Date dateStart) {
-        this.dateStart = dateStart;
+    public void setRegistrationStartDate(Date registrationStartDate) {
+        this.registrationStartDate = registrationStartDate;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public String getFormattedDateStart() {
+        Date date = startDate;
+        return getFormattedDate(date);
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
     }
 
     public String getLocation() {
@@ -137,12 +191,21 @@ public class Events {
         this.location = location;
     }
 
-    public Date getRegistrationEnd() {
-        return registrationEnd;
+    public String getPublished() { return published; }
+
+    public void setPublished(String published) { this.published = published; }
+
+    public Date getRegistrationEndDate() {
+        return registrationEndDate;
     }
 
-    public void setRegistrationEnd(Date registrationEnd) {
-        this.registrationEnd = registrationEnd;
+    public String getFormattedRegDateEnd() {
+        Date date = registrationEndDate;
+        return getFormattedDate(date);
+    }
+
+    public void setRegistrationEndDate(Date registrationEndDate) {
+        this.registrationEndDate = registrationEndDate;
     }
 
     public int getCapacity() {
@@ -169,35 +232,76 @@ public class Events {
         this.status = status;
     }
 
-    public int[] getEntrantList() {
+    public List<String> getEntrantList() {
         return entrantList;
     }
 
-    public void setEntrantList(int[] entrantList) {
+    public void setEntrantList(List<String> entrantList) {
         this.entrantList = entrantList;
     }
 
-    public int[] getConfirmedList() {
+    public void addEntrant(String userID) {
+        entrantList.add(userID);
+    }
+
+    public void removeEntrant(String userID) {
+        entrantList.remove(userID);
+    }
+
+
+    public List<String> getConfirmedList() {
         return confirmedList;
     }
 
-    public void setConfirmedList(int[] confirmedList) {
+    public void setConfirmedList(List<String> confirmedList) {
         this.confirmedList = confirmedList;
     }
 
-    public int[] getDeclinedList() {
+    public void addConfirmed(String userID) {
+        confirmedList.add(userID);
+    }
+
+    public void removeConfirmed(String userID) {
+        confirmedList.remove(userID);
+    }
+
+    public List<String> getDeclinedList() {
         return declinedList;
     }
 
-    public void setDeclinedList(int[] declinedList) {
+    public void setDeclinedList(List<String> declinedList) {
         this.declinedList = declinedList;
     }
 
-    public int[] getCancelledList() {
+    public void addDeclined(String userID) {
+        declinedList.add(userID);
+    }
+
+    public void removeDeclined(String userID) {
+        declinedList.remove(userID);
+    }
+
+    public List<String> getCancelledList() {
         return cancelledList;
     }
 
-    public void setCancelledList(int[] cancelledList) {
+    public void setCancelledList(List<String> cancelledList) {
         this.cancelledList = cancelledList;
+    }
+
+    public void addCancelled(String userID) {
+        cancelledList.add(userID);
+    }
+
+    public void removeCancelled(String userID) {
+        cancelledList.remove(userID);
+    }
+
+    public String getFormattedDate(Date date) {
+        if (date == null) {
+            return "Date TBD";  // or any default message
+        }
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
+        return dateFormat.format(date);
     }
 }

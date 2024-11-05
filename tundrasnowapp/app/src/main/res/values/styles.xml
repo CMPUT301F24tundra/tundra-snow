@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="CustomEditText">
+        <item name="android:textColorHint">#7a7a7a7a</item> <!-- Define hint color here -->
+    </style>
+</resources>
