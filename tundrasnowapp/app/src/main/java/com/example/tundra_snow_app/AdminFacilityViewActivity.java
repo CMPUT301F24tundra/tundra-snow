@@ -13,6 +13,10 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Activity class for the admin facility view. This class is responsible for displaying
+ * the list of facilities in the RecyclerView.
+ */
 public class AdminFacilityViewActivity extends AppCompatActivity {
 
     private RecyclerView facilitiesRecyclerView;
@@ -20,6 +24,11 @@ public class AdminFacilityViewActivity extends AppCompatActivity {
     private List<Facilities> facilityList;
     private FirebaseFirestore db;
 
+    /**
+     * Initializes the activity, sets the content view, and sets up the bottom navigation bar.
+     * Loads the facilities from the Firestore database.
+     * @param savedInstanceState The saved instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +49,9 @@ public class AdminFacilityViewActivity extends AppCompatActivity {
         loadFacilities();
     }
 
+    /**
+     * Loads the facilities from the Firestore database and updates the RecyclerView.
+     */
     private void loadFacilities() {
         db.collection("facilities")
                 .get()

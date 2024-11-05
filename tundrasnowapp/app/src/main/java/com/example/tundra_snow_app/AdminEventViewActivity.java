@@ -18,6 +18,10 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Activity class for the admin event view. This class is responsible for displaying
+ * the list of events in the RecyclerView.
+ */
 public class AdminEventViewActivity extends AppCompatActivity {
 
     private RecyclerView adminEventsRecyclerView;
@@ -26,6 +30,11 @@ public class AdminEventViewActivity extends AppCompatActivity {
     private List<Events> eventList;
     private FirebaseFirestore db;
 
+    /**
+     * Initializes the activity, sets the content view, and sets up the bottom navigation bar.
+     * Loads the events from the Firestore database.
+     * @param savedInstanceState The saved instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +64,9 @@ public class AdminEventViewActivity extends AppCompatActivity {
         loadEvents();
     }
 
+    /**
+     * Loads the events from the Firestore database and updates the RecyclerView.
+     */
     private void loadEvents() {
         db.collection("events").get()
                 .addOnCompleteListener(task -> {

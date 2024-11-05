@@ -16,12 +16,21 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Activity class for the admin users view. This class is responsible for displaying
+ * the list of users in the RecyclerView.
+ */
 public class AdminUsersViewActivity extends AppCompatActivity {
-    private RecyclerView usersRecyclerView;
-    private AdminUsersAdapter usersAdapter;
-    private List<Users> userList;
-    private FirebaseFirestore db;
+    private RecyclerView usersRecyclerView; // RecyclerView for users
+    private AdminUsersAdapter usersAdapter; // Adapter for the RecyclerView
+    private List<Users> userList; // List of users
+    private FirebaseFirestore db; // Firestore database
 
+    /**
+     * Initializes the activity, sets the content view, and sets up the bottom navigation bar.
+     * Loads the users from the Firestore database.
+     * @param savedInstanceState The saved instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +51,9 @@ public class AdminUsersViewActivity extends AppCompatActivity {
         fetchUsersFromFirestore();
     }
 
+    /**
+     * Fetches the users from the Firestore database and updates the RecyclerView.
+     */
     private void fetchUsersFromFirestore() {
         db.collection("users").get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {

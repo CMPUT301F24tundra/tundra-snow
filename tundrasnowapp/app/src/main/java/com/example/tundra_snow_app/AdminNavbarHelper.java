@@ -6,9 +6,16 @@ import android.view.MenuItem;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+/**
+ * Helper class for setting up the bottom navigation bar in the admin views.
+ */
 public class AdminNavbarHelper {
 
-    // Setting up bottom navigation and defining navigation actions
+    /**
+     * Sets up the bottom navigation bar for the admin views.
+     * @param activity The activity
+     * @param bottomNavigationView The bottom navigation view
+     */
     public static void setupBottomNavigation(final Activity activity, BottomNavigationView bottomNavigationView) {
 
         // Set the selected item based on the current activity
@@ -18,6 +25,12 @@ public class AdminNavbarHelper {
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> handleNavigationSelection(activity, item));
     }
 
+    /**
+     * Handles the selection of a navigation item in the bottom navigation bar.
+     * @param activity The activity
+     * @param item The selected item
+     * @return True if the selection was handled, false otherwise
+     */
     private static boolean handleNavigationSelection(Activity activity, MenuItem item) {
         Intent intent;
 
@@ -59,12 +72,21 @@ public class AdminNavbarHelper {
         return false;
     }
 
+    /**
+     * Starts an activity with a transition animation.
+     * @param activity The activity
+     * @param intent The intent
+     */
     private static void startActivityWithTransition(Activity activity, Intent intent) {
         activity.startActivity(intent);
         activity.overridePendingTransition(0, 0);
     }
 
-    // Helper method to set the selected item in the bottom navigation view
+    /**
+     * Sets the selected item in the bottom navigation bar based on the current activity.
+     * @param activity The activity
+     * @param bottomNavigationView The bottom navigation view
+     */
     private static void setSelectedItem(Activity activity, BottomNavigationView bottomNavigationView) {
         if (activity instanceof AdminEventViewActivity) {
             bottomNavigationView.setSelectedItemId(R.id.admin_nav_events);

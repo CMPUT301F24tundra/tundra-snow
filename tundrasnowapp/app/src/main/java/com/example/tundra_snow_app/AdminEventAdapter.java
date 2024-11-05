@@ -18,14 +18,25 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Adapter class for the RecyclerView in the AdminEventsActivity. This class
+ * is responsible for displaying the list of events in the RecyclerView.
+ */
 public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.EventViewHolder> {
 
-    private final List<Events> eventList;
-    private final Context context;
-    private final FirebaseFirestore db;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, h:mm a", Locale.getDefault());
-    private final OnDeleteClickListener onDeleteClickListener;
-
+    private final List<Events> eventList; // List of events
+    private final Context context; // Context of the activity
+    private final FirebaseFirestore db; // Firestore database
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, h:mm a", Locale.getDefault()); // Date format
+    private final OnDeleteClickListener onDeleteClickListener; // Listener for delete button
+    
+    /**
+     * Constructor for the AdminEventAdapter class. Initializes the adapter with the
+     * given context, list of events, and listener for the delete button.
+     * @param context Context of the activity
+     * @param eventList List of events
+     * @param onDeleteClickListener Listener for delete button
+     */
     public AdminEventAdapter(Context context, List<Events> eventList, OnDeleteClickListener onDeleteClickListener) {
         this.context = context;
         this.eventList = eventList;
@@ -33,6 +44,12 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
         this.onDeleteClickListener = onDeleteClickListener;
     }
 
+    /**
+     * Creates a new ViewHolder object for the RecyclerView.
+     * @param parent The ViewGroup into which the new View will be added
+     * @param viewType The view type of the new View
+     * @return A new ViewHolder that holds a View of the given view type
+     */
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -40,6 +57,11 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
         return new EventViewHolder(view);
     }
 
+    /**
+     * Binds the data to the ViewHolder.
+     * @param holder The ViewHolder
+     * @param position The position of the item within the adapter's data set
+     */
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         Events event = eventList.get(position);
@@ -65,15 +87,25 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
         });
     }
 
+    /**
+     * Returns the number of items in the list of events.
+     * @return The number of items in the list of events
+     */
     @Override
     public int getItemCount() {
         return eventList.size();
     }
 
+    /**
+     * Interface for the delete button click listener.
+     */
     public interface OnDeleteClickListener {
         void onEventDeleted(int position);
     }
 
+    /**
+     * ViewHolder class for the RecyclerView.
+     */
     public static class EventViewHolder extends RecyclerView.ViewHolder {
         TextView eventDateTime, eventName, eventLocation;
         Button removeEventButton;
