@@ -32,6 +32,7 @@
             android:layout_height="wrap_content"
             android:textOff="Toggle Mode: User"
             android:textOn="Toggle Mode: Organizer"
+            android:visibility="gone"
             android:textColor="@drawable/toggle_button"
             android:background="@drawable/toggle_button" />
     </LinearLayout>
