@@ -8,7 +8,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-import com.example.tundra_snow_app.Organizers;
+import com.example.tundra_snow_app.Models.Organizers;
 
 public class OrganizersTest {
     private Organizers organizer;

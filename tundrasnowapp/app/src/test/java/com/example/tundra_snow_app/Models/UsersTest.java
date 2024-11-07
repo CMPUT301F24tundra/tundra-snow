@@ -8,10 +8,11 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-import com.example.tundra_snow_app.Users;
+import com.example.tundra_snow_app.Models.Users;
+import com.google.firebase.firestore.auth.User;
 
 public class UsersTest {
-    private Users user;
+    private Users user, defaultUser;
     private Users organizerUser;
 
     @Before
@@ -35,6 +36,8 @@ public class UsersTest {
                 new ArrayList<>()
         );
 
+        defaultUser = new Users();
+
         List<String> organizerRoles = new ArrayList<>();
         organizerRoles.add("organizer");
 
@@ -56,14 +59,81 @@ public class UsersTest {
     }
 
     @Test
+    public void testDefaultUser() {
+        assertNotNull(defaultUser);
+    }
+
+    @Test
     public void testGetUserID() {
-        assertEquals("001", user.getUserID());
+        user.setUserID("002");
+        assertEquals("002", user.getUserID());
+        user.setUserID("001");
     }
 
     @Test
     public void testGetFirstName() {
         assertEquals("John", user.getFirstName());
     }
+
+    @Test
+    public void testSetLastName() {
+        user.setLastName("Smith");
+        assertEquals("Smith", user.getLastName());
+    }
+
+    @Test
+    public void testSetPassword() {
+        user.setPassword("newpassword123");
+        assertEquals("newpassword123", user.getPassword());
+    }
+
+    @Test
+    public void testSetEmail() {
+        user.setEmail("new@email.com");
+        assertEquals("new@email.com", user.getEmail());
+    }
+
+    @Test
+    public void testSetDateOfBirth() {
+        user.setDateOfBirth("1990-12-31");
+        assertEquals("1990-12-31", user.getDateOfBirth());
+    }
+
+    @Test
+    public void testSetPhoneNumber() {
+        user.setPhoneNumber("9876543210");
+        assertEquals("9876543210", user.getPhoneNumber());
+    }
+
+    @Test
+    public void testSetDeviceId() {
+        user.setDeviceID("device003");
+        assertEquals("device003", user.getDeviceID());
+    }
+
+    @Test
+    public void testSetRoles() {
+        List<String> newRoles = new ArrayList<>();
+        newRoles.add("admin");
+        newRoles.add("organizer");
+        user.setRole(newRoles);
+
+        List<String> roles = user.getRoles();
+        assertEquals(2, roles.size());
+        assertTrue(roles.contains("admin"));
+        assertTrue(roles.contains("organizer"));
+    }
+
+
+    @Test
+    public void testSetRolesError() {
+        List<String> invalidRoles = new ArrayList<>();
+        invalidRoles.add("viewer");
+
+        // Expect an IllegalArgumentException when setting an invalid role
+        assertThrows(IllegalArgumentException.class, () -> user.setRole(invalidRoles));
+    }
+
 
     @Test
     public void testSetFirstName() {

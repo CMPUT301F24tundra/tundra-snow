@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import com.example.tundra_snow_app.Facilities;
+import com.example.tundra_snow_app.Models.Facilities;
 
 public class FacilitiesTest {
     private Facilities facility;

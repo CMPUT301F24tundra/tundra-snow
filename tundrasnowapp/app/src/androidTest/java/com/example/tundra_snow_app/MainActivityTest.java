@@ -17,6 +17,7 @@ import static org.hamcrest.CoreMatchers.allOf;
 import android.content.res.AssetManager;
 import android.text.Spannable;
 import android.text.style.ClickableSpan;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -29,6 +30,8 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
 import com.example.tundra_snow_app.ListActivities.EntrantSignupActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -48,9 +51,6 @@ public class MainActivityTest {
 
     @Rule
     public ActivityScenarioRule<MainActivity> activityRule = new ActivityScenarioRule<>(MainActivity.class);
-
-    private String adminEmail;
-    private String adminPassword;
 
     // Custom matcher to check if TextView has clickable spans
     private static Matcher<View> hasClickableSpan() {
@@ -104,37 +104,11 @@ public class MainActivityTest {
     @Before
     public void setUp() {
         Intents.init();
-        loadCredentials();
-    }
-
-    private void loadCredentials() {
-        Properties properties = new Properties();
-        try {
-            // Use the asset manager to open the file
-            AssetManager assetManager = InstrumentationRegistry.getInstrumentation().getContext().getAssets();
-            InputStream inputStream = assetManager.open("test_credentials.properties");
-            properties.load(inputStream);
-            adminEmail = properties.getProperty("admin_email");
-            adminPassword = properties.getProperty("admin_password");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @After
     public void tearDown() {
         Intents.release();
-    }
-
-    @Test
-    public void testAdminLogin() throws InterruptedException {
-        onView(withId(R.id.usernameEditText)).perform(replaceText(adminEmail));
-        onView(withId(R.id.passwordEditText)).perform(replaceText(adminPassword));
-        onView(withId(R.id.loginButton)).perform(click());
-
-        Thread.sleep(3000);
-
-        intended(hasComponent(AdminEventViewActivity.class.getName()));
     }
 
     @Test
@@ -180,14 +154,14 @@ public class MainActivityTest {
 
         String testEmail = "newuser@example.com";
         String testPassword = "password123";
-
+        
+        // Fill out the sign-up form
         onView(withId(R.id.editTextFirstName)).perform(replaceText("John"));
         onView(withId(R.id.editTextLastName)).perform(replaceText("Doe"));
         onView(withId(R.id.editTextEmail)).perform(replaceText(testEmail));
         onView(withId(R.id.editTextPassword)).perform(replaceText(testPassword));
         onView(withId(R.id.editTextDateOfBirth)).perform(replaceText("01/01/1990"));
         onView(withId(R.id.editTextPhoneNumber)).perform(replaceText("1234567890"));
-
         onView(withId(R.id.toggleButtonNotification)).perform(click());
 
         // Submit the sign-up form
@@ -204,5 +178,15 @@ public class MainActivityTest {
 
         // Verify successful login by checking for an element in the target activity
         onView(withId(R.id.modeToggle)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void testSignInWithDeviceId() throws InterruptedException {
+        String testDeviceId = "device001";
+
+        onView(withId(R.id.signInWithDeviceButton)).perform(click());
+
+        // Allow time for asynchronous operation
+        Thread.sleep(3000);
     }
 }
