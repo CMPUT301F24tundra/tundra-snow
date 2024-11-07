@@ -49,6 +49,7 @@ public class EventViewActivity extends AppCompatActivity {
     private TextView eventTitle;
     private FloatingActionButton addEventButton;
     private String currentUserID;
+    private List<String> userRoles = new ArrayList<>();
 
     /**
      * onCreate method for the activity. Initializes the views and loads the list of events.
@@ -229,12 +230,39 @@ public class EventViewActivity extends AppCompatActivity {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         DocumentSnapshot latestSession = task.getResult().getDocuments().get(0);
                         currentUserID = latestSession.getString("userId");
-                        onComplete.run();
+                        // Fetch the user's roles after getting the user ID
+                        fetchUserRoles(currentUserID, onComplete);
                     } else {
                         Toast.makeText(this, "No active session found.", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> Log.e("Session", "Error fetching session data", e));
+    }
+
+    /**
+     * Fetches the user roles from the user DB in the "users" collection.
+     * @param onComplete The callback to execute after fetching the user ID.
+     */
+    private void fetchUserRoles(String userId, @NonNull Runnable onComplete) {
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        userRoles = (List<String>) documentSnapshot.get("roles");
+
+                        if (userRoles != null && userRoles.contains("organizer")) {
+                            modeToggle.setVisibility(View.VISIBLE); // Enable modeToggle if "organizer" role is present
+                        }
+
+                        onComplete.run();
+                    } else {
+                        Toast.makeText(this, "User not found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("UserRoles", "Error fetching user roles", e);
+                    Toast.makeText(this, "Failed to fetch user roles.", Toast.LENGTH_SHORT).show();
+                });
     }
 
 }

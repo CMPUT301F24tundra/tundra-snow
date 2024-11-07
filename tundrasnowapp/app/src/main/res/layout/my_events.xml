@@ -31,6 +31,7 @@
             android:id="@+id/modeToggle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:textOff="Toggle Mode: User"
             android:textOn="Toggle Mode: Organizer"
             android:textColor="@drawable/toggle_button"
