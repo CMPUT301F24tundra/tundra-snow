@@ -27,6 +27,9 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
+import com.example.tundra_snow_app.ListActivities.EntrantSignupActivity;
+
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.After;
