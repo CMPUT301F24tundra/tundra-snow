@@ -1,0 +1,10 @@
+com.example.tundra_snow_app
+com.example.tundra_snow_app.Activities
+com.example.tundra_snow_app.AdminActivities
+com.example.tundra_snow_app.AdminAdapters
+com.example.tundra_snow_app.EventActivities
+com.example.tundra_snow_app.EventAdapters
+com.example.tundra_snow_app.Helpers
+com.example.tundra_snow_app.ListActivities
+com.example.tundra_snow_app.ListAdapters
+com.example.tundra_snow_app.Models
