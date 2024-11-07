@@ -152,8 +152,11 @@ public class MainActivityTest {
         // Verify navigation to EntrantSignupActivity
         intended(hasComponent(EntrantSignupActivity.class.getName()));
 
-        String testEmail = "newuser@example.com";
+        String testEmail = "newuserSignUp@example.com";
         String testPassword = "password123";
+
+        String testFacility = "testSetFacility";
+        String facilityLocation = "testLocation";
         
         // Fill out the sign-up form
         onView(withId(R.id.editTextFirstName)).perform(replaceText("John"));
@@ -163,6 +166,10 @@ public class MainActivityTest {
         onView(withId(R.id.editTextDateOfBirth)).perform(replaceText("01/01/1990"));
         onView(withId(R.id.editTextPhoneNumber)).perform(replaceText("1234567890"));
         onView(withId(R.id.toggleButtonNotification)).perform(click());
+        onView(withId(R.id.checkBoxOrganizer)).perform(click());
+        onView(withId(R.id.editTextFacility)).perform(replaceText(testFacility));
+        onView(withId(R.id.editTextFacilityLocation)).perform(replaceText(facilityLocation));
+
 
         // Submit the sign-up form
         onView(withId(R.id.signupButton)).perform(click());

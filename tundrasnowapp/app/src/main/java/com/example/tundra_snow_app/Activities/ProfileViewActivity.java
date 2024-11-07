@@ -2,6 +2,7 @@ package com.example.tundra_snow_app.Activities;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -9,6 +10,7 @@ import android.widget.ListView;
 import android.widget.ToggleButton;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.tundra_snow_app.Helpers.NavigationBarHelper;
@@ -35,6 +37,7 @@ public class ProfileViewActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private String userId;
     private List<String> facilities = new ArrayList<>();
+    private List<String> userRoles = new ArrayList<>();
 
     private ToggleButton modeToggle; // Organizer/User toggle
     private View profileSection;
@@ -149,6 +152,13 @@ public class ProfileViewActivity extends AppCompatActivity {
                         facilities = (List<String>) documentSnapshot.get("facilityList");
                         if (facilities == null) facilities = new ArrayList<>();
                         setupFacilitiesListView();
+
+                        // Retrieve roles and enable/disable modeToggle based on roles
+                        userRoles = (List<String>) documentSnapshot.get("roles");
+                        if (userRoles != null && userRoles.contains("organizer")) {
+                            modeToggle.setVisibility(View.VISIBLE); // Enable modeToggle if "organizer" role is present
+                        }
+
                         enableEditing(false);
                     } else {
                         Toast.makeText(this, "User profile not found.", Toast.LENGTH_SHORT).show();

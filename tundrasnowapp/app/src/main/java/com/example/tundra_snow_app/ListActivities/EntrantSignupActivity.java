@@ -20,6 +20,7 @@ import com.example.tundra_snow_app.Models.Users;
 import com.example.tundra_snow_app.R;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -68,6 +69,7 @@ public class EntrantSignupActivity extends AppCompatActivity{
         deviceID = DeviceUtils.getDeviceID(this);
 
         db = FirebaseFirestore.getInstance();
+
         storage = FirebaseStorage.getInstance();
 
         // Initializing UI elements
@@ -134,15 +136,14 @@ public class EntrantSignupActivity extends AppCompatActivity{
                 return;
             }
 
+            Log.d("Debug", "Organizer role selected, facility details provided");
+
             // Check for existing facility with the same name
             checkAndAddFacility(facilityID, facilityName, facilityLocation);
-
-            // Save facility information to Firestore
-            saveFacilityToFirestore(facilityID, facilityName, facilityLocation);
         }
 
         // Validating input fields
-        if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || password.isEmpty()) {
+        if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || password.isEmpty() || dateOfBirth.isEmpty()) {
             Toast.makeText(this, "Please fill out all required fields.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -165,6 +166,8 @@ public class EntrantSignupActivity extends AppCompatActivity{
                 null,
                 roles,
                 facilityList);
+
+        Log.d("Debug", "User object created");
 
         // Upload profile picture if provided
         if (profilePictureUri != null) {

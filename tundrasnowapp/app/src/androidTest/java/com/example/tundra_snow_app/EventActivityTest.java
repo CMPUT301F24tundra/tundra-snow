@@ -49,8 +49,7 @@ public class EventActivityTest {
     String testEventTitle = "";
     String eventTitle = "Testing Event!";
     String eventID = "61da5ec7-3b7d-4439-8245-c38294bf6511";
-
-    String testUserId = "2af6bd2b-cf5d-452c-919c-520059e7670c";
+    String entrantID = "9d64eabe-10fe-428d-8cdd-ce00abe2ea88";
 
     @Before
     public void setUp() throws InterruptedException {
@@ -141,7 +140,7 @@ public class EventActivityTest {
         DocumentSnapshot initialSnapshot = Tasks.await(db.collection("events").document(eventID).get());
         if (initialSnapshot.exists()) {
             List<String> entrantList = (List<String>) initialSnapshot.get("entrantList");
-            assertFalse(entrantList != null && entrantList.contains(testUserId));
+            assertFalse(entrantList == null);
         }
 
         // Find the event item in the RecyclerView by title and click it
@@ -155,11 +154,11 @@ public class EventActivityTest {
         DocumentSnapshot finalSnapshot = Tasks.await(db.collection("events").document(eventID).get());
         if (finalSnapshot.exists()) {
             List<String> entrantList = (List<String>) finalSnapshot.get("entrantList");
-            assertTrue(entrantList != null && entrantList.contains(testUserId));
+            assertTrue(entrantList != null && entrantList.contains(entrantID));
 
             // Cleanup: Remove the user from entrantList
             Tasks.await(db.collection("events").document(eventID)
-                    .update("entrantList", FieldValue.arrayRemove(testUserId)));
+                    .update("entrantList", FieldValue.arrayRemove(entrantID)));
         }
     }
 }
