@@ -14,6 +14,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import android.util.Log;
 
 import androidx.test.espresso.intent.Intents;
+import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 
 import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
@@ -41,6 +42,7 @@ public class OrganizerTests {
     private FirebaseFirestore db;
     String testEventTitle = "";
     String permanentEvent = "Permanent Test Event";
+    String permanentEntrant = "test123 test123";
 
     List<String> generatedTitles = new ArrayList<>();
 
@@ -178,5 +180,7 @@ public class OrganizerTests {
         onView(withId(R.id.viewWaitingList)).perform(click());
 
         intended(hasComponent(ViewParticipantListActivity.class.getName()));
+
+        onView(withId(R.id.waitListBox)).check(matches(withText(permanentEntrant)));
     }
 }
