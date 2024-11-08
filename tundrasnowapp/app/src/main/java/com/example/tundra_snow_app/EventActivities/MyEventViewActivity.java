@@ -4,8 +4,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -15,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.tundra_snow_app.Activities.ProfileViewActivity;
 import com.example.tundra_snow_app.EventAdapters.MyEventsAdapter;
 import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.Helpers.NavigationBarHelper;
@@ -37,7 +41,7 @@ import java.util.List;
 public class MyEventViewActivity extends AppCompatActivity {
 
     private static final String PREFS_NAME = "ModePrefs";
-    private static final String MODE_KEY = "isOrganizerMode";
+    private static final String MODE_KEY = "currentMode";
     private static final int REQUEST_CODE_UPDATE_STATUS = 1;
 
     private RecyclerView recyclerViewEvents;
@@ -45,10 +49,11 @@ public class MyEventViewActivity extends AppCompatActivity {
     private MyEventsAdapter myEventsAdapter;
     private List<Events> eventList;
     private FirebaseFirestore db;
-    private ToggleButton modeToggle;
     private TextView eventTitle;
     private String currentUserID;
     private List<String> userRoles = new ArrayList<>();
+    private ImageView menuButton;
+    private boolean isOrganizerMode;
 
     /**
      * Initializes the views and loads the events based on the user's mode.
@@ -66,17 +71,25 @@ public class MyEventViewActivity extends AppCompatActivity {
         noEventsLayout = findViewById(R.id.noEventsLayout);
 
         // Organizer UI components
-        modeToggle = findViewById(R.id.modeToggle);
         eventTitle = findViewById(R.id.myEventTitle);
+        menuButton = findViewById(R.id.menuButton);
 
         // Initialize Firebase and events list
         db = FirebaseFirestore.getInstance();
         eventList = new ArrayList<>();
 
-        // Retrieve the toggle state from SharedPreferences
+        // Get mode from the Intent or SharedPreferences
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        boolean isOrganizerMode = preferences.getBoolean(MODE_KEY, false);
-        modeToggle.setChecked(isOrganizerMode);
+
+        // Retrieve mode from Intent or SharedPreferences
+        String mode = getIntent().getStringExtra(MODE_KEY);
+        if (mode == null) {
+            mode = preferences.getString(MODE_KEY, "user");  // Default to "user"
+        }
+        boolean isOrganizerMode = "organizer".equals(mode);
+
+        menuButton.setVisibility(View.GONE);
+
 
         fetchSessionUserId(() -> {
             // Set up Recycler View
@@ -85,11 +98,6 @@ public class MyEventViewActivity extends AppCompatActivity {
             recyclerViewEvents.setAdapter(myEventsAdapter);
 
             setMode(isOrganizerMode);
-            modeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                setMode(isChecked);
-                // Save the mode state in SharedPreferences for persistence across activities
-                preferences.edit().putBoolean("isOrganizerMode", isChecked).apply();
-            });
         });
     }
 
@@ -269,8 +277,13 @@ public class MyEventViewActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         userRoles = (List<String>) documentSnapshot.get("roles");
 
-                        if (userRoles != null && userRoles.contains("organizer")) {
-                            modeToggle.setVisibility(View.VISIBLE); // Enable modeToggle if "organizer" role is present
+                        // Check roles and adjust menu button visibility
+                        if (userRoles == null || userRoles.isEmpty() || userRoles.size() == 1 && userRoles.contains("user")) {
+                            // Only "user" role is present, hide the menu button
+                            menuButton.setVisibility(View.GONE);
+                        } else {
+                            // Show the menu button if additional roles are available
+                            menuButton.setVisibility(View.VISIBLE);
                         }
 
                         onComplete.run();
