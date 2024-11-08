@@ -16,6 +16,9 @@ import android.util.Log;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 
+import com.example.tundra_snow_app.ListActivities.ViewCancelledParticipantListActivity;
+import com.example.tundra_snow_app.ListActivities.ViewChosenParticipantListActivity;
+import com.example.tundra_snow_app.ListActivities.ViewConfirmedParticipantListActivity;
 import com.example.tundra_snow_app.ListActivities.ViewParticipantListActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -40,6 +43,7 @@ public class OrganizerTests {
     String testEventTitle = "";
     String permanentEvent = "Permanent Test Event";
     String permanentEntrant = "test123 test123";
+    String organizerName = "John Doe";
 
     List<String> generatedTitles = new ArrayList<>();
 
@@ -57,6 +61,13 @@ public class OrganizerTests {
         onView(withId(R.id.usernameEditText)).perform(replaceText("newuser@example.com"));
         onView(withId(R.id.passwordEditText)).perform(replaceText("password123"));
         onView(withId(R.id.loginButton)).perform(click());
+
+        Thread.sleep(3000);
+
+        // Scroll to the item with the specific title and click it
+        onView(withText(permanentEvent)).perform(scrollTo(), click());
+        // Click the sign-up button
+        onView(withId(R.id.buttonSignUpForEvent)).perform(click());
 
         Thread.sleep(3000);
 
@@ -158,8 +169,11 @@ public class OrganizerTests {
         onView(withId(R.id.organizerEventTitle)).check(matches(withText(permanentEvent)));
     }
 
-    // US 02.02.01 As an organizer I want to view the list of
-    // entrants who joined my event waiting list
+    /**
+     * Testing US 02.02.01.
+     * As an organizer I want to view the list of entrants who joined my event waiting list
+     * @throws InterruptedException
+     */
     @Test
     public void testViewWaitingList() throws InterruptedException {
         onView(withId(R.id.nav_events)).perform(click());
@@ -180,5 +194,109 @@ public class OrganizerTests {
 
         // Optionally verify the text of an entrant directly without scrolling
         onView(withText(permanentEntrant)).check(matches(isDisplayed()));
+    }
+
+    /**
+     * Testing US 02.06.01
+     * As an organizer I want to view a list of all chosen entrants who are
+     * invited to apply
+     * @throws InterruptedException
+     */
+    @Test
+    public void testViewChosenList() throws InterruptedException {
+
+        onView(withId(R.id.nav_events)).perform(click());
+
+        Thread.sleep(3000); // Wait for change
+
+        // Wait for data to load by checking if the permanentEvent title is displayed
+        onView(withText(permanentEvent)).check(matches(isDisplayed()));
+
+        // Scroll to the item with the specific title and click it
+        onView(withText(permanentEvent)).perform(scrollTo(), click());
+
+        Thread.sleep(3000); // Wait for mode change
+
+        onView(withId(R.id.viewChosenList)).perform(click());
+
+        intended(hasComponent(ViewChosenParticipantListActivity.class.getName()));
+
+    }
+
+    /**
+     * Testing US 02.06.03
+     * As an organizer I want to see a final list of entrants who enrolled
+     * for the event
+     * @throws InterruptedException
+     */
+    @Test
+    public void testViewFinalEntrantList() throws InterruptedException {
+
+        onView(withId(R.id.nav_events)).perform(click());
+
+        Thread.sleep(3000); // Wait for change
+
+        // Wait for data to load by checking if the permanentEvent title is displayed
+        onView(withText(permanentEvent)).check(matches(isDisplayed()));
+
+        // Scroll to the item with the specific title and click it
+        onView(withText(permanentEvent)).perform(scrollTo(), click());
+
+        Thread.sleep(3000); // Wait for mode change
+
+        onView(withId(R.id.viewEnrolledList)).perform(click());
+
+        intended(hasComponent(ViewConfirmedParticipantListActivity.class.getName()));
+
+    }
+
+    /**
+     * Testing US 02.06.02
+     * As an organizer I want to see a list of all the cancelled entrants
+     * @throws InterruptedException
+     */
+    @Test
+    public void testViewCancelledList() throws InterruptedException {
+
+        onView(withId(R.id.nav_events)).perform(click());
+
+        Thread.sleep(3000); // Wait for change
+
+        // Wait for data to load by checking if the permanentEvent title is displayed
+        onView(withText(permanentEvent)).check(matches(isDisplayed()));
+
+        // Scroll to the item with the specific title and click it
+        onView(withText(permanentEvent)).perform(scrollTo(), click());
+
+        Thread.sleep(3000); // Wait for mode change
+
+        onView(withId(R.id.viewCancelledList)).perform(click());
+
+        intended(hasComponent(ViewCancelledParticipantListActivity.class.getName()));
+
+    }
+
+    /**
+     * Testing US 02.06.04
+     * As an organizer I want to cancel entrants that did not sign up for the event
+     * @throws InterruptedException
+     */
+    @Test
+    public void testDeletingEntrantFromWaitlist() throws InterruptedException {
+        // newuser@example.com
+        onView(withId(R.id.nav_events)).perform(click());
+
+        Thread.sleep(3000); // Wait for change
+
+        // Wait for data to load by checking if the permanentEvent title is displayed
+        onView(withText(permanentEvent)).check(matches(isDisplayed()));
+
+        // Scroll to the item with the specific title and click it
+        onView(withText(permanentEvent)).perform(scrollTo(), click());
+
+        Thread.sleep(3000); // Wait for mode change
+
+        onView(withId(R.id.viewWaitingList)).perform(click());
+
     }
 }
