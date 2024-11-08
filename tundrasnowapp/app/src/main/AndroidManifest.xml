@@ -26,22 +26,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".EntrantSignupActivity" />
-        <activity android:name=".EventViewActivity" />
-        <activity android:name=".CreateEventActivity" />
-        <activity android:name=".EventDetailActivity" />
-        <activity android:name=".MyEventViewActivity" />
-        <activity android:name=".ProfileViewActivity"/>
-        <activity android:name=".OrganizerEventDetailActivity" />
-        <activity android:name=".ViewParticipantListActivity" />
-        <activity android:name=".MyEventDetailActivity" />
-        <activity android:name=".AdminEventViewActivity" />
-        <activity android:name=".AdminFacilityViewActivity" />
-        <activity android:name=".AdminUsersViewActivity" />
-        <activity android:name=".SettingsViewActivity" />
-        <activity android:name=".ViewConfirmedParticipantListActivity" />
-        <activity android:name=".ViewChosenParticipantListActivity" />
-        <activity android:name=".ViewCancelledParticipantListActivity" />
+        <activity android:name=".ListActivities.EntrantSignupActivity" />
+        <activity android:name=".EventActivities.EventViewActivity" />
+        <activity android:name=".EventActivities.CreateEventActivity" />
+        <activity android:name=".EventActivities.EventDetailActivity" />
+        <activity android:name=".EventActivities.MyEventViewActivity" />
+        <activity android:name=".Activities.ProfileViewActivity"/>
+        <activity android:name=".EventActivities.OrganizerEventDetailActivity" />
+        <activity android:name=".ListActivities.ViewParticipantListActivity" />
+        <activity android:name=".EventActivities.MyEventDetailActivity" />
+        <activity android:name=".AdminActivities.AdminEventViewActivity" />
+        <activity android:name=".AdminActivities.AdminFacilityViewActivity" />
+        <activity android:name=".AdminActivities.AdminUsersViewActivity" />
+        <activity android:name=".Activities.SettingsViewActivity" />
+        <activity android:name=".ListActivities.ViewConfirmedParticipantListActivity" />
+        <activity android:name=".ListActivities.ViewChosenParticipantListActivity" />
+        <activity android:name=".ListActivities.ViewCancelledParticipantListActivity" />
 
 
     </application>

@@ -44,7 +44,7 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="3dp"
                     android:text="Settings"
-                    android:textColor="#B6B6B6"
+                    android:textColor="#000000"
                     android:textSize="11sp" />
 
                 <LinearLayout
@@ -66,7 +66,7 @@
                             android:layout_weight="1"
                             android:padding="7dp"
                             android:text="Set Max Participant List: "
-                            android:textColor="#FFFFFF"
+                            android:textColor="#000000"
                             android:textSize="11.5sp" />
 
                         <EditText
@@ -76,7 +76,8 @@
                             android:layout_marginEnd="10dp"
                             android:background="#A8A8A8A8"
                             android:textSize="12sp"
-                            android:enabled="false"/>
+                            android:enabled="false"
+                            android:textColor="#000000"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -91,14 +92,14 @@
                             android:layout_weight="1"
                             android:padding="7dp"
                             android:text="Send Notification"
-                            android:textColor="#FFFFFF"
+                            android:textColor="#000000"
                             android:textSize="11.5sp" />
 
                         <Button
                             android:id="@+id/sendNotificationButton"
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:backgroundTint="#48A700"
+                            android:backgroundTint="#000000"
                             android:text="Send"
                             android:textSize="10sp" />
 
@@ -116,14 +117,14 @@
                             android:layout_weight="1"
                             android:padding="7dp"
                             android:text="Select Random Registration Sample"
-                            android:textColor="#FFFFFF"
+                            android:textColor="#000000"
                             android:textSize="11.5sp" />
 
                         <Button
                             android:id="@+id/selectRegSampleButton"
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:backgroundTint="#48A700"
+                            android:backgroundTint="#000000"
                             android:text="Select"
                             android:textSize="10sp" />
 
@@ -181,7 +182,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="30dp"
-                    android:backgroundTint="#C80000"
+                    android:backgroundTint="#000000"
                     android:text="Edit" />
 
                 <Button
@@ -189,7 +190,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="30dp"
-                    android:backgroundTint="#48A700"
+                    android:backgroundTint="#000000"
                     android:text="Save"
                     android:textColor="#FFFFFF"
                     android:visibility="gone" />

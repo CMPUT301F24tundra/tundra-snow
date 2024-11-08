@@ -31,6 +31,7 @@
             android:id="@+id/modeToggle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:textOff="Toggle Mode: User"
             android:textOn="Toggle Mode: Organizer"
             android:textColor="@drawable/toggle_button"
@@ -143,7 +144,8 @@
             android:layout_height="wrap_content"
             android:text="Add Facility"
             android:layout_marginTop="16dp"
-            android:textColor="#FFFFFF" />
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#333333"/>
     </LinearLayout>
 
     <!-- Buttons for Edit and Save (placed outside the sections) -->
@@ -162,7 +164,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Edit"
-            android:textColor="#FFFFFF" />
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#333333"/>
 
         <Button
             android:id="@+id/saveButton"
@@ -171,6 +174,7 @@
             android:text="Save"
             android:visibility="gone"
             android:textColor="#FFFFFF"
+            android:backgroundTint="#333333"
             android:layout_marginStart="16dp" />
     </LinearLayout>
 

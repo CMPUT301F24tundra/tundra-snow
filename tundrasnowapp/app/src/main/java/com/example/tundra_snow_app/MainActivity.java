@@ -16,6 +16,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
+import com.example.tundra_snow_app.EventActivities.EventViewActivity;
+import com.example.tundra_snow_app.Helpers.DeviceUtils;
+import com.example.tundra_snow_app.ListActivities.EntrantSignupActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -25,7 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Main activity for the app. This is the first screen that the user sees when they open the app.
+ */
 public class MainActivity extends AppCompatActivity {
 
     private EditText usernameEditText, passwordEditText;
@@ -34,6 +40,10 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private boolean isAdmin;
 
+    /**
+     * This method is called when the activity is first created.
+     * @param savedInstanceState The saved instance state of the activity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +76,10 @@ public class MainActivity extends AppCompatActivity {
         signInWithDeviceButton.setOnClickListener(v -> loginWithDeviceID());
     }
 
+    /**
+     * Sets up the "sign up" link in the main activity. This link allows users to navigate to the
+     * EntrantSignUpActivity to create a new account.
+     */
     private void setUpSignUpLink() {
         // Setting up the "sign up" button
         TextView signUpText = findViewById(R.id.signUpText);
@@ -92,6 +106,11 @@ public class MainActivity extends AppCompatActivity {
         signUpText.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
+    /**
+     * Logs in the user with the provided email and password. If the login is successful, the user
+     * is navigated to the EventViewActivity or AdminEventViewActivity depending on if they are an
+     * admin or not.
+     */
     private void loginUser() {
         String email = usernameEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
@@ -139,6 +158,10 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Logs in the user with the device ID. If the login is successful, the user is navigated to the
+     * EventViewActivity or AdminEventViewActivity depending on if they are an admin or not.
+     */
     private void loginWithDeviceID() {
         String deviceID = DeviceUtils.getDeviceID(this);
 
@@ -171,7 +194,10 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    // Log user session to Firestore
+    /**
+     * Logs the user's session in Firestore. This method is called after a successful login.
+     * @param userId The ID of the user that is logging in.
+     */
     private void logUserSession(String userId) {
         String sessionId = db.collection("sessions").document().getId();
 
@@ -218,8 +244,11 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> Log.e("Session", "Error fetching user data for session", e));
     }
-
-    // Navigate to EventViewActivity or Admin activity depending on if they're an admin or not
+    
+    /**
+     * Navigates to the EventViewActivity or AdminEventViewActivity depending on if the user is an
+     * admin or not.
+     */
     private void startMainContent() {
         Intent intent;
         if (isAdmin) {
