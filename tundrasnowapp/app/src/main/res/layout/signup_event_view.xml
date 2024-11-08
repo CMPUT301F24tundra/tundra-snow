@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:text=""
             android:layout_height="wrap_content"
-            android:textColor="#FF7171" />
+            android:textColor="#333333" />
 
         <!-- Event Location -->
         <TextView
@@ -61,7 +61,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
             android:text="Notice: Event Signup Requires Geolocation!"
-            android:textColor="#C80000"
+            android:textColor="#000000"
             android:visibility="gone"
             android:textStyle="bold"/>
 
