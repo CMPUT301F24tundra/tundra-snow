@@ -56,9 +56,10 @@
     <!-- Sign Up Link Text -->
     <LinearLayout
         android:id="@+id/loginFormContainer"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:layout_margin="50dp"
         android:background="@drawable/rounded_gray_background"
         android:orientation="vertical"
         android:padding="24dp"
@@ -94,36 +95,13 @@
             android:textColorHint="#808080"
             android:textSize="15sp" />
 
-        <!-- Remember Me & Forgot Password Options -->
-        <LinearLayout
-            android:id="@+id/rememberForgotBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:orientation="horizontal">
 
-            <CheckBox
-                android:id="@+id/rememberMeCheckbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Remember Me"
-                android:textColor="#000000"
-                android:textStyle="bold"/>
 
-            <TextView
-                android:id="@+id/forgotPasswordText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="25dp"
-                android:clickable="true"
-                android:text="Forgot Password?"
-                android:textColor="#000000"
-                android:textStyle="bold"/>
-        </LinearLayout>
 
         <!-- Login Button -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/loginButton"
+            android:layout_marginHorizontal="30dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -138,6 +116,7 @@
             android:id="@+id/signInWithDeviceButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="30dp"
             android:layout_marginTop="12dp"
             android:background="@drawable/rounded_black_button"
             android:text="Sign in with Device"
