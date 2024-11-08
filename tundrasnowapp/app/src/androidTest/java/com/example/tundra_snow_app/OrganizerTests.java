@@ -11,6 +11,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
+
 import android.util.Log;
 
 import androidx.test.espresso.intent.Intents;
@@ -192,7 +193,7 @@ public class OrganizerTests {
 
         intended(hasComponent(ViewParticipantListActivity.class.getName()));
 
-        // Optionally verify the text of an entrant directly without scrolling
+        // verify the permanent member on the waiting list is displayed
         onView(withText(permanentEntrant)).check(matches(isDisplayed()));
     }
 
@@ -298,5 +299,17 @@ public class OrganizerTests {
 
         onView(withId(R.id.viewWaitingList)).perform(click());
 
+        Thread.sleep(2000); // Wait for waitlist to load
+
+        onView(withText(permanentEntrant)).check(matches(isDisplayed()));
+
+//        // Verify rejection (optional)
+//        Thread.sleep(1000);
+//
+//        // Verify that John Doe is no longer in the list
+//        onView(allOf(
+//                withId(R.id.fullName),
+//                withText("John Doe")
+//        )).check(doesNotExist());
     }
 }
