@@ -14,11 +14,8 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import android.util.Log;
 
 import androidx.test.espresso.intent.Intents;
-import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 
-import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
-import com.example.tundra_snow_app.ListActivities.EntrantSignupActivity;
 import com.example.tundra_snow_app.ListActivities.ViewParticipantListActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -162,7 +159,7 @@ public class OrganizerTests {
     }
 
     // US 02.02.01 As an organizer I want to view the list of
-    // entrants who joined my event waiting lis
+    // entrants who joined my event waiting list
     @Test
     public void testViewWaitingList() throws InterruptedException {
         onView(withId(R.id.nav_events)).perform(click());
@@ -181,6 +178,7 @@ public class OrganizerTests {
 
         intended(hasComponent(ViewParticipantListActivity.class.getName()));
 
-        onView(withId(R.id.waitListBox)).check(matches(withText(permanentEntrant)));
+        // Optionally verify the text of an entrant directly without scrolling
+        onView(withText(permanentEntrant)).check(matches(isDisplayed()));
     }
 }
