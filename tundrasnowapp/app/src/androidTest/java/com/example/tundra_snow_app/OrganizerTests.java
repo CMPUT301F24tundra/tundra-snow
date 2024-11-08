@@ -17,6 +17,8 @@ import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 
 import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
+import com.example.tundra_snow_app.ListActivities.EntrantSignupActivity;
+import com.example.tundra_snow_app.ListActivities.ViewParticipantListActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -26,6 +28,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class OrganizerTests {
@@ -37,7 +41,8 @@ public class OrganizerTests {
     private FirebaseFirestore db;
     String testEventTitle = "";
     String permanentEvent = "Permanent Test Event";
-    static int randomNumber = new Random().nextInt(1000);
+
+    List<String> generatedTitles = new ArrayList<>();
 
     @Before
     public void setUp() throws InterruptedException {
@@ -45,7 +50,10 @@ public class OrganizerTests {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        int randomNumber = new Random().nextInt(1000);
         testEventTitle = "Organizer Test Event " + randomNumber;
+
+        generatedTitles.add(testEventTitle);
 
         onView(withId(R.id.usernameEditText)).perform(replaceText("newuser@example.com"));
         onView(withId(R.id.passwordEditText)).perform(replaceText("password123"));
@@ -65,23 +73,26 @@ public class OrganizerTests {
         auth.signOut();
         Intents.release();
 
-        // Query and delete test events with the specified title
-        db.collection("events")
-                .whereEqualTo("title", testEventTitle)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (DocumentSnapshot document : task.getResult()) {
-                            document.getReference().delete()
-                                    .addOnSuccessListener(aVoid ->
-                                            Log.d("TearDown", "Test event deleted successfully"))
-                                    .addOnFailureListener(e ->
-                                            Log.e("TearDown", "Error deleting test event", e));
+        for (String title : generatedTitles) {
+            // Query and delete test events with the specified title
+            db.collection("events")
+                    .whereEqualTo("title", title)  // Use the current title in the loop
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            for (DocumentSnapshot document : task.getResult()) {
+                                document.getReference().delete()
+                                        .addOnSuccessListener(aVoid ->
+                                                Log.d("TearDown", "Test event '" + title + "' deleted successfully"))
+                                        .addOnFailureListener(e ->
+                                                Log.e("TearDown", "Error deleting test event '" + title + "'", e));
+                            }
+                        } else {
+                            Log.e("TearDown", "Error finding test events for '" + title + "'", task.getException());
                         }
-                    } else {
-                        Log.e("TearDown", "Error finding test events", task.getException());
-                    }
-                });
+                    });
+        }
+
 
     }
 
@@ -130,17 +141,42 @@ public class OrganizerTests {
     }
 
     @Test
-    public void testClickEventNavigatesToDetails() {
-
+    public void testClickEventNavigatesToDetails() throws InterruptedException {
+        // Navigate to events list
         onView(withId(R.id.nav_events)).perform(click());
 
-        // Check that the event title is displayed in the events list
+        Thread.sleep(3000); // Wait for change
+
+        // Wait for data to load by checking if the permanentEvent title is displayed
         onView(withText(permanentEvent)).check(matches(isDisplayed()));
 
-        // Find the event item in the RecyclerView by title and click it
+        // Scroll to the item with the specific title and click it
         onView(withText(permanentEvent)).perform(scrollTo(), click());
 
-        // Verify that clicking the event navigates to the EventDetailActivity
-        intended(hasComponent(EventDetailActivity.class.getName()));
+        Thread.sleep(3000); // Wait for mode change
+
+        // Optionally, verify that EventDetailActivity displays the event title
+        onView(withId(R.id.organizerEventTitle)).check(matches(withText(permanentEvent)));
+    }
+
+    // US 02.02.01 As an organizer I want to view the list of
+    // entrants who joined my event waiting lis
+    @Test
+    public void testViewWaitingList() throws InterruptedException {
+        onView(withId(R.id.nav_events)).perform(click());
+
+        Thread.sleep(3000); // Wait for change
+
+        // Wait for data to load by checking if the permanentEvent title is displayed
+        onView(withText(permanentEvent)).check(matches(isDisplayed()));
+
+        // Scroll to the item with the specific title and click it
+        onView(withText(permanentEvent)).perform(scrollTo(), click());
+
+        Thread.sleep(3000); // Wait for mode change
+
+        onView(withId(R.id.viewWaitingList)).perform(click());
+
+        intended(hasComponent(ViewParticipantListActivity.class.getName()));
     }
 }
