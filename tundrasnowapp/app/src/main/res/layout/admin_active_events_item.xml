@@ -26,7 +26,7 @@
             android:id="@+id/eventDateTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#FF0000"
+            android:textColor="#D3D3D3"
             android:textSize="11sp"
             android:text="September 15th, 2024, 9:30 AM - 1:00 PM" />
 
@@ -57,5 +57,6 @@
         android:layout_height="45dp"
         android:text="Delete"
         android:textSize="11sp"
-        android:backgroundTint="#C80000"/>
+        android:textColor="#000000"
+        android:backgroundTint="#D3D3D3"/>
 </LinearLayout>
