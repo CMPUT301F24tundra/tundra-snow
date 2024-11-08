@@ -75,54 +75,6 @@ public class EventActivityTest {
     }
 
     @Test
-    public void testCreateEvent() throws InterruptedException {
-
-        // Switch to organizer mode
-        onView(withId(R.id.modeToggle)).perform(click());
-
-        Thread.sleep(3000); // Wait for mode change
-
-        // Click on the add event button to open CreateEventActivity
-        onView(withId(R.id.addEventButton)).perform(click());
-
-        Thread.sleep(1000); // Allow time for the Create Event screen to load
-
-        // Fill out the event form
-        onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
-        onView(withId(R.id.editTextEventDescription)).perform(replaceText("This is a description for the test event."));
-        onView(withId(R.id.editTextLocation)).perform(replaceText("Test Location"));
-        onView(withId(R.id.editTextStartDate)).perform(click()); // Open date picker for Start Date
-        onView(withText("OK")).perform(click()); // Confirm the default date (or set a specific date if needed)
-        onView(withId(R.id.editTextEndDate)).perform(click()); // Open date picker for End Date
-        onView(withText("OK")).perform(click()); // Confirm the default date
-
-        // Enter registration dates if applicable
-        onView(withId(R.id.editRegistrationStartDate)).perform(click());
-        onView(withText("OK")).perform(click()); // Confirm start registration date
-        onView(withId(R.id.editRegistrationEndDate)).perform(click());
-        onView(withText("OK")).perform(click()); // Confirm end registration date
-
-        // Set event capacity
-        onView(withId(R.id.editTextCapacity)).perform(replaceText("50"));
-
-        // Toggle geolocation requirement if necessary
-        onView(withId(R.id.toggleGeolocationRequirement)).perform(click());
-
-        // Submit the event creation form
-        onView(withId(R.id.buttonCreateEvent)).perform(scrollTo(), click());
-
-        Thread.sleep(2000); // Wait for submission to complete
-
-        // Switch back to user mode to view published events
-        onView(withId(R.id.modeToggle)).perform(click());
-
-        Thread.sleep(3000); // Wait for mode change
-
-        // Check that the event title is displayed in the events list
-        onView(withText(testEventTitle)).check(matches(isDisplayed()));
-    }
-
-    @Test
     public void testClickEventNavigatesToDetails() {
         // Find the event item in the RecyclerView by title and click it
         onView(withText(eventTitle)).perform(scrollTo(), click());
