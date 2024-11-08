@@ -18,6 +18,7 @@ import android.util.Log;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 
+import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
 import com.example.tundra_snow_app.ListActivities.ViewCancelledParticipantListActivity;
 import com.example.tundra_snow_app.ListActivities.ViewChosenParticipantListActivity;
 import com.example.tundra_snow_app.ListActivities.ViewConfirmedParticipantListActivity;
@@ -105,9 +106,7 @@ public class OrganizerTests {
                     });
         }
 
-
     }
-
 
     @Test
     public void testCreateEvent() throws InterruptedException {
@@ -152,6 +151,57 @@ public class OrganizerTests {
         onView(withText(testEventTitle)).check(matches(isDisplayed()));
     }
 
+    /**
+     * CURRENTLY FAILING
+     * Testing US 02.03.01
+     * As an organizer I want to OPTIONALLY limit the number of entrants who
+     * can join my waiting list
+     * @throws InterruptedException
+     */
+    @Test
+    public void testCreateEventNoCapacity() throws InterruptedException {
+
+        // Click on the add event button to open CreateEventActivity
+        onView(withId(R.id.addEventButton)).perform(click());
+
+        Thread.sleep(1000); // Allow time for the Create Event screen to load
+
+        // Fill out the event form
+        onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
+        onView(withId(R.id.editTextEventDescription)).perform(replaceText("This is a description for the test event."));
+        onView(withId(R.id.editTextLocation)).perform(replaceText("Test Location"));
+        onView(withId(R.id.editTextStartDate)).perform(click()); // Open date picker for Start Date
+        onView(withText("OK")).perform(click()); // Confirm the default date (or set a specific date if needed)
+        onView(withId(R.id.editTextEndDate)).perform(click()); // Open date picker for End Date
+        onView(withText("OK")).perform(click()); // Confirm the default date
+
+        // Enter registration dates if applicable
+        onView(withId(R.id.editRegistrationStartDate)).perform(click());
+        onView(withText("OK")).perform(click()); // Confirm start registration date
+        onView(withId(R.id.editRegistrationEndDate)).perform(click());
+        onView(withText("OK")).perform(click()); // Confirm end registration date
+
+        // Toggle geolocation requirement
+        onView(withId(R.id.toggleGeolocationRequirement)).perform(click());
+
+        // Submit the event creation form
+        onView(withId(R.id.buttonCreateEvent)).perform(scrollTo(), click());
+
+        Thread.sleep(2000); // Wait for submission to complete
+
+        // Switch back to user mode to view published events
+        onView(withId(R.id.modeToggle)).perform(click());
+
+        Thread.sleep(3000); // Wait for mode change
+
+        // Check that the event title is displayed in the events list
+        onView(withText(testEventTitle)).check(matches(isDisplayed()));
+    }
+
+    /**
+     * Ensure clicking event properly navigates to Event Details Activity
+     * @throws InterruptedException
+     */
     @Test
     public void testClickEventNavigatesToDetails() throws InterruptedException {
         // Navigate to events list
@@ -167,7 +217,8 @@ public class OrganizerTests {
 
         Thread.sleep(3000); // Wait for mode change
 
-        // Optionally, verify that EventDetailActivity displays the event title
+        intended(hasComponent(EventDetailActivity.class.getName()));
+
         onView(withId(R.id.organizerEventTitle)).check(matches(withText(permanentEvent)));
     }
 
@@ -285,7 +336,7 @@ public class OrganizerTests {
      */
     @Test
     public void testDeletingEntrantFromWaitlist() throws InterruptedException {
-        // newuser@example.com
+
         onView(withId(R.id.nav_events)).perform(click());
 
         Thread.sleep(3000); // Wait for change
@@ -309,5 +360,51 @@ public class OrganizerTests {
 
         // check that the entrant was removed
         onView(withText(permanentEntrant)).check(doesNotExist());
+    }
+
+    /**
+     * Testing US 02.03.01
+     * As an organizer I want to OPTIONALLY limit the number of entrants who
+     * can join my waiting list
+     * @throws InterruptedException
+     */
+    @Test
+    public void testModifyingParticipantListCapacity() throws InterruptedException {
+
+        onView(withId(R.id.nav_events)).perform(click());
+
+        Thread.sleep(3000); // Wait for change
+
+        // Wait for data to load by checking if the permanentEvent title is displayed
+        onView(withText(permanentEvent)).check(matches(isDisplayed()));
+
+        // Scroll to the item with the specific title and click it
+        onView(withText(permanentEvent)).perform(scrollTo(), click());
+
+        Thread.sleep(3000); // Wait for mode change
+
+        onView(withId(R.id.viewWaitingList)).perform(click());
+
+        Thread.sleep(2000); // Wait for waitlist to load
+
+        onView(withId(R.id.editButton)).perform(click());
+
+        Thread.sleep(1000); // Wait for waitlist to load
+
+        onView(withId(R.id.maxParticipantEdit)).perform(replaceText("60"));
+
+        onView(withId(R.id.saveButton)).perform(click());
+
+        onView(withId(R.id.maxParticipantEdit)).check(matches(withText("60")));
+
+        // revert to 50
+        onView(withId(R.id.editButton)).perform(click());
+
+        Thread.sleep(1000); // Wait for waitlist to load
+
+        onView(withId(R.id.maxParticipantEdit)).perform(replaceText("50"));
+
+        onView(withId(R.id.saveButton)).perform(click());
+
     }
 }
