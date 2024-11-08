@@ -4,6 +4,7 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.action.ViewActions.scrollTo;
+import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
@@ -301,15 +302,12 @@ public class OrganizerTests {
 
         Thread.sleep(2000); // Wait for waitlist to load
 
-        onView(withText(permanentEntrant)).check(matches(isDisplayed()));
+        onView(withId(R.id.rejectUser)).perform(click());
 
-//        // Verify rejection (optional)
-//        Thread.sleep(1000);
-//
-//        // Verify that John Doe is no longer in the list
-//        onView(allOf(
-//                withId(R.id.fullName),
-//                withText("John Doe")
-//        )).check(doesNotExist());
+        // Verify rejection
+        Thread.sleep(1000);
+
+        // check that the entrant was removed
+        onView(withText(permanentEntrant)).check(doesNotExist());
     }
 }
