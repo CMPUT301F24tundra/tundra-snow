@@ -5,39 +5,34 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
+        android:background="@drawable/header_underline"
         android:paddingTop="13dp">
 
         <TextView
             android:id="@+id/ongoingEventTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="20sp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:textColor="#FFFFFF"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <ToggleButton
-            android:id="@+id/modeToggle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textOff="Toggle Mode: User"
-            android:textOn="Toggle Mode: Organizer"
-            android:visibility="gone"
-            android:textColor="@drawable/toggle_button"
-            android:background="@drawable/toggle_button" />
-    </LinearLayout>
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:text=""
+            android:textColor="#FFFFFF"
+            android:textSize="25sp" />
 
-
+        <ImageView
+            android:id="@+id/menuButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:contentDescription="Mode Menu"
+            android:paddingTop="11dp"
+            android:paddingRight="17dp"
+            android:src="@drawable/menu_30" />
+    </FrameLayout>
 
 
     <!-- Content area (e.g., for displaying events) -->
