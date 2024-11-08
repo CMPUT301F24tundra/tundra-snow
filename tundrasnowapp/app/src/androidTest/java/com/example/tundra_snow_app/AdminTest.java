@@ -74,6 +74,9 @@ public class AdminTest {
     String testUserFirst = "999";
     String testUserLast = "555";
 
+    /**
+     * Generates test data for a facility, event and user.
+     */
     @Before
     public void setUp() throws InterruptedException {
 
@@ -151,6 +154,9 @@ public class AdminTest {
         Thread.sleep(2000);
     }
 
+    /**
+     * Deletes the generated test data for a facility, event and user.
+     */
     @After
     public void tearDown() {
         // Log out after all tests
@@ -161,6 +167,13 @@ public class AdminTest {
         Intents.release();
     }
 
+    /**
+     * Testing US 03.04.01 and US 03.01.01
+     * As an administrator, I want to be able to browse/remove events
+     * First an event is generated at the top of the view, then checked if it is displayed
+     * Second the event is deleted from the view, then checked if it is gone
+     * @throws InterruptedException
+     */
     @Test
     public void testAdminEventViewDelete() throws InterruptedException {
         onView(withId(R.id.admin_nav_events)).perform(click());
@@ -177,6 +190,13 @@ public class AdminTest {
 
     }
 
+    /**
+     * Testing US 03.07.01
+     *  As an administrator I want to remove facilities that violate app policy
+     * First a facility is generated at the top of the view, then checked if it is displayed
+     * Second the facility is deleted from the view, then checked if it is gone
+     * @throws InterruptedException
+     */
     @Test
     public void testAdminFacilityViewDelete() throws InterruptedException {
         // move to the facility view
@@ -191,6 +211,13 @@ public class AdminTest {
         onView(withText(testFacilityTitle)).check(doesNotExist());
     }
 
+    /**
+     * Testing US 03.02.01 and US 03.05.01
+     * As an administrator, I want to be able to browse/remove users
+     * First a user is generated at the top of the view, then checked if it is displayed
+     * Second the user is deleted from the view, then checked if it is gone
+     * @throws InterruptedException
+     */
     @Test
     public void testAdminUserViewDelete() throws InterruptedException {
         onView(withId(R.id.admin_nav_profiles)).perform(click());
