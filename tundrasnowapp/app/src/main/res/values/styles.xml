@@ -3,4 +3,14 @@
     <style name="CustomEditText">
         <item name="android:textColorHint">#7a7a7a7a</item> <!-- Define hint color here -->
     </style>
+    <style name="ParticipantListItem">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#E0E0E0</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:drawableEnd">@drawable/ic_chevron_right</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
 </resources>
