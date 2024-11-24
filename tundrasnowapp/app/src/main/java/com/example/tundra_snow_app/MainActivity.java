@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
     private Button loginButton, signInWithDeviceButton;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private boolean isAdmin;
 
     /**
      * This method is called when the activity is first created.
@@ -131,10 +130,6 @@ public class MainActivity extends AppCompatActivity {
                             String storedPassword = document.getString("password");
 
                             if (storedPassword != null && storedPassword.equals(password)) {
-                                // Get roles list and check for "admin"
-                                List<String> roles = (List<String>) document.get("roles");
-                                isAdmin = roles != null && roles.contains("admin");
-
                                 // Password matches
                                 Toast.makeText(MainActivity.this, "Login successful!", Toast.LENGTH_LONG).show();
 
@@ -172,10 +167,6 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            // Get roles list and check for "admin"
-                            List<String> roles = (List<String>) document.get("roles");
-                            isAdmin = roles != null && roles.contains("admin");
-
                             Toast.makeText(MainActivity.this, "Device login successful!", Toast.LENGTH_LONG).show();
 
                             // Log current user in a session
@@ -250,12 +241,7 @@ public class MainActivity extends AppCompatActivity {
      * admin or not.
      */
     private void startMainContent() {
-        Intent intent;
-        if (isAdmin) {
-            intent = new Intent(MainActivity.this, AdminEventViewActivity.class); // Admin view
-        } else {
-            intent = new Intent(MainActivity.this, EventViewActivity.class); // Regular user view
-        }
+        Intent intent = new Intent(MainActivity.this, EventViewActivity.class); // Regular user view
         startActivity(intent);
     }
 }

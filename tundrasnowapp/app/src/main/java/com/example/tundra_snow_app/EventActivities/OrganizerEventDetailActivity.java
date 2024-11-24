@@ -1,6 +1,7 @@
 package com.example.tundra_snow_app.EventActivities;
 
 import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -108,7 +109,7 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
             backButton.setOnClickListener(view -> finish());
             editButton.setOnClickListener(view -> enableEditing(true));
             saveButton.setOnClickListener(v -> saveEventUpdates());
-            eventDate.setOnClickListener(v -> showDatePickerDialog(eventDate));
+            eventDate.setOnClickListener(v -> showDateTimePickerDialog(eventDate));
         });
     }
 
@@ -156,6 +157,9 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
     private void saveEventUpdates() {
         String editedEventTitle = eventTitle.getText().toString();
         Date editedEventDate = parseDate(eventDate.getText().toString());
+
+        Log.w("DEBUG", "eventDate: " + editedEventDate);
+
         String editedEventLocation = eventLocation.getText().toString();
         String editedEventDescription = eventDescription.getText().toString();
 
@@ -185,20 +189,36 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
     }
 
     /**
-     * Show a date picker dialog to select a date.
-     * @param editText The EditText view to set the selected date.
+     * Show a combined date and time picker dialog to select a date and time.
+     * @param editText The EditText view to set the selected date and time.
      */
-    public void showDatePickerDialog(final EditText editText) {
+    public void showDateTimePickerDialog(final EditText editText) {
         Calendar calendar = Calendar.getInstance();
+
+        // Try to prefill the dialog with the existing date-time in the EditText
+        String currentDateTimeText = editText.getText().toString();
+        if (!currentDateTimeText.isEmpty()) {
+            Date existingDate = parseDate(currentDateTimeText);
+            if (existingDate != null) {
+                calendar.setTime(existingDate);
+            }
+        }
+
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
         int day = calendar.get(Calendar.DAY_OF_MONTH);
 
+        // First, show the date picker
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 this,
                 (view, selectedYear, selectedMonth, selectedDay) -> {
-                    String formattedDate = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
-                    editText.setText(formattedDate);
+                    // Save the selected date and move to the time picker
+                    calendar.set(Calendar.YEAR, selectedYear);
+                    calendar.set(Calendar.MONTH, selectedMonth);
+                    calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
+
+                    // Show time picker after selecting the date
+                    showTimePickerDialog(calendar, editText);
                 },
                 year, month, day
         );
@@ -209,16 +229,47 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
     }
 
     /**
-     * Parse a date string in the format "dd/MM/yyyy" to a Date object.
+     * Show a time picker dialog to select the time.
+     * The combined date and time are set in the provided EditText in the desired format.
+     * @param calendar The Calendar object with the selected date.
+     * @param editText The EditText view to set the combined date and time.
+     */
+    private void showTimePickerDialog(Calendar calendar, final EditText editText) {
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+
+        TimePickerDialog timePickerDialog = new TimePickerDialog(
+                this,
+                (view, selectedHour, selectedMinute) -> {
+                    // Save the selected time and format the full date-time
+                    calendar.set(Calendar.HOUR_OF_DAY, selectedHour);
+                    calendar.set(Calendar.MINUTE, selectedMinute);
+
+                    String formattedDateTime = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault())
+                            .format(calendar.getTime());
+                    editText.setText(formattedDateTime);
+                },
+                hour, minute, false
+        );
+
+        timePickerDialog.show();
+    }
+
+    /**
+     * Parse a date string in the format "MMM dd, yyyy, hh:mm a" to a Date object.
      * @param dateString The date string to parse.
-     * @return The parsed Date object.
+     * @return The parsed Date object, or null if parsing fails.
      */
     public Date parseDate(String dateString) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+        Log.w("DEBUG", "Parsing: " + dateString);
+
+        // Match the format of the date string being passed
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
         try {
             return dateFormat.parse(dateString);
         } catch (ParseException e) {
-            e.printStackTrace();
+            Log.e("parseDate", "Error parsing date: " + dateString, e);
             return null;
         }
     }

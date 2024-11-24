@@ -41,14 +41,14 @@ public class NavigationBarHelper {
     private static boolean handleNavigationSelection(Activity activity, MenuItem item) {
         Intent intent;
 
-        if (item.getItemId() == R.id.nav_calendar) {
+        if (item.getItemId() == R.id.nav_events) {
             if (!(activity instanceof EventViewActivity)) {
                 intent = new Intent(activity, EventViewActivity.class);
                 startActivityWithTransition(activity, intent);
             }
             return true;
 
-        } else if (item.getItemId() == R.id.nav_events) {
+        } else if (item.getItemId() == R.id.nav_my_events) {
             if (!(activity instanceof MyEventViewActivity)) {
                 intent = new Intent(activity, MyEventViewActivity.class);
                 startActivityWithTransition(activity, intent);
@@ -96,9 +96,9 @@ public class NavigationBarHelper {
      */
     private static void setSelectedItem(Activity activity, BottomNavigationView bottomNavigationView) {
         if (activity instanceof EventViewActivity) {
-            bottomNavigationView.setSelectedItemId(R.id.nav_calendar);
-        } else if (activity instanceof MyEventViewActivity) {
             bottomNavigationView.setSelectedItemId(R.id.nav_events);
+        } else if (activity instanceof MyEventViewActivity) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_my_events);
         } else if (activity instanceof QrScanActivity) {
             bottomNavigationView.setSelectedItemId(R.id.nav_qr);
         } else if (activity instanceof ProfileViewActivity) {
