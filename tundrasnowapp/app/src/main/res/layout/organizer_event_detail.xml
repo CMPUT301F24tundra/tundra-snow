@@ -1,250 +1,241 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:background="#121212">
 
     <ScrollView
+        android:id="@+id/scrollContent"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:padding="25dp">
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/buttonBox">
 
         <LinearLayout
-            android:background="@drawable/event_detail_background"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="5dp">
+            android:orientation="vertical">
 
-            <!-- View Title -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="My Event:"
-                android:textSize="30sp"
-                android:textStyle="bold"
-                android:paddingTop="10dp"
-                android:textColor="#000000" />
-
-            <EditText
-                android:id="@+id/organizerEventTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:textColor="#5B5B5B"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:padding="8dp"
-                android:enabled="false"/>
-
-            <!-- Event Date -->
-            <EditText
-                android:id="@+id/organizerEventDate"
-                android:layout_width="wrap_content"
-                android:text=""
-                android:textSize="13dp"
-                android:layout_height="wrap_content"
-                android:textColor="#333333"
-                android:padding="8dp"
-                android:enabled="false"
-                android:focusable="false"
-                android:clickable="false" />
-
-            <!-- Event Location -->
-            <EditText
-                android:id="@+id/organizerEventLocation"
-                android:layout_width="wrap_content"
-                android:text=""
-                android:textSize="13dp"
-                android:layout_height="wrap_content"
-                android:textColor="#000000"
-                android:padding="8dp"
-                android:enabled="false"/>
-
-            <!-- Event Description -->
-            <EditText
-                android:id="@+id/organizerEventDescription"
-                android:text=""
+            <!-- Header Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="8dp"
-                android:textColor="#494949"
-                android:padding="8dp"
-                android:layout_marginBottom="10dp"
-                android:enabled="false"/>
-
-
-            <LinearLayout
-                android:id="@+id/viewOptionBox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="5dp"
+                android:background="#1E1E1E"
+                android:elevation="4dp"
                 android:orientation="vertical"
-                android:background="@drawable/organizer_event_background">
+                android:padding="24dp">
+
+                <!-- Title Section -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="My Event:"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#9E9E9E"/>
+
+                <EditText
+                    android:id="@+id/organizerEventTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:background="@null"
+                    android:enabled="false"
+                    android:padding="0dp"
+                    android:layout_marginBottom="16dp"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:gravity="center" >
+                    android:orientation="horizontal">
 
-                    <TextView
+                    <!-- Date Section -->
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Geolocation Requirement: "
-                        android:textColor="#FFFFFF"
-                        android:textSize="15dp"
-                        android:layout_marginStart="10dp"/>
+                        android:orientation="vertical"
+                        android:layout_marginEnd="24dp">
 
-                    <ToggleButton
-                        android:id="@+id/toggleGeolocationRequirement"
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="DATE"
+                            android:textSize="12sp"
+                            android:textColor="#9E9E9E"/>
+
+                        <EditText
+                            android:id="@+id/organizerEventDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:textSize="16sp"
+                            android:textColor="#E0E0E0"
+                            android:background="@null"
+                            android:enabled="false"
+                            android:padding="0dp"/>
+                    </LinearLayout>
+
+                    <!-- Location Section -->
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:enabled="false"
-                        android:textOff="In-person"
-                        android:textOn="Remote"
-                        android:textSize="12sp" />
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="LOCATION"
+                            android:textSize="12sp"
+                            android:textColor="#9E9E9E"/>
+
+                        <EditText
+                            android:id="@+id/organizerEventLocation"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:textSize="16sp"
+                            android:textColor="#E0E0E0"
+                            android:background="@null"
+                            android:enabled="false"
+                            android:padding="0dp"/>
+                    </LinearLayout>
                 </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical" >
-
-                    <TextView
-                        android:id="@+id/viewWaitingList"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="View Participant Waiting List"
-                        android:textSize="14sp"
-                        android:textColor="#FFFFFF"
-                        android:padding="11dp"
-                        android:layout_weight="1"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text=">"
-                        android:textColor="#FFFFFF"
-                        android:paddingEnd="10dp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical" >
-
-                    <TextView
-                        android:id="@+id/viewEnrolledList"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="View Enrolled Participants"
-                        android:textSize="14sp"
-                        android:textColor="#FFFFFF"
-                        android:padding="11dp"
-                        android:layout_weight="1"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text=">"
-                        android:textColor="#FFFFFF"
-                        android:paddingEnd="10dp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical" >
-
-                    <TextView
-                        android:id="@+id/viewChosenList"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="View Chosen Participants"
-                        android:textSize="14sp"
-                        android:textColor="#FFFFFF"
-                        android:padding="11dp"
-                        android:layout_weight="1"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text=">"
-                        android:textColor="#FFFFFF"
-                        android:paddingEnd="10dp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical" >
-
-                    <TextView
-                        android:id="@+id/viewCancelledList"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="View Cancelled Participants"
-                        android:textSize="14sp"
-                        android:textColor="#FFFFFF"
-                        android:padding="11dp"
-                        android:layout_weight="1"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text=">"
-                        android:textColor="#FFFFFF"
-                        android:paddingEnd="10dp"/>
-                </LinearLayout>
-
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/buttonBox"
+            <!-- Description Card -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:padding="12dp"
-                android:layout_gravity="center_horizontal">
+                android:layout_margin="16dp"
+                android:backgroundTint="#1E1E1E">
 
-                <!-- Back Button -->
-                <Button
-                    android:id="@+id/backButton"
-                    android:layout_width="wrap_content"
+                <EditText
+                    android:id="@+id/organizerEventDescription"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Back"
-                    android:textColor="#000000"
-                    android:backgroundTint="#7A7A7A"/>
-                <!-- Save and Edit Button -->
-                <Button
-                    android:id="@+id/editButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Edit"
-                    android:layout_marginStart="30dp"
-                    android:backgroundTint="#000000"/>
+                    android:padding="16dp"
+                    android:textColor="#E0E0E0"
+                    android:text="@string/event_description"
+                    android:textSize="16sp"
+                    android:background="@null"
+                    android:enabled="false"
+                    android:gravity="start|top"/>
+            </androidx.cardview.widget.CardView>
 
-                <Button
-                    android:id="@+id/saveButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="30dp"
-                    android:text="Save"
-                    android:visibility="gone"
-                    android:backgroundTint="#000000"
-                    android:textColor="#FFFFFF" />
+            <!-- List View Options -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="#1E1E1E">
 
-            </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/viewOptionBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Geolocation Toggle -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Geolocation Requirement"
+                            android:textColor="#E0E0E0"
+                            android:textSize="16sp"/>
+
+                        <ToggleButton
+                            android:id="@+id/toggleGeolocationRequirement"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:enabled="false"
+                            android:textOff="In-person"
+                            android:textOn="Remote"/>
+                    </LinearLayout>
+
+                    <!-- List Options -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Participant Lists -->
+                        <TextView
+                            android:id="@+id/viewWaitingList"
+                            style="@style/ParticipantListItem"
+                            android:text="View Participant Waiting List"/>
+
+                        <TextView
+                            android:id="@+id/viewEnrolledList"
+                            style="@style/ParticipantListItem"
+                            android:text="View Enrolled Participants"/>
+
+                        <TextView
+                            android:id="@+id/viewChosenList"
+                            style="@style/ParticipantListItem"
+                            android:text="View Chosen Participants"/>
+
+                        <TextView
+                            android:id="@+id/viewCancelledList"
+                            style="@style/ParticipantListItem"
+                            android:text="View Cancelled Participants"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
         </LinearLayout>
     </ScrollView>
-</FrameLayout>
+
+    <!-- Button Container - Fixed at bottom -->
+    <LinearLayout
+        android:id="@+id/buttonBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="#1E1E1E"
+        android:elevation="4dp"
+        android:gravity="end"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <Button
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:textColor="#E0E0E0"
+            style="@style/Widget.MaterialComponents.Button.TextButton"/>
+
+        <Button
+            android:id="@+id/editButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit"
+            android:layout_marginStart="16dp"
+            android:backgroundTint="#BB86FC"
+            android:textColor="#000000"/>
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Save"
+            android:visibility="gone"
+            android:backgroundTint="#BB86FC"
+            android:textColor="#000000"/>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

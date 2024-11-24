@@ -10,9 +10,17 @@ import static org.junit.Assert.*;
 
 import com.example.tundra_snow_app.Models.Organizers;
 
+/**
+ * OrganizersTest is a JUnit test class for the Organizers class.
+ * It tests the default constructor, parameterized constructor, and getter and setter methods.
+ */
 public class OrganizersTest {
     private Organizers organizer;
 
+    /**
+     * Sets up the test fixture.
+     * Called before every test case method.
+     */
     @Before
     public void setUp() {
         List<String> roles = new ArrayList<>();
@@ -37,42 +45,66 @@ public class OrganizersTest {
                 facilityList
         );
     }
-
+    
+    /**
+     * Test getter method for the userID field.
+     */
     @Test
     public void testGetUserID() {
         assertEquals("002", organizer.getUserID());
     }
 
+    /**
+     * Test getter method for the firstName field.
+     */
     @Test
     public void testGetFirstName() {
         assertEquals("Alice", organizer.getFirstName());
     }
 
+    /**
+     * Test getter method for the lastName field.
+     */
     @Test
     public void testGetLastName() {
         assertEquals("Smith", organizer.getLastName());
     }
 
+    /**
+     * Test getter method for the email field.
+     */
     @Test
     public void testGetEmail() {
         assertEquals("alice.smith@example.com", organizer.getEmail());
     }
 
+    /**
+     * Test getter method for the password field.
+     */
     @Test
     public void testGetPhoneNumber() {
         assertEquals("0987654321", organizer.getPhoneNumber());
     }
 
+    /**
+     * Test getter method for notificationsEnabled field.
+     */
     @Test
     public void testNotificationsEnabled() {
         assertTrue(organizer.isNotificationsEnabled());
     }
 
+    /**
+     * Test getter method for the location field.
+     */
     @Test
     public void testGetLocation() {
         assertEquals("Location2", organizer.getLocation());
     }
 
+    /**
+     * Test getter method for the roles field.
+     */
     @Test
     public void testGetRoles() {
         List<String> roles = organizer.getRoles();
@@ -80,6 +112,9 @@ public class OrganizersTest {
         assertTrue(roles.contains("organizer"));
     }
 
+    /**
+     * Test getter method for the facilityList field.
+     */
     @Test
     public void testGetFacilityList() {
         List<String> facilityList = organizer.getFacilityList();
@@ -87,6 +122,9 @@ public class OrganizersTest {
         assertTrue(facilityList.contains("Conference Hall"));
     }
 
+    /**
+     * Test adding a new facility to the facilityList.
+     */
     @Test
     public void testAddFacility() {
         organizer.addFacility("Exhibition Center");
@@ -95,6 +133,9 @@ public class OrganizersTest {
         assertTrue(facilityList.contains("Exhibition Center"));
     }
 
+    /**
+     * Test adding a new event to the organizerEventList.
+     */
     @Test
     public void testAddOrganizerEvent() {
         organizer.addOrganizerEvent("event003");
@@ -102,6 +143,9 @@ public class OrganizersTest {
         assertTrue(organizerEventList.contains("event003"));
     }
 
+    /** 
+     * Test assigning permissions for the organizer role.
+     */
     @Test
     public void testAssignPermissionsForOrganizerRole() {
         List<String> permissions = organizer.getPermissions();
