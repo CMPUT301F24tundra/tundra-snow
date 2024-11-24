@@ -52,6 +52,8 @@ public class CreateEventActivity extends AppCompatActivity{
     private FirebaseStorage storage;
     private FirebaseAuth auth;
 
+    private boolean isEditingDraft = false;
+
     /**
      * onCreate method for the CreateEventActivity. Initializes the activity and sets up the UI.
      * @param savedInstanceState The saved instance state.
@@ -93,6 +95,17 @@ public class CreateEventActivity extends AppCompatActivity{
         saveButton.setOnClickListener(v -> saveEvent());
         backButton.setOnClickListener(v -> finish());
 
+        eventID = getIntent().getStringExtra("eventID");
+        isEditingDraft = eventID != null;
+
+        if (isEditingDraft) {
+            // Update UI to reflect editing mode
+            createEventButton.setText("Publish Event");
+            loadDraftEvent();
+        } else {
+            eventID = UUID.randomUUID().toString();
+        }
+
         // Set listener to update based on toggle state
         toggleGeolocationButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
@@ -114,6 +127,42 @@ public class CreateEventActivity extends AppCompatActivity{
             saveButton.setOnClickListener(v -> saveEvent());
             backButton.setOnClickListener(v -> finish());
         });
+    }
+
+    private void loadDraftEvent() {
+        db.collection("events").document(eventID)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Populate form fields with existing data
+                        eventTitleEditText.setText(documentSnapshot.getString("title"));
+                        eventDescriptionEditText.setText(documentSnapshot.getString("description"));
+                        eventLocationEditText.setText(documentSnapshot.getString("location"));
+                        eventCapacityEditText.setText(String.valueOf(documentSnapshot.getLong("capacity")));
+
+                        // Handle dates
+                        Date startDate = documentSnapshot.getDate("startDate");
+                        Date endDate = documentSnapshot.getDate("endDate");
+                        Date regStartDate = documentSnapshot.getDate("registrationStartDate");
+                        Date regEndDate = documentSnapshot.getDate("registrationEndDate");
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                        if (startDate != null) eventStartDatePicker.setText(dateFormat.format(startDate));
+                        if (endDate != null) eventEndDatePicker.setText(dateFormat.format(endDate));
+                        if (regStartDate != null) eventRegistrationStartDatePicker.setText(dateFormat.format(regStartDate));
+                        if (regEndDate != null) eventRegistrationEndDatePicker.setText(dateFormat.format(regEndDate));
+
+                        // Handle geolocation toggle
+                        String geoRequirement = documentSnapshot.getString("geolocationRequirement");
+                        toggleGeolocationButton.setChecked(geoRequirement != null && geoRequirement.equals("Remote"));
+
+                        // Load other fields as needed...
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error loading draft event", Toast.LENGTH_SHORT).show();
+                    Log.e("Firestore", "Error loading draft", e);
+                });
     }
 
     /**
@@ -155,15 +204,36 @@ public class CreateEventActivity extends AppCompatActivity{
         Log.d("Debug", "createEvent called");
         Map<String, Object> event = collectEventDetails("yes");
 
+        // If editing, preserve existing lists
+        if (isEditingDraft) {
+            preserveExistingLists(event);
+        }
+
         db.collection("events").document(eventID)
                 .set(event)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Event published successfully!", Toast.LENGTH_SHORT).show();
+                    String message = isEditingDraft ? "Event updated and published!" : "Event published successfully!";
+                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                     finish();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error publishing event", Toast.LENGTH_SHORT).show();
                     Log.w("Firestore", "Error publishing document", e);
+                });
+    }
+
+    private void preserveExistingLists(Map<String, Object> event) {
+        db.collection("events").document(eventID)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Preserve existing lists
+                        event.put("entrantList", documentSnapshot.get("entrantList"));
+                        event.put("confirmedList", documentSnapshot.get("confirmedList"));
+                        event.put("declinedList", documentSnapshot.get("declinedList"));
+                        event.put("cancelledList", documentSnapshot.get("cancelledList"));
+                        event.put("chosenList", documentSnapshot.get("chosenList"));
+                    }
                 });
     }
 

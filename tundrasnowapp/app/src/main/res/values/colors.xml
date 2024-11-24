@@ -9,10 +9,5 @@
 
     <!-- Background and Text Colors -->
     <color name="background_color">#FF000000</color>
-    <color name="primary_text_color">#212121</color>
-    <color name="secondary_text_color">#757575</color>
-
-    <!-- Alert and Accent Colors -->
-    <color name="alert_color">#B00020</color>
 
 </resources>

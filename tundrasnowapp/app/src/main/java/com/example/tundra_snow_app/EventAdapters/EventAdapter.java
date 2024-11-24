@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 
+import com.example.tundra_snow_app.EventActivities.CreateEventActivity;
 import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
 import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.R;
@@ -29,14 +30,27 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy, h:mm a", Locale.getDefault());
     private final Context context;
 
+    // mode
+    private Boolean isDraft;
+
     /**
      * Constructor for the EventAdapter class.
      * @param context The context of the activity
      * @param eventList The list of events
      */
-    public EventAdapter(Context context, List<Events> eventList) {
+    public EventAdapter(Context context, List<Events> eventList, Boolean draft) {
         this.context = context;
         this.eventList = eventList;
+        this.isDraft = draft;
+    }
+
+    /**
+     * Constructor for the EventAdapter class with default isDraft value of false.
+     * @param context The context of the activity
+     * @param eventList The list of events
+     */
+    public EventAdapter(Context context, List<Events> eventList) {
+        this(context, eventList, false);
     }
 
     /**
@@ -75,8 +89,21 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         }
 
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, EventDetailActivity.class);
-            intent.putExtra("eventID", event.getEventID());  // Pass event ID to the detail activity
+            Intent intent;
+            if (isDraft) {
+                intent = new Intent(context, CreateEventActivity.class);
+            } else {
+                intent = new Intent(context, EventDetailActivity.class);
+            }
+
+            // Pass event ID to either activity
+            intent.putExtra("eventID", event.getEventID());
+
+            // If it's a draft, add a flag to indicate editing mode
+            if (isDraft) {
+                intent.putExtra("isEditingDraft", true);
+            }
+
             context.startActivity(intent);
         });
     }
