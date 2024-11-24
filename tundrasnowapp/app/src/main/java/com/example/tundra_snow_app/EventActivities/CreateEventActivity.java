@@ -12,6 +12,7 @@ import android.widget.ToggleButton;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
@@ -150,7 +151,7 @@ public class CreateEventActivity extends AppCompatActivity{
     }
 
     /**
-     * Loads an existing draft event from the Firestore database.
+     * Loads a draft event from the Firestore database and populates the form fields.
      */
     private void loadDraftEvent() {
         db.collection("events").document(eventID)
@@ -170,23 +171,18 @@ public class CreateEventActivity extends AppCompatActivity{
                             eventCapacityEditText.setText("");  // Clear the field if no capacity was set
                         }
 
-                        // Handle dates
-                        Date startDate = documentSnapshot.getDate("startDate");
-                        Date endDate = documentSnapshot.getDate("endDate");
-                        Date regStartDate = documentSnapshot.getDate("registrationStartDate");
-                        Date regEndDate = documentSnapshot.getDate("registrationEndDate");
-
+                        // Handle dates and times
                         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                        if (startDate != null) eventStartDatePicker.setText(dateFormat.format(startDate));
-                        if (endDate != null) eventEndDatePicker.setText(dateFormat.format(endDate));
-                        if (regStartDate != null) eventRegistrationStartDatePicker.setText(dateFormat.format(regStartDate));
-                        if (regEndDate != null) eventRegistrationEndDatePicker.setText(dateFormat.format(regEndDate));
+                        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+
+                        setDateTimeFields(documentSnapshot, "startDate", eventStartDatePicker, eventStartTimePicker, dateFormat, timeFormat);
+                        setDateTimeFields(documentSnapshot, "endDate", eventEndDatePicker, eventEndTimePicker, dateFormat, timeFormat);
+                        setDateTimeFields(documentSnapshot, "registrationStartDate", eventRegistrationStartDatePicker, eventRegistrationStartTimePicker, dateFormat, timeFormat);
+                        setDateTimeFields(documentSnapshot, "registrationEndDate", eventRegistrationEndDatePicker, eventRegistrationEndTimePicker, dateFormat, timeFormat);
 
                         // Handle geolocation toggle
                         String geoRequirement = documentSnapshot.getString("geolocationRequirement");
                         toggleGeolocationButton.setChecked(geoRequirement != null && geoRequirement.equals("Remote"));
-
-                        // Load other fields as needed...
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -194,6 +190,28 @@ public class CreateEventActivity extends AppCompatActivity{
                     Log.e("Firestore", "Error loading draft", e);
                 });
     }
+
+    /**
+     * Sets date and time fields from a Firestore document.
+     *
+     * @param documentSnapshot The Firestore document snapshot.
+     * @param field The field name in Firestore.
+     * @param dateField The EditText for the date.
+     * @param timeField The EditText for the time.
+     * @param dateFormat The date format to use.
+     * @param timeFormat The time format to use.
+     */
+    private void setDateTimeFields(DocumentSnapshot documentSnapshot, String field, EditText dateField, EditText timeField, SimpleDateFormat dateFormat, SimpleDateFormat timeFormat) {
+        Date dateTime = documentSnapshot.getDate(field);
+        if (dateTime != null) {
+            dateField.setText(dateFormat.format(dateTime)); // Set date
+            timeField.setText(timeFormat.format(dateTime)); // Set time
+        } else {
+            dateField.setText(""); // Clear date field if null
+            timeField.setText(""); // Clear time field if null
+        }
+    }
+
 
     /**
      * Fetches the userId from the latest session in the "sessions" collection.
@@ -231,18 +249,12 @@ public class CreateEventActivity extends AppCompatActivity{
      * Creates an event in the Firestore database.
      */
     private void createEvent() {
-        Log.d("Debug", "createEvent called");
-
+        
         if (!validateInputs()) {
             return;
         }
 
         Map<String, Object> event = collectEventDetails("yes");
-
-        // If editing, preserve existing lists
-        if (isEditingDraft) {
-            preserveExistingLists(event);
-        }
 
         db.collection("events").document(eventID)
                 .set(event)
@@ -254,28 +266,6 @@ public class CreateEventActivity extends AppCompatActivity{
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error publishing event", Toast.LENGTH_SHORT).show();
                     Log.w("Firestore", "Error publishing document", e);
-                });
-    }
-
-    /**
-     * Preserves the existing lists for an event when updating it.
-     * This means that the lists of entrants, confirmed, declined, cancelled, and chosen
-     * participants are preserved (not overwritten) when updating an event.
-     * 
-     * @param event The event map to update.
-     */
-    private void preserveExistingLists(Map<String, Object> event) {
-        db.collection("events").document(eventID)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        // Preserve existing lists
-                        event.put("entrantList", documentSnapshot.get("entrantList"));
-                        event.put("confirmedList", documentSnapshot.get("confirmedList"));
-                        event.put("declinedList", documentSnapshot.get("declinedList"));
-                        event.put("cancelledList", documentSnapshot.get("cancelledList"));
-                        event.put("chosenList", documentSnapshot.get("chosenList"));
-                    }
                 });
     }
 
@@ -343,10 +333,10 @@ public class CreateEventActivity extends AppCompatActivity{
         if (eventCapacity > 0) event.put("capacity", eventCapacity);
 
         // Add dates and times if available
-        event.put("startDateTime", eventStartDateTime.getTime());
-        event.put("endDateTime", eventEndDateTime.getTime());
-        event.put("registrationStartDateTime", regStartDateTime.getTime());
-        event.put("registrationEndDateTime", regEndDateTime.getTime());
+        event.put("startDate", eventStartDateTime.getTime());
+        event.put("endDate", eventEndDateTime.getTime());
+        event.put("registrationStartDate", regStartDateTime.getTime());
+        event.put("registrationEndDate", regEndDateTime.getTime());
 
         // Add facility if available
         if (facility != null && !facility.isEmpty()) event.put("facility", facility);
@@ -365,7 +355,6 @@ public class CreateEventActivity extends AppCompatActivity{
      * Saves the event as a draft in the Firestore database.
      */
     private void saveEvent() {
-        Log.d("Debug", "saveEvent called");
 
         if (eventTitleEditText.getText().toString().trim().isEmpty()) {
             showError("Event title is required even for drafts");
@@ -573,19 +562,17 @@ public class CreateEventActivity extends AppCompatActivity{
 
         // Check capacity
         String capacityStr = eventCapacityEditText.getText().toString().trim();
-        if (capacityStr.isEmpty()) {
-            showError("Event capacity is required");
-            return false;
-        }
-        try {
-            int capacity = Integer.parseInt(capacityStr);
-            if (capacity <= 0) {
-                showError("Capacity must be greater than 0");
+        if (!capacityStr.isEmpty()) {
+            try {
+                int capacity = Integer.parseInt(capacityStr);
+                if (capacity <= 0) {
+                    showError("Capacity must be greater than 0");
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                showError("Please enter a valid number for capacity");
                 return false;
             }
-        } catch (NumberFormatException e) {
-            showError("Please enter a valid number for capacity");
-            return false;
         }
 
         // For a published event, all dates must be provided

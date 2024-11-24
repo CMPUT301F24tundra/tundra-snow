@@ -69,8 +69,13 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                     participantRecyclerView.setAdapter(adapter);
                 }
 
-                Integer capacity = documentSnapshot.getLong("capacity").intValue();
-                maxParticipantEdit.setText(String.valueOf(capacity));
+                // Retrieve and display capacity, or "N/A" if not available
+                Long capacityLong = documentSnapshot.getLong("capacity");
+                if (capacityLong != null) {
+                    maxParticipantEdit.setText(String.valueOf(capacityLong.intValue()));
+                } else {
+                    maxParticipantEdit.setText("N/A");
+                }
             }
         });
     }
