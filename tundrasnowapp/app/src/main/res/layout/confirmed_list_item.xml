@@ -44,12 +44,12 @@
     <!-- Right Section with Status -->
     <Button
         android:id="@+id/cancelUserButton"
-        android:layout_width="78dp"
+        android:layout_width="wrap_content"
         android:layout_height="37dp"
         android:text="Cancel"
         android:textColor="#FFFFFF"
         android:textSize="10sp"
-        android:backgroundTint="#C80000"
+        android:backgroundTint="#000000"
         android:gravity="center" />
 
 

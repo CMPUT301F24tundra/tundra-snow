@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background color of the LinearLayout -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#00000000" />
+            <corners android:radius="25dp" />
+        </shape>
+    </item>
+    <!-- Bottom underline -->
+    <item android:top="65dp"> <!-- Adjust the thickness here -->
+        <shape android:shape="rectangle">
+            <solid android:color="#7A7A7A7A" /> <!-- Color of the underline -->
+        </shape>
+    </item>
+</layer-list>

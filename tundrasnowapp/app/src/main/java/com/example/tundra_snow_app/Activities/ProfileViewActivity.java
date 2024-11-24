@@ -1,18 +1,24 @@
 package com.example.tundra_snow_app.Activities;
 
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.ToggleButton;
+import android.widget.PopupMenu;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
+import com.example.tundra_snow_app.EventActivities.EventViewActivity;
 import com.example.tundra_snow_app.Helpers.NavigationBarHelper;
 import com.example.tundra_snow_app.ListAdapters.FacilityListAdapter;
 import com.example.tundra_snow_app.R;
@@ -30,6 +36,9 @@ import java.util.List;
  */
 public class ProfileViewActivity extends AppCompatActivity {
 
+    private static final String PREFS_NAME = "ModePrefs";
+    private static final String MODE_KEY = "currentMode";
+
     private EditText profileName, profileEmail, profilePhone;
     private Button editButton, saveButton, addFacilityButton;
     private ListView facilitiesListView;
@@ -39,9 +48,11 @@ public class ProfileViewActivity extends AppCompatActivity {
     private List<String> facilities = new ArrayList<>();
     private List<String> userRoles = new ArrayList<>();
 
-    private ToggleButton modeToggle; // Organizer/User toggle
+    private ImageView menuButton;
     private View profileSection;
     private View facilitiesSection;
+    private boolean isOrganizerMode;
+    private TextView profileTitle;
 
     /**
      * Initializes the activity and sets up the UI elements.
@@ -64,12 +75,14 @@ public class ProfileViewActivity extends AppCompatActivity {
         saveButton = findViewById(R.id.saveButton);
         addFacilityButton = findViewById(R.id.addFacilityButton);
         facilitiesListView = findViewById(R.id.facilitiesListView);
-        modeToggle = findViewById(R.id.modeToggle);
         profileSection = findViewById(R.id.profileSection);
         facilitiesSection = findViewById(R.id.facilitiesSection);
+        menuButton = findViewById(R.id.menuButton);
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
+
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         // Fetch user ID from the latest session
         fetchUserIdFromSession();
@@ -78,16 +91,75 @@ public class ProfileViewActivity extends AppCompatActivity {
         editButton.setOnClickListener(v -> enableEditing(true));
         saveButton.setOnClickListener(v -> saveProfileUpdates());
         addFacilityButton.setOnClickListener(v -> showAddFacilityDialog());
-
-        // Set up ToggleButton listener to switch views
-        modeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                showOrganizerView();
-            } else {
-                showUserView();
-            }
-        });
+        setupMenuButton();
     }
+
+    /**
+     * Sets up the menu button to display role-based options.
+     */
+    private void setupMenuButton() {
+        if (userRoles == null || userRoles.size() <= 1 && userRoles.contains("user")) {
+            menuButton.setVisibility(View.GONE);
+        } else {
+            menuButton.setVisibility(View.VISIBLE);
+            menuButton.setOnClickListener(v -> {
+                PopupMenu popupMenu = new PopupMenu(ProfileViewActivity.this, menuButton);
+                popupMenu.getMenuInflater().inflate(R.menu.mode_menu, popupMenu.getMenu());
+
+                // Only show the "Organizer" option if the role exists
+                if (!userRoles.contains("organizer")) {
+                    popupMenu.getMenu().findItem(R.id.menu_organizer).setVisible(false);
+                }
+                // Only show the "Admin" option if the role exists
+                if (!userRoles.contains("admin")) {
+                    popupMenu.getMenu().findItem(R.id.menu_admin).setVisible(false);
+                }
+
+                popupMenu.setOnMenuItemClickListener(item -> handleMenuSelection(item));
+                popupMenu.show();
+            });
+        }
+    }
+
+    /**
+     * Handles menu selection and updates the view accordingly.
+     * @param item The selected menu item.
+     * @return true if handled successfully.
+     */
+    private boolean handleMenuSelection(MenuItem item) {
+        int itemId = item.getItemId();
+
+        if (itemId == R.id.menu_user) {
+            setMode("user");
+        } else if (itemId == R.id.menu_organizer) {
+            setMode("organizer");
+        } else if (itemId == R.id.menu_admin) {
+            setMode("admin");
+        }
+        return true;
+    }
+
+    /**
+     * Sets the mode based on the selected role.
+     * @param mode The selected mode ("user", "organizer", or "admin").
+     */
+    private void setMode(String mode) {
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        preferences.edit().putString(MODE_KEY, mode).apply();
+
+        switch (mode) {
+            case "organizer":
+                showOrganizerView();
+                break;
+            case "admin":
+                Intent intent = new Intent(ProfileViewActivity.this, AdminEventViewActivity.class);
+                startActivity(intent);
+            default:
+                showUserView();
+                break;
+        }
+    }
+
 
     /**
      * Shows the user view and hides the organizer view.
@@ -155,8 +227,14 @@ public class ProfileViewActivity extends AppCompatActivity {
 
                         // Retrieve roles and enable/disable modeToggle based on roles
                         userRoles = (List<String>) documentSnapshot.get("roles");
-                        if (userRoles != null && userRoles.contains("organizer")) {
-                            modeToggle.setVisibility(View.VISIBLE); // Enable modeToggle if "organizer" role is present
+
+                        // Check roles and adjust menu button visibility
+                        if (userRoles == null || userRoles.isEmpty() || userRoles.size() == 1 && userRoles.contains("user")) {
+                            // Only "user" role is present, hide the menu button
+                            menuButton.setVisibility(View.GONE);
+                        } else {
+                            // Show the menu button if additional roles are available
+                            menuButton.setVisibility(View.VISIBLE);
                         }
 
                         enableEditing(false);
