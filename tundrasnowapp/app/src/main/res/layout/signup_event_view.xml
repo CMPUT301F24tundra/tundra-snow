@@ -42,50 +42,125 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
                     android:layout_marginTop="16dp">
 
-                    <!-- Date Section -->
+                    <!-- Dates Section -->
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginEnd="24dp">
+                        android:layout_marginTop="16dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <!-- Start Date -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="DATE"
-                            android:textSize="12sp"
-                            android:textColor="#9E9E9E"/>
+                            android:orientation="vertical"
+                            android:layout_marginBottom="8dp">
 
-                        <TextView
-                            android:id="@+id/detailEventDate"
-                            android:layout_width="wrap_content"
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Start Date"
+                                android:textSize="12sp"
+                                android:textColor="#9E9E9E" />
+
+                            <TextView
+                                android:id="@+id/detailStartDate"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Not Set"
+                                android:textSize="16sp"
+                                android:textColor="#E0E0E0" />
+                        </LinearLayout>
+
+                        <!-- End Date -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Event Date"
-                            android:textSize="16sp"
-                            android:maxLines="1"
-                            android:ellipsize="end"
-                            android:textColor="#E0E0E0" />
+                            android:orientation="vertical"
+                            android:layout_marginBottom="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="End Date"
+                                android:textSize="12sp"
+                                android:textColor="#9E9E9E" />
+
+                            <TextView
+                                android:id="@+id/detailEndDate"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Not Set"
+                                android:textSize="16sp"
+                                android:textColor="#E0E0E0" />
+                        </LinearLayout>
+
+                        <!-- Registration Start Date -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Registration Start Date"
+                                android:textSize="12sp"
+                                android:textColor="#9E9E9E" />
+
+                            <TextView
+                                android:id="@+id/detailRegStartDate"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Not Set"
+                                android:textSize="16sp"
+                                android:textColor="#E0E0E0" />
+                        </LinearLayout>
+
+                        <!-- Registration End Date -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Registration End Date"
+                                android:textSize="12sp"
+                                android:textColor="#9E9E9E" />
+
+                            <TextView
+                                android:id="@+id/detailRegEndDate"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Not Set"
+                                android:textSize="16sp"
+                                android:textColor="#E0E0E0" />
+                        </LinearLayout>
                     </LinearLayout>
 
                     <!-- Location Section -->
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:layout_marginTop="16dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="LOCATION"
                             android:textSize="12sp"
-                            android:textColor="#9E9E9E"/>
+                            android:textColor="#9E9E9E" />
 
                         <TextView
                             android:id="@+id/detailEventLocation"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Event Location"
                             android:textSize="16sp"
@@ -93,6 +168,7 @@
                             android:ellipsize="end"
                             android:textColor="#E0E0E0" />
                     </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
 
