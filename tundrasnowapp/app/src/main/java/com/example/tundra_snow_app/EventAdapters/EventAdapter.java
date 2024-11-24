@@ -19,6 +19,7 @@ import com.example.tundra_snow_app.R;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Adapter class for the RecyclerView in the event list view.
@@ -30,27 +31,14 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy, h:mm a", Locale.getDefault());
     private final Context context;
 
-    // mode
-    private Boolean isDraft;
-
     /**
      * Constructor for the EventAdapter class.
      * @param context The context of the activity
      * @param eventList The list of events
      */
-    public EventAdapter(Context context, List<Events> eventList, Boolean draft) {
+    public EventAdapter(Context context, List<Events> eventList) {
         this.context = context;
         this.eventList = eventList;
-        this.isDraft = draft;
-    }
-
-    /**
-     * Constructor for the EventAdapter class with default isDraft value of false.
-     * @param context The context of the activity
-     * @param eventList The list of events
-     */
-    public EventAdapter(Context context, List<Events> eventList) {
-        this(context, eventList, false);
     }
 
     /**
@@ -89,8 +77,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         }
 
         holder.itemView.setOnClickListener(v -> {
+
             Intent intent;
-            if (isDraft) {
+
+            // If the event is a draft, go the Create Event page
+            if(Objects.equals(event.getPublished(), "no")){
                 intent = new Intent(context, CreateEventActivity.class);
             } else {
                 intent = new Intent(context, EventDetailActivity.class);
@@ -98,12 +89,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
             // Pass event ID to either activity
             intent.putExtra("eventID", event.getEventID());
-
-            // If it's a draft, add a flag to indicate editing mode
-            if (isDraft) {
-                intent.putExtra("isEditingDraft", true);
-            }
-
             context.startActivity(intent);
         });
     }

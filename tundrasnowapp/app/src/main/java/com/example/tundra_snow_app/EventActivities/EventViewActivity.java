@@ -82,7 +82,7 @@ public class EventViewActivity extends AppCompatActivity {
         eventList = new ArrayList<>();
 
         // Set up Recycler View
-        eventAdapter = new EventAdapter(this, eventList, Boolean.TRUE);
+        eventAdapter = new EventAdapter(this, eventList);
         recyclerViewEvents.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewEvents.setAdapter(eventAdapter);
 
