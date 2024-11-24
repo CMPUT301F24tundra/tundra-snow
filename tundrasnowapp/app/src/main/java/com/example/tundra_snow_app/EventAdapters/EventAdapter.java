@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 
+import com.example.tundra_snow_app.EventActivities.CreateEventActivity;
 import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
 import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.R;
@@ -18,6 +19,7 @@ import com.example.tundra_snow_app.R;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Adapter class for the RecyclerView in the event list view.
@@ -75,8 +77,18 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         }
 
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, EventDetailActivity.class);
-            intent.putExtra("eventID", event.getEventID());  // Pass event ID to the detail activity
+
+            Intent intent;
+
+            // If the event is a draft, go the Create Event page
+            if(Objects.equals(event.getPublished(), "no")){
+                intent = new Intent(context, CreateEventActivity.class);
+            } else {
+                intent = new Intent(context, EventDetailActivity.class);
+            }
+
+            // Pass event ID to either activity
+            intent.putExtra("eventID", event.getEventID());
             context.startActivity(intent);
         });
     }

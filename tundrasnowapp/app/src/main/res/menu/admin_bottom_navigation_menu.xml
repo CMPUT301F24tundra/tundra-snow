@@ -2,22 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/admin_nav_events"
-        android:icon="@drawable/calendar_gray"
-        android:title="" />
+        android:icon="@drawable/ic_events_all"
+        android:title="All Events" />
     <item
         android:id="@+id/admin_nav_facilities"
-        android:icon="@drawable/list_gray"
-        android:title="" />
+        android:icon="@drawable/ic_facilities"
+        android:title="All Facilities" />
     <item
         android:id="@+id/admin_nav_qr"
-        android:icon="@drawable/qr_gray"
-        android:title="" />
+        android:icon="@drawable/qr_white"
+        android:title="QR Code Scanner" />
     <item
         android:id="@+id/admin_nav_profiles"
         android:icon="@drawable/profiles_admin"
-        android:title="" />
+        android:title="All Profiles" />
     <item
         android:id="@+id/admin_nav_images"
         android:icon="@drawable/images_admin"
-        android:title="" />
+        android:title="All Images" />
 </menu>

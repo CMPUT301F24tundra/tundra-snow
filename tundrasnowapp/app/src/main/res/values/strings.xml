@@ -3,4 +3,7 @@
     <string name="profile_name_format">%1$s %2$s</string>
     <string name="default_email">N/A</string>
     <string name="default_phone">N/A</string>
+    <string name="event_description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum tincidunt felis et lectus ullamcorper, ut varius nisl eleifend.</string>
+    <string name="event_notice">Notice: Event Signup Requires Geolocation!</string>
+    <string name="event_status">Event Full</string>
 </resources>

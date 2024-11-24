@@ -33,8 +33,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Activity class for the event view. This class is responsible for displaying
@@ -235,7 +238,7 @@ public class EventViewActivity extends AppCompatActivity {
         }
 
         /**
-         * Loads the list of events from Firestore for an organizer.
+         * Loads the list of draft events from Firestore for an organizer.
          */
         private void loadOrganizerEventsFromFirestore () {
             Log.d("FirestoreQuery", "Starting to load organizer events with published='no' and organizer=" + currentUserID);
