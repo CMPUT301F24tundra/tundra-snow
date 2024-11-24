@@ -138,7 +138,14 @@ public class CreateEventActivity extends AppCompatActivity{
                         eventTitleEditText.setText(documentSnapshot.getString("title"));
                         eventDescriptionEditText.setText(documentSnapshot.getString("description"));
                         eventLocationEditText.setText(documentSnapshot.getString("location"));
-                        eventCapacityEditText.setText(String.valueOf(documentSnapshot.getLong("capacity")));
+
+                        // Handle capacity - check if it exists first
+                        Long capacity = documentSnapshot.getLong("capacity");
+                        if (capacity != null) {
+                            eventCapacityEditText.setText(String.valueOf(capacity));
+                        } else {
+                            eventCapacityEditText.setText("");  // Clear the field if no capacity was set
+                        }
 
                         // Handle dates
                         Date startDate = documentSnapshot.getDate("startDate");
@@ -202,6 +209,11 @@ public class CreateEventActivity extends AppCompatActivity{
      */
     private void createEvent() {
         Log.d("Debug", "createEvent called");
+
+        if (!validateInputs()) {
+            return;
+        }
+
         Map<String, Object> event = collectEventDetails("yes");
 
         // If editing, preserve existing lists
@@ -246,12 +258,41 @@ public class CreateEventActivity extends AppCompatActivity{
         String eventTitle = eventTitleEditText.getText().toString().trim();
         String eventDescription = eventDescriptionEditText.getText().toString().trim();
         String eventLocation = eventLocationEditText.getText().toString().trim();
-        int eventCapacity = Integer.parseInt(eventCapacityEditText.getText().toString().trim());
 
-        Date eventStartDate = parseDate(eventStartDatePicker.getText().toString());
-        Date eventEndDate = parseDate(eventEndDatePicker.getText().toString());
-        Date registrationStartDate = parseDate(eventRegistrationStartDatePicker.getText().toString());
-        Date registrationEndDate = parseDate(eventRegistrationEndDatePicker.getText().toString());
+        // Handle capacity - default to 0 if empty
+        int eventCapacity = 0;
+        String capacityStr = eventCapacityEditText.getText().toString().trim();
+        if (!capacityStr.isEmpty()) {
+            try {
+                eventCapacity = Integer.parseInt(capacityStr);
+            } catch (NumberFormatException e) {
+                Log.e("CreateEvent", "Error parsing capacity", e);
+            }
+        }
+
+        // Handle dates - could be null if not provided
+        Date eventStartDate = null;
+        Date eventEndDate = null;
+        Date registrationStartDate = null;
+        Date registrationEndDate = null;
+
+        String startDateStr = eventStartDatePicker.getText().toString().trim();
+        String endDateStr = eventEndDatePicker.getText().toString().trim();
+        String regStartDateStr = eventRegistrationStartDatePicker.getText().toString().trim();
+        String regEndDateStr = eventRegistrationEndDatePicker.getText().toString().trim();
+
+        if (!startDateStr.isEmpty()) {
+            eventStartDate = parseDate(startDateStr);
+        }
+        if (!endDateStr.isEmpty()) {
+            eventEndDate = parseDate(endDateStr);
+        }
+        if (!regStartDateStr.isEmpty()) {
+            registrationStartDate = parseDate(regStartDateStr);
+        }
+        if (!regEndDateStr.isEmpty()) {
+            registrationEndDate = parseDate(regEndDateStr);
+        }
 
         // Initialize empty lists for entrants and statuses
         List<String> entrantList = new ArrayList<>();
@@ -266,17 +307,38 @@ public class CreateEventActivity extends AppCompatActivity{
         Map<String, Object> event = new HashMap<>();
         event.put("eventID", eventID);
         event.put("title", eventTitle);
-        event.put("description", eventDescription);
-        event.put("location", eventLocation);
-        event.put("startDate", eventStartDate);
-        event.put("endDate", eventEndDate);
-        event.put("registrationStartDate", registrationStartDate);
-        event.put("registrationEndDate", registrationEndDate);
-        event.put("capacity", eventCapacity);
+
+        // Only add non-empty fields
+        if (!eventDescription.isEmpty()) {
+            event.put("description", eventDescription);
+        }
+        if (!eventLocation.isEmpty()) {
+            event.put("location", eventLocation);
+        }
+        if (eventCapacity > 0) {
+            event.put("capacity", eventCapacity);
+        }
+        if (eventStartDate != null) {
+            event.put("startDate", eventStartDate);
+        }
+        if (eventEndDate != null) {
+            event.put("endDate", eventEndDate);
+        }
+        if (registrationStartDate != null) {
+            event.put("registrationStartDate", registrationStartDate);
+        }
+        if (registrationEndDate != null) {
+            event.put("registrationEndDate", registrationEndDate);
+        }
+
         event.put("status", "open");
         event.put("organizer", currentUserID);
         event.put("published", publishedStatus);
-        event.put("facility", facility);
+
+        if (facility != null && !facility.isEmpty()) {
+            event.put("facility", facility);
+        }
+
         event.put("geolocationRequirement", geolocationRequirement);
 
         // Initialize lists as empty arrays
@@ -294,6 +356,32 @@ public class CreateEventActivity extends AppCompatActivity{
      */
     private void saveEvent() {
         Log.d("Debug", "saveEvent called");
+
+        if (eventTitleEditText.getText().toString().trim().isEmpty()) {
+            showError("Event title is required even for drafts");
+            return;
+        }
+
+        // If capacity is provided, validate it
+        String capacityStr = eventCapacityEditText.getText().toString().trim();
+        if (!capacityStr.isEmpty()) {
+            try {
+                int capacity = Integer.parseInt(capacityStr);
+                if (capacity <= 0) {
+                    showError("If specified, capacity must be greater than 0");
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                showError("Please enter a valid number for capacity");
+                return;
+            }
+        }
+
+        // Validate dates if any are provided
+        if (!validateDates()) {
+            return;
+        }
+
         Map<String, Object> event = collectEventDetails("no");
 
         db.collection("events").document(eventID)
@@ -306,6 +394,204 @@ public class CreateEventActivity extends AppCompatActivity{
                     Toast.makeText(this, "Error saving event as draft", Toast.LENGTH_SHORT).show();
                     Log.w("Firestore", "Error saving draft document", e);
                 });
+    }
+
+    private void showError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private boolean validateDates() {
+        Date startDate = null;
+        Date endDate = null;
+        Date regStartDate = null;
+        Date regEndDate = null;
+
+        // Get current date without time component for fair comparison
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Date currentDate = cal.getTime();
+
+        // Parse all provided dates
+        if (!eventStartDatePicker.getText().toString().isEmpty()) {
+            startDate = parseDate(eventStartDatePicker.getText().toString());
+            if (startDate == null) {
+                showError("Invalid start date format");
+                return false;
+            }
+        }
+
+        if (!eventEndDatePicker.getText().toString().isEmpty()) {
+            endDate = parseDate(eventEndDatePicker.getText().toString());
+            if (endDate == null) {
+                showError("Invalid end date format");
+                return false;
+            }
+        }
+
+        if (!eventRegistrationStartDatePicker.getText().toString().isEmpty()) {
+            regStartDate = parseDate(eventRegistrationStartDatePicker.getText().toString());
+            if (regStartDate == null) {
+                showError("Invalid registration start date format");
+                return false;
+            }
+        }
+
+        if (!eventRegistrationEndDatePicker.getText().toString().isEmpty()) {
+            regEndDate = parseDate(eventRegistrationEndDatePicker.getText().toString());
+            if (regEndDate == null) {
+                showError("Invalid registration end date format");
+                return false;
+            }
+        }
+
+        // Check if dates are after current date
+        if (startDate != null && startDate.before(currentDate)) {
+            showError("Event start date must be in the future");
+            return false;
+        }
+
+        if (endDate != null && endDate.before(currentDate)) {
+            showError("Event end date must be in the future");
+            return false;
+        }
+
+        if (regStartDate != null && regStartDate.before(currentDate)) {
+            showError("Registration start date must be in the future");
+            return false;
+        }
+
+        if (regEndDate != null && regEndDate.before(currentDate)) {
+            showError("Registration end date must be in the future");
+            return false;
+        }
+
+        // Validate logical date relationships
+        if (startDate != null && endDate != null) {
+            // Check if end date is at least 30 minutes after start date
+            long timeDifference = endDate.getTime() - startDate.getTime();
+            long thirtyMinutesInMillis = 30 * 60 * 1000;
+            if (timeDifference < thirtyMinutesInMillis) {
+                showError("Event must be at least 30 minutes long");
+                return false;
+            }
+        }
+
+        // Basic order checks
+        if (startDate != null && endDate != null && endDate.before(startDate)) {
+            showError("Event end date must be after start date");
+            return false;
+        }
+
+        if (regStartDate != null && regEndDate != null && regEndDate.before(regStartDate)) {
+            showError("Registration end date must be after registration start date");
+            return false;
+        }
+
+        // Registration period must be before event start
+        if (startDate != null && regStartDate != null && regStartDate.after(startDate)) {
+            showError("Registration must start before event starts");
+            return false;
+        }
+
+        if (startDate != null && regEndDate != null && regEndDate.after(startDate)) {
+            showError("Registration must end before event starts");
+            return false;
+        }
+
+        // Check reasonable time windows
+        if (regStartDate != null && regEndDate != null) {
+            // Registration period should be at least 1 hour
+            long regPeriod = regEndDate.getTime() - regStartDate.getTime();
+            long oneHourInMillis = 60 * 60 * 1000;
+            if (regPeriod < oneHourInMillis) {
+                showError("Registration period must be at least 1 hour");
+                return false;
+            }
+        }
+
+        // Check if event is too far in the future (e.g., more than 2 years)
+        if (startDate != null) {
+            Calendar twoYearsFromNow = Calendar.getInstance();
+            twoYearsFromNow.add(Calendar.YEAR, 2);
+            if (startDate.after(twoYearsFromNow.getTime())) {
+                showError("Event cannot be scheduled more than 2 years in advance");
+                return false;
+            }
+        }
+
+        // For published events, registration should start at least 1 hour before event
+        if (startDate != null && regStartDate != null && !eventTitleEditText.getText().toString().trim().isEmpty()) {
+            long timeBeforeEvent = startDate.getTime() - regStartDate.getTime();
+            long oneHourInMillis = 60 * 60 * 1000;
+            if (timeBeforeEvent < oneHourInMillis) {
+                showError("Registration must start at least 1 hour before event");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean validateInputs() {
+        // Check for empty required fields
+        if (eventTitleEditText.getText().toString().trim().isEmpty()) {
+            showError("Event title is required");
+            return false;
+        }
+
+        if (eventDescriptionEditText.getText().toString().trim().isEmpty()) {
+            showError("Event description is required");
+            return false;
+        }
+
+        if (eventLocationEditText.getText().toString().trim().isEmpty()) {
+            showError("Event location is required");
+            return false;
+        }
+
+        // Check capacity
+        String capacityStr = eventCapacityEditText.getText().toString().trim();
+        if (capacityStr.isEmpty()) {
+            showError("Event capacity is required");
+            return false;
+        }
+        try {
+            int capacity = Integer.parseInt(capacityStr);
+            if (capacity <= 0) {
+                showError("Capacity must be greater than 0");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            showError("Please enter a valid number for capacity");
+            return false;
+        }
+
+        // For a published event, all dates must be provided
+        if (eventStartDatePicker.getText().toString().isEmpty()) {
+            showError("Start date is required");
+            return false;
+        }
+
+        if (eventEndDatePicker.getText().toString().isEmpty()) {
+            showError("End date is required");
+            return false;
+        }
+
+        if (eventRegistrationStartDatePicker.getText().toString().isEmpty()) {
+            showError("Registration start date is required");
+            return false;
+        }
+
+        if (eventRegistrationEndDatePicker.getText().toString().isEmpty()) {
+            showError("Registration end date is required");
+            return false;
+        }
+
+        // Validate the dates
+        return validateDates();
     }
 
     /**
