@@ -84,16 +84,25 @@ public class ViewParticipantListActivity extends AppCompatActivity {
      * Saves the updated event details to Firestore.
      */
     private void saveEventUpdates() {
-        // Convert the text from EditText to an integer for maxParticipants
+        // Get the text from maxParticipantEdit
+        String maxParticipantsText = maxParticipantEdit.getText().toString().trim();
+
+        // Check if the field is empty, and do nothing if no value is provided
+        if (maxParticipantsText.isEmpty()) {
+            Toast.makeText(this, "No changes were made.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Convert the text to an integer
         int maxParticipantsEdited;
         try {
-            maxParticipantsEdited = Integer.parseInt(maxParticipantEdit.getText().toString());
+            maxParticipantsEdited = Integer.parseInt(maxParticipantsText);
         } catch (NumberFormatException e) {
             Toast.makeText(this, "Invalid number for max participants.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Update the user profile in the "users" collection
+        // Update the event capacity in Firestore
         db.collection("events").document(eventID)
                 .update("capacity", maxParticipantsEdited)
                 .addOnSuccessListener(aVoid -> {
@@ -101,7 +110,7 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                     enableEditing(false);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to update profile.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Failed to update event details.", Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                 });
     }
