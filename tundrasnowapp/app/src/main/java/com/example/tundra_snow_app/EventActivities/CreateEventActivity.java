@@ -1,6 +1,7 @@
 package com.example.tundra_snow_app.EventActivities;
 
 import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -39,10 +40,18 @@ public class CreateEventActivity extends AppCompatActivity{
     private EditText eventDescriptionEditText;
     private EditText eventImageURLEditText;
     private EditText eventLocationEditText;
+
     private EditText eventStartDatePicker;
     private EditText eventEndDatePicker;
+    private EditText eventStartTimePicker;
+    private EditText eventEndTimePicker;
 
-    private EditText eventRegistrationStartDatePicker, eventRegistrationEndDatePicker, eventCapacityEditText;
+    private EditText eventRegistrationStartDatePicker;
+    private EditText eventRegistrationEndDatePicker;
+    private EditText eventRegistrationStartTimePicker;
+    private EditText eventRegistrationEndTimePicker;
+
+    private EditText eventCapacityEditText;
     private Button createEventButton, backButton, saveButton;
     private String eventID, currentUserID;
     private ToggleButton toggleGeolocationButton;
@@ -77,8 +86,19 @@ public class CreateEventActivity extends AppCompatActivity{
         // Date sliders
         eventStartDatePicker = findViewById(R.id.editTextStartDate);
         eventEndDatePicker = findViewById(R.id.editTextEndDate);
+        eventStartTimePicker = findViewById(R.id.editTextStartTime);
+        eventEndTimePicker = findViewById(R.id.editTextEndTime);
+
+        eventStartTimePicker.setOnClickListener(v -> showTimePickerDialog(eventStartTimePicker));
+        eventEndTimePicker.setOnClickListener(v -> showTimePickerDialog(eventEndTimePicker));
+
         eventRegistrationStartDatePicker = findViewById(R.id.editRegistrationStartDate);
         eventRegistrationEndDatePicker = findViewById(R.id.editRegistrationEndDate);
+        eventRegistrationStartTimePicker = findViewById((R.id.editRegistrationStartTime));
+        eventRegistrationEndTimePicker = findViewById((R.id.editRegistrationEndTime));
+
+        eventRegistrationStartTimePicker.setOnClickListener(v -> showTimePickerDialog(eventRegistrationStartTimePicker));
+        eventRegistrationEndTimePicker.setOnClickListener(v -> showTimePickerDialog(eventRegistrationEndTimePicker));
 
         // Buttons
         createEventButton = findViewById(R.id.buttonCreateEvent);
@@ -129,6 +149,9 @@ public class CreateEventActivity extends AppCompatActivity{
         });
     }
 
+    /**
+     * Loads an existing draft event from the Firestore database.
+     */
     private void loadDraftEvent() {
         db.collection("events").document(eventID)
                 .get()
@@ -234,6 +257,13 @@ public class CreateEventActivity extends AppCompatActivity{
                 });
     }
 
+    /**
+     * Preserves the existing lists for an event when updating it.
+     * This means that the lists of entrants, confirmed, declined, cancelled, and chosen
+     * participants are preserved (not overwritten) when updating an event.
+     * 
+     * @param event The event map to update.
+     */
     private void preserveExistingLists(Map<String, Object> event) {
         db.collection("events").document(eventID)
                 .get()
@@ -259,40 +289,34 @@ public class CreateEventActivity extends AppCompatActivity{
         String eventDescription = eventDescriptionEditText.getText().toString().trim();
         String eventLocation = eventLocationEditText.getText().toString().trim();
 
-        // Handle capacity - default to 0 if empty
+        // Parse capacity
         int eventCapacity = 0;
         String capacityStr = eventCapacityEditText.getText().toString().trim();
         if (!capacityStr.isEmpty()) {
             try {
                 eventCapacity = Integer.parseInt(capacityStr);
             } catch (NumberFormatException e) {
-                Log.e("CreateEvent", "Error parsing capacity", e);
+                Log.e("CreateEvent", "Error parsing capacity: " + capacityStr, e);
             }
         }
 
-        // Handle dates - could be null if not provided
-        Date eventStartDate = null;
-        Date eventEndDate = null;
-        Date registrationStartDate = null;
-        Date registrationEndDate = null;
-
-        String startDateStr = eventStartDatePicker.getText().toString().trim();
-        String endDateStr = eventEndDatePicker.getText().toString().trim();
-        String regStartDateStr = eventRegistrationStartDatePicker.getText().toString().trim();
-        String regEndDateStr = eventRegistrationEndDatePicker.getText().toString().trim();
-
-        if (!startDateStr.isEmpty()) {
-            eventStartDate = parseDate(startDateStr);
-        }
-        if (!endDateStr.isEmpty()) {
-            eventEndDate = parseDate(endDateStr);
-        }
-        if (!regStartDateStr.isEmpty()) {
-            registrationStartDate = parseDate(regStartDateStr);
-        }
-        if (!regEndDateStr.isEmpty()) {
-            registrationEndDate = parseDate(regEndDateStr);
-        }
+        // Parse and combine dates and times
+        Calendar eventStartDateTime = combineDateAndTime(
+                parseDate(eventStartDatePicker.getText().toString().trim()),
+                parseTime(eventStartTimePicker.getText().toString().trim())
+        );
+        Calendar eventEndDateTime = combineDateAndTime(
+                parseDate(eventEndDatePicker.getText().toString().trim()),
+                parseTime(eventEndTimePicker.getText().toString().trim())
+        );
+        Calendar regStartDateTime = combineDateAndTime(
+                parseDate(eventRegistrationStartDatePicker.getText().toString().trim()),
+                parseTime(eventRegistrationStartTimePicker.getText().toString().trim())
+        );
+        Calendar regEndDateTime = combineDateAndTime(
+                parseDate(eventRegistrationEndDatePicker.getText().toString().trim()),
+                parseTime(eventRegistrationEndTimePicker.getText().toString().trim())
+        );
 
         // Initialize empty lists for entrants and statuses
         List<String> entrantList = new ArrayList<>();
@@ -304,42 +328,28 @@ public class CreateEventActivity extends AppCompatActivity{
         // Determine geolocation requirement based on toggle state
         String geolocationRequirement = toggleGeolocationButton.isChecked() ? "Remote" : "In-person";
 
+        // Build event map
         Map<String, Object> event = new HashMap<>();
         event.put("eventID", eventID);
         event.put("title", eventTitle);
-
-        // Only add non-empty fields
-        if (!eventDescription.isEmpty()) {
-            event.put("description", eventDescription);
-        }
-        if (!eventLocation.isEmpty()) {
-            event.put("location", eventLocation);
-        }
-        if (eventCapacity > 0) {
-            event.put("capacity", eventCapacity);
-        }
-        if (eventStartDate != null) {
-            event.put("startDate", eventStartDate);
-        }
-        if (eventEndDate != null) {
-            event.put("endDate", eventEndDate);
-        }
-        if (registrationStartDate != null) {
-            event.put("registrationStartDate", registrationStartDate);
-        }
-        if (registrationEndDate != null) {
-            event.put("registrationEndDate", registrationEndDate);
-        }
-
         event.put("status", "open");
         event.put("organizer", currentUserID);
         event.put("published", publishedStatus);
-
-        if (facility != null && !facility.isEmpty()) {
-            event.put("facility", facility);
-        }
-
         event.put("geolocationRequirement", geolocationRequirement);
+
+        // Only add non-empty fields
+        if (!eventDescription.isEmpty()) event.put("description", eventDescription);
+        if (!eventLocation.isEmpty()) event.put("location", eventLocation);
+        if (eventCapacity > 0) event.put("capacity", eventCapacity);
+
+        // Add dates and times if available
+        event.put("startDateTime", eventStartDateTime.getTime());
+        event.put("endDateTime", eventEndDateTime.getTime());
+        event.put("registrationStartDateTime", regStartDateTime.getTime());
+        event.put("registrationEndDateTime", regEndDateTime.getTime());
+
+        // Add facility if available
+        if (facility != null && !facility.isEmpty()) event.put("facility", facility);
 
         // Initialize lists as empty arrays
         event.put("entrantList", entrantList);
@@ -396,145 +406,154 @@ public class CreateEventActivity extends AppCompatActivity{
                 });
     }
 
+    /**
+     * Parses a time string into a Date object.
+     * @param timeString The time string in HH:mm format.
+     * @return The parsed Date object or null if invalid.
+     */
+    private Date parseTime(String timeString) {
+        if (timeString.isEmpty()) return null;
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        try {
+            return timeFormat.parse(timeString);
+        } catch (ParseException e) {
+            Log.e("CreateEvent", "Error parsing time: " + timeString, e);
+            return null;
+        }
+    }
+
+    /**
+     * Combines a date and a time into a Calendar object.
+     * @param date The Date object representing the date.
+     * @param time The Date object representing the time.
+     * @return A Calendar object with the combined date and time, or null if either is null.
+     */
+    private Calendar combineDateAndTime(Date date, Date time) {
+        if (date == null || time == null) return null;
+
+        Calendar dateCal = Calendar.getInstance();
+        dateCal.setTime(date);
+
+        Calendar timeCal = Calendar.getInstance();
+        timeCal.setTime(time);
+
+        dateCal.set(Calendar.HOUR_OF_DAY, timeCal.get(Calendar.HOUR_OF_DAY));
+        dateCal.set(Calendar.MINUTE, timeCal.get(Calendar.MINUTE));
+        dateCal.set(Calendar.SECOND, 0);
+        dateCal.set(Calendar.MILLISECOND, 0);
+
+        return dateCal;
+    }
+
+    /**
+     * Shows an error message to the user.
+     * @param message The error message to display.
+     */
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Validates the dates and times for the event.
+     * @return True if all dates and times are valid, false otherwise.
+     */
     private boolean validateDates() {
-        Date startDate = null;
-        Date endDate = null;
-        Date regStartDate = null;
-        Date regEndDate = null;
+        // Parse start and end dates
+        Date startDate = parseDate(eventStartDatePicker.getText().toString());
+        Date endDate = parseDate(eventEndDatePicker.getText().toString());
+        Date regStartDate = parseDate(eventRegistrationStartDatePicker.getText().toString());
+        Date regEndDate = parseDate(eventRegistrationEndDatePicker.getText().toString());
 
-        // Get current date without time component for fair comparison
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        Date currentDate = cal.getTime();
+        // Parse start and end times
+        Date startTime = parseTime(eventStartTimePicker.getText().toString());
+        Date endTime = parseTime(eventEndTimePicker.getText().toString());
+        Date regStartTime = parseTime(eventRegistrationStartTimePicker.getText().toString());
+        Date regEndTime = parseTime(eventRegistrationEndTimePicker.getText().toString());
 
-        // Parse all provided dates
-        if (!eventStartDatePicker.getText().toString().isEmpty()) {
-            startDate = parseDate(eventStartDatePicker.getText().toString());
-            if (startDate == null) {
-                showError("Invalid start date format");
-                return false;
-            }
+        // Ensure dates and times are provided
+        if (startDate == null || endDate == null || regStartDate == null || regEndDate == null) {
+            showError("All dates must be selected");
+            return false;
         }
-
-        if (!eventEndDatePicker.getText().toString().isEmpty()) {
-            endDate = parseDate(eventEndDatePicker.getText().toString());
-            if (endDate == null) {
-                showError("Invalid end date format");
-                return false;
-            }
-        }
-
-        if (!eventRegistrationStartDatePicker.getText().toString().isEmpty()) {
-            regStartDate = parseDate(eventRegistrationStartDatePicker.getText().toString());
-            if (regStartDate == null) {
-                showError("Invalid registration start date format");
-                return false;
-            }
-        }
-
-        if (!eventRegistrationEndDatePicker.getText().toString().isEmpty()) {
-            regEndDate = parseDate(eventRegistrationEndDatePicker.getText().toString());
-            if (regEndDate == null) {
-                showError("Invalid registration end date format");
-                return false;
-            }
-        }
-
-        // Check if dates are after current date
-        if (startDate != null && startDate.before(currentDate)) {
-            showError("Event start date must be in the future");
+        if (startTime == null || endTime == null || regStartTime == null || regEndTime == null) {
+            showError("All times must be selected");
             return false;
         }
 
-        if (endDate != null && endDate.before(currentDate)) {
-            showError("Event end date must be in the future");
+        // Combine dates and times into Calendar objects
+        Calendar startDateTime = combineDateAndTime(startDate, startTime);
+        Calendar endDateTime = combineDateAndTime(endDate, endTime);
+        Calendar regStartDateTime = combineDateAndTime(regStartDate, regStartTime);
+        Calendar regEndDateTime = combineDateAndTime(regEndDate, regEndTime);
+
+        // Get the current date and time
+        Calendar currentDateTime = Calendar.getInstance();
+
+        // Validate future dates
+        if (startDateTime.before(currentDateTime)) {
+            showError("Event start date and time must be in the future");
+            return false;
+        }
+        if (endDateTime.before(currentDateTime)) {
+            showError("Event end date and time must be in the future");
+            return false;
+        }
+        if (regStartDateTime.before(currentDateTime)) {
+            showError("Registration start date and time must be in the future");
+            return false;
+        }
+        if (regEndDateTime.before(currentDateTime)) {
+            showError("Registration end date and time must be in the future");
             return false;
         }
 
-        if (regStartDate != null && regStartDate.before(currentDate)) {
-            showError("Registration start date must be in the future");
+        // Validate logical relationships
+        if (endDateTime.before(startDateTime)) {
+            showError("Event end date and time must be after start date and time");
+            return false;
+        }
+        if (regEndDateTime.before(regStartDateTime)) {
+            showError("Registration end date and time must be after start date and time");
+            return false;
+        }
+        if (regStartDateTime.after(startDateTime)) {
+            showError("Registration must start before the event starts");
+            return false;
+        }
+        if (regEndDateTime.after(startDateTime)) {
+            showError("Registration must end before the event starts");
             return false;
         }
 
-        if (regEndDate != null && regEndDate.before(currentDate)) {
-            showError("Registration end date must be in the future");
+        // Additional validations
+        if (startDateTime.getTimeInMillis() - regStartDateTime.getTimeInMillis() < 60 * 60 * 1000) {
+            showError("Registration must start at least 1 hour before the event");
+            return false;
+        }
+        if (endDateTime.getTimeInMillis() - startDateTime.getTimeInMillis() < 30 * 60 * 1000) {
+            showError("Event duration must be at least 30 minutes");
+            return false;
+        }
+        if (regEndDateTime.getTimeInMillis() - regStartDateTime.getTimeInMillis() < 60 * 60 * 1000) {
+            showError("Registration duration must be at least 1 hour");
             return false;
         }
 
-        // Validate logical date relationships
-        if (startDate != null && endDate != null) {
-            // Check if end date is at least 30 minutes after start date
-            long timeDifference = endDate.getTime() - startDate.getTime();
-            long thirtyMinutesInMillis = 30 * 60 * 1000;
-            if (timeDifference < thirtyMinutesInMillis) {
-                showError("Event must be at least 30 minutes long");
-                return false;
-            }
-        }
-
-        // Basic order checks
-        if (startDate != null && endDate != null && endDate.before(startDate)) {
-            showError("Event end date must be after start date");
+        // Validate event not too far in the future (e.g., 2 years)
+        Calendar twoYearsFromNow = Calendar.getInstance();
+        twoYearsFromNow.add(Calendar.YEAR, 2);
+        if (startDateTime.after(twoYearsFromNow)) {
+            showError("Event cannot be scheduled more than 2 years in advance");
             return false;
-        }
-
-        if (regStartDate != null && regEndDate != null && regEndDate.before(regStartDate)) {
-            showError("Registration end date must be after registration start date");
-            return false;
-        }
-
-        // Registration period must be before event start
-        if (startDate != null && regStartDate != null && regStartDate.after(startDate)) {
-            showError("Registration must start before event starts");
-            return false;
-        }
-
-        if (startDate != null && regEndDate != null && regEndDate.after(startDate)) {
-            showError("Registration must end before event starts");
-            return false;
-        }
-
-        // Check reasonable time windows
-        if (regStartDate != null && regEndDate != null) {
-            // Registration period should be at least 1 hour
-            long regPeriod = regEndDate.getTime() - regStartDate.getTime();
-            long oneHourInMillis = 60 * 60 * 1000;
-            if (regPeriod < oneHourInMillis) {
-                showError("Registration period must be at least 1 hour");
-                return false;
-            }
-        }
-
-        // Check if event is too far in the future (e.g., more than 2 years)
-        if (startDate != null) {
-            Calendar twoYearsFromNow = Calendar.getInstance();
-            twoYearsFromNow.add(Calendar.YEAR, 2);
-            if (startDate.after(twoYearsFromNow.getTime())) {
-                showError("Event cannot be scheduled more than 2 years in advance");
-                return false;
-            }
-        }
-
-        // For published events, registration should start at least 1 hour before event
-        if (startDate != null && regStartDate != null && !eventTitleEditText.getText().toString().trim().isEmpty()) {
-            long timeBeforeEvent = startDate.getTime() - regStartDate.getTime();
-            long oneHourInMillis = 60 * 60 * 1000;
-            if (timeBeforeEvent < oneHourInMillis) {
-                showError("Registration must start at least 1 hour before event");
-                return false;
-            }
         }
 
         return true;
     }
 
+    /**
+     * Validates the input fields for creating an event.
+     * @return True if all required fields are valid, false otherwise.
+     */
     private boolean validateInputs() {
         // Check for empty required fields
         if (eventTitleEditText.getText().toString().trim().isEmpty()) {
@@ -619,6 +638,27 @@ public class CreateEventActivity extends AppCompatActivity{
         datePickerDialog.getDatePicker().setCalendarViewShown(false);
         datePickerDialog.getDatePicker().setSpinnersShown(true);
         datePickerDialog.show();
+    }
+
+    /**
+     * Shows a TimePickerDialog for the given EditText.
+     * @param editText The EditText to set the time to.
+     */
+    public void showTimePickerDialog(final EditText editText) {
+        Calendar calendar = Calendar.getInstance();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+
+        TimePickerDialog timePickerDialog = new TimePickerDialog(
+                this,
+                (view, selectedHour, selectedMinute) -> {
+                    String formattedTime = String.format(Locale.getDefault(), "%02d:%02d", selectedHour, selectedMinute);
+                    editText.setText(formattedTime);
+                },
+                hour, minute, true
+        );
+
+        timePickerDialog.show();
     }
 
     /**
