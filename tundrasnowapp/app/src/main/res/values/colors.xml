@@ -6,4 +6,8 @@
     <color name="toggle_checked_text">#000000</color>
     <color name="toggle_unchecked_background">#222222</color>
     <color name="toggle_unchecked_text">#D3D3D3</color>
+
+    <!-- Background and Text Colors -->
+    <color name="background_color">#FF000000</color>
+
 </resources>

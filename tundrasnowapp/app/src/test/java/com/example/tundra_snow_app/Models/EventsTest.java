@@ -14,12 +14,20 @@ import static org.junit.Assert.*;
 
 import com.example.tundra_snow_app.Models.Events;
 
+/**
+ * EventsTest is a JUnit test class for the Events class.
+ * It tests the default constructor, parameterized constructor, and getter and setter methods.
+ */
 public class EventsTest {
     private Events event, defaultEvent;
     private SimpleDateFormat dateFormat;
     private Date startDate, endDate, regStartDate, regEndDate;
     private List<String> entrants, confirmed, declined, cancelled, chosen;
 
+    /**
+     * Sets up the test fixture.
+     * Called before every test case method.
+     */
     @Before
     public void setUp() throws ParseException {
         // Initialize dates
@@ -62,6 +70,9 @@ public class EventsTest {
         defaultEvent = new Events();
     }
 
+    /**
+     * Test the parameterized constructor
+     */
     @Test
     public void testConstructor() {
         assertEquals("E001", event.getEventID());
@@ -76,6 +87,9 @@ public class EventsTest {
         assertEquals(100, event.getCapacity());
     }
 
+    /**
+     * Test the default constructor
+     */
     @Test
     public void testDefaultConstructor() {
         Events defaultEvent = new Events();
@@ -83,6 +97,9 @@ public class EventsTest {
     }
 
 
+    /**
+     * Test the date formatting methods
+     */
     @Test
     public void testDateFormatting() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
@@ -93,6 +110,9 @@ public class EventsTest {
         assertEquals(dateFormat.format(regEndDate), event.getFormattedRegDateEnd());
     }
 
+    /**
+     * Test editing the entrant list
+     */
     @Test
     public void testAddAndRemoveEntrant() {
         event.addEntrant("User001");
@@ -101,6 +121,9 @@ public class EventsTest {
         assertFalse(event.getEntrantList().contains("User001"));
     }
 
+    /**
+     * Test setting the entrant list
+     */
     @Test
     public void testSetEntrantList() {
         // Add a single user to the entrant list
@@ -119,6 +142,9 @@ public class EventsTest {
         assertFalse(event.getEntrantList().contains("User001"));
     }
 
+    /**
+     * Test editing the confirmed list
+     */
     @Test
     public void testAddAndRemoveConfirmed() {
         event.addConfirmed("User002");
@@ -127,6 +153,9 @@ public class EventsTest {
         assertFalse(event.getConfirmedList().contains("User002"));
     }
 
+    /**
+     * Test setting the confirmed list
+     */
     @Test
     public void testSetConfirmed() {
         // Add a single user to the confirmed list
@@ -146,6 +175,9 @@ public class EventsTest {
     }
 
 
+    /**
+     * Test editing the declined list
+     */
     @Test
     public void testAddAndRemoveDeclined() {
         event.addDeclined("User003");
@@ -154,6 +186,9 @@ public class EventsTest {
         assertFalse(event.getDeclinedList().contains("User003"));
     }
 
+    /**
+     * Test setting the declined list
+     */
     @Test
     public void testSetDeclinedList() {
         // Add a single user to the declined list
@@ -172,6 +207,9 @@ public class EventsTest {
         assertFalse(event.getDeclinedList().contains("User003"));
     }
 
+    /**
+     * Test editing the cancelled list
+     */
     @Test
     public void testAddAndRemoveCancelled() {
         event.addCancelled("User004");
@@ -180,6 +218,9 @@ public class EventsTest {
         assertFalse(event.getCancelledList().contains("User004"));
     }
 
+    /**
+     * Test setting the cancelled list
+     */
     @Test
     public void testSetCancelledList() {
         // Add a single user to the cancelled list
@@ -198,6 +239,9 @@ public class EventsTest {
         assertFalse(event.getCancelledList().contains("User004"));
     }
 
+    /**
+     * Test editing the chosen list
+     */
     @Test
     public void testAddAndRemoveChosen() {
         event.addChosen("User005");
@@ -206,6 +250,9 @@ public class EventsTest {
         assertFalse(event.getChosenList().contains("User005"));
     }
 
+    /**
+     * Test setting the chosen list
+     */
     @Test
     public void testSetChosenList() {
         // Add a single user to the chosen list
@@ -224,73 +271,108 @@ public class EventsTest {
         assertFalse(event.getChosenList().contains("User005"));
     }
 
+    /**
+     * Test the getter and setter for the capacity field
+     */
     @Test
     public void testSetCapacity() {
         event.setCapacity(150);
         assertEquals(150, event.getCapacity());
     }
 
+    /**
+     * Test the getter and setter for the location field
+     */
     @Test
     public void testSetAndGetLocation() {
         event.setLocation("New Venue");
         assertEquals("New Venue", event.getLocation());
     }
 
+    /**
+     * Test the getter and setter for the status field
+     */
     @Test
     public void testSetAndGetStatus() {
         event.setStatus("Cancelled");
         assertEquals("Cancelled", event.getStatus());
     }
 
-
+    /**
+     * Test the getter and setter for the eventID field
+     */
     @Test
     public void testSetAndGetEventID() {
         event.setEventID("E002");
         assertEquals("E002", event.getEventID());
     }
 
+    /**
+     * Test the getter and setter for the organizer field
+     */
     @Test
     public void testSetAndGetOrganizer() {
         event.setOrganizer("O002");
         assertEquals("O002", event.getOrganizer());
     }
 
+    /**
+     * Test the getter and setter for the title field
+     */
     @Test
     public void testSetAndGetTitle() {
         event.setTitle("Summer Festival");
         assertEquals("Summer Festival", event.getTitle());
     }
 
+    /**
+     * Test the getter and setter for the description field
+     */
     @Test
     public void testSetAndGetDescription() {
         event.setDescription("A summer festival event");
         assertEquals("A summer festival event", event.getDescription());
     }
 
+    /**
+     * Test the getter and setter for the posterImageURL field
+     */
     @Test
     public void testSetAndGetPosterImageURL() {
         event.setPosterImageURL("http://example.com/newposter.jpg");
         assertEquals("http://example.com/newposter.jpg", event.getPosterImageURL());
     }
 
+    /**
+     * Test the getter and setter for the published field
+     */
     @Test
     public void testSetAndGetPublished() {
         event.setPublished("Draft");
         assertEquals("Draft", event.getPublished());
     }
 
+    /**
+     * Test the getter and setter for the qrHash field
+     */
     @Test
     public void testSetAndGetQrHash() {
         event.setQrHash("NEWQR123");
         assertEquals("NEWQR123", event.getQrHash());
     }
 
+    /**
+     * Test the formatted date method with a null value
+     */
     @Test
     public void testFormattedDateWithNullValue() {
         Events eventWithNullDates = new Events();
         assertEquals("Date TBD", eventWithNullDates.getFormattedDate(null));
     }
 
+    /**
+     * Test the setter for the capacity field with boundary values
+     */
     @Test
     public void testCapacityBoundary() {
         event.setCapacity(0);
@@ -300,6 +382,9 @@ public class EventsTest {
         assertEquals(5000, event.getCapacity());
     }
 
+    /**
+     * Test the setter and getter for the start date field
+     */
     @Test
     public void testSetAndGetStartDate() throws ParseException {
         assertEquals(startDate, event.getStartDate());
@@ -309,6 +394,10 @@ public class EventsTest {
         assertEquals(newStartDate, event.getStartDate());
     }
 
+    /**
+     * Test the setter and getter for the end date field
+     * @throws ParseException
+     */
     @Test
     public void testSetAndGetEndDate() throws ParseException {
         assertEquals(endDate, event.getEndDate());
@@ -318,6 +407,10 @@ public class EventsTest {
         assertEquals(newEndDate, event.getEndDate());
     }
 
+    /**
+     * Test the setter and getter for the registration start date field
+     * @throws ParseException
+     */
     @Test
     public void testSetAndGetRegistrationStartDate() throws ParseException {
         assertEquals(regStartDate, event.getRegistrationStartDate());
@@ -327,6 +420,10 @@ public class EventsTest {
         assertEquals(newRegStartDate, event.getRegistrationStartDate());
     }
 
+    /**
+     * Test the setter and getter for the registration end date field
+     * @throws ParseException
+     */
     @Test
     public void testSetAndGetRegistrationEndDate() throws ParseException {
         assertEquals(regEndDate, event.getRegistrationEndDate());
@@ -336,6 +433,9 @@ public class EventsTest {
         assertEquals(newRegEndDate, event.getRegistrationEndDate());
     }
 
+    /**
+     * Test start date formatting
+     */
     @Test
     public void testFormattedStartDate() {
         // Verify formatted start date
@@ -343,6 +443,9 @@ public class EventsTest {
         assertEquals(expectedFormat.format(startDate), event.getFormattedDateStart());
     }
 
+    /**
+     * Test end date formatting
+     */
     @Test
     public void testFormattedEndDate() {
         // Verify formatted end date
@@ -350,6 +453,9 @@ public class EventsTest {
         assertEquals(expectedFormat.format(endDate), event.getFormattedDateEnd());
     }
 
+    /**
+     * Test registration start date formatting
+     */
     @Test
     public void testFormattedRegistrationStartDate() {
         // Verify formatted registration start date
@@ -357,6 +463,9 @@ public class EventsTest {
         assertEquals(expectedFormat.format(regStartDate), event.getFormattedRegStart());
     }
 
+    /**
+     * Test registration end date formatting
+     */
     @Test
     public void testFormattedRegistrationEndDate() {
         // Verify formatted registration end date
@@ -364,12 +473,18 @@ public class EventsTest {
         assertEquals(expectedFormat.format(regEndDate), event.getFormattedRegDateEnd());
     }
 
+    /**
+     * Test the formatted date method with a null date
+     */
     @Test
     public void testFormattedDateWithNull() {
         // Set a null date and check that the formatted output is "Date TBD"
         assertEquals("Date TBD", event.getFormattedDate(null));
     }
 
+    /**
+     * Test the formatted date method with a future date
+     */
     @Test
     public void testFormattedDateWithFutureDate() throws ParseException {
         // Test with a future date (e.g., Jan 1, 2100)

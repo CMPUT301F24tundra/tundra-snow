@@ -540,7 +540,7 @@ public class Events {
      */
     public String getFormattedDate(Date date) {
         if (date == null) {
-            return "Date TBD";  // or any default message
+            return "Date and time TBD";
         }
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy, hh:mm a", Locale.getDefault());
         return dateFormat.format(date);
