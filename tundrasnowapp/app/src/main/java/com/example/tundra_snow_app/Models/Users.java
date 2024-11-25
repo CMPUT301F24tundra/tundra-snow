@@ -27,6 +27,7 @@ public class Users {
     
     private String phoneNumber; // Phone number of the user
     private boolean notificationsEnabled; // Flag to indicate if notifications are enabled
+    private boolean geolocationEnabled;
 
     // ! organizers CAN add geolocation requirement for their event, so user can have a 
     // ! location attribute if they have geolocation enabled?
@@ -63,6 +64,7 @@ public class Users {
      * @param location Geolocation of the user
      * @param roles List of roles assigned to the user
      * @param facilityList List of facilities the organizer manages
+     * @param geolocationEnabled Flag indicating if geolocation setting is enabled on users device
      */
     public Users (
             String userID,
@@ -74,6 +76,7 @@ public class Users {
             String dateOfBirth,
             String phoneNumber,
             boolean notificationsEnabled,
+            boolean geolocationEnabled,
             String deviceID,
             String location,
             List<String> roles,
@@ -88,6 +91,7 @@ public class Users {
         this.dateOfBirth = dateOfBirth;
         this.phoneNumber = phoneNumber;
         this.notificationsEnabled = notificationsEnabled;
+        this.geolocationEnabled = geolocationEnabled;
         this.deviceID = deviceID;
         this.location = location;
         this.roles = new ArrayList<>(roles != null ? roles : Set.of("user"));
@@ -209,6 +213,12 @@ public class Users {
     public boolean isNotificationsEnabled() {
         return notificationsEnabled;
     }
+
+    /**
+     * Returns whether geolocation setting for a user is enabled
+     * @return True if geolocation is enabled, false otherwise
+     */
+    public boolean isGeolocationEnabled() { return geolocationEnabled; }
 
     /**
      * Returns the device ID of the user.
@@ -344,6 +354,14 @@ public class Users {
      */
     public void setNotificationsEnabled(boolean notificationsEnabled) {
         this.notificationsEnabled = notificationsEnabled;
+    }
+
+    /**
+     * Sets whether geolocation setting is enabled for a user
+     * @param geolocationEnabled True if geolocation is enabled, false otherwise
+     */
+    public void setGeolocationEnabled(boolean geolocationEnabled) {
+        this.geolocationEnabled = geolocationEnabled;
     }
 
     /**

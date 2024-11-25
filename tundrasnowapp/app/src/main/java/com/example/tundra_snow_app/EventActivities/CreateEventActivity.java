@@ -130,9 +130,9 @@ public class CreateEventActivity extends AppCompatActivity{
         // Set listener to update based on toggle state
         toggleGeolocationButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                toggleGeolocationButton.setText("Remote");
+                toggleGeolocationButton.setText("Disabled");
             } else {
-                toggleGeolocationButton.setText("In-person");
+                toggleGeolocationButton.setText("Enabled");
             }
         });
 
@@ -316,7 +316,7 @@ public class CreateEventActivity extends AppCompatActivity{
         List<String> chosenList = new ArrayList<>();
 
         // Determine geolocation requirement based on toggle state
-        String geolocationRequirement = toggleGeolocationButton.isChecked() ? "Remote" : "In-person";
+        String geolocationRequirement = toggleGeolocationButton.isChecked() ? "Disabled" : "Enabled";
 
         // Build event map
         Map<String, Object> event = new HashMap<>();

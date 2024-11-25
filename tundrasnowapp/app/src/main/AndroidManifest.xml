@@ -5,6 +5,8 @@
     <!-- Required permissions for Firebase and Internet access -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -16,6 +18,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tundrasnowapp"
         tools:targetApi="31">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
         <activity
             android:name=".MainActivity"
 
@@ -26,7 +33,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ListActivities.EntrantSignupActivity" />
+        <activity android:name=".Activities.EntrantSignupActivity" />
         <activity android:name=".EventActivities.EventViewActivity" />
         <activity android:name=".EventActivities.CreateEventActivity" />
         <activity android:name=".EventActivities.EventDetailActivity" />

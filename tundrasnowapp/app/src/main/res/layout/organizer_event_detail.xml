@@ -218,6 +218,26 @@
                     android:gravity="start|top"/>
             </androidx.cardview.widget.CardView>
 
+            <!-- Map Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="#1E1E1E">
+
+                <FrameLayout
+                    android:id="@+id/mapContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp">
+
+                    <com.google.android.gms.maps.MapView
+                        android:id="@+id/mapView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+
             <!-- List View Options -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -232,30 +252,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-
-                    <!-- Geolocation Toggle -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:padding="8dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Geolocation Requirement"
-                            android:textColor="#E0E0E0"
-                            android:textSize="16sp"/>
-
-                        <ToggleButton
-                            android:id="@+id/toggleGeolocationRequirement"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:enabled="false"
-                            android:textOff="In-person"
-                            android:textOn="Remote"/>
-                    </LinearLayout>
 
                     <!-- List Options -->
                     <LinearLayout
