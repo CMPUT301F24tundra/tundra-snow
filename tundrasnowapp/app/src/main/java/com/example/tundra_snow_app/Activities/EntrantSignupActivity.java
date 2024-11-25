@@ -1,6 +1,8 @@
-package com.example.tundra_snow_app.ListActivities;
+package com.example.tundra_snow_app.Activities;
 
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,8 +13,18 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.tundra_snow_app.Helpers.DeviceUtils;
 
@@ -20,14 +32,11 @@ import com.example.tundra_snow_app.Models.Users;
 import com.example.tundra_snow_app.R;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,10 +47,12 @@ import java.util.UUID;
  * Activity for user registration (Entrant and Organizer).
  */
 public class EntrantSignupActivity extends AppCompatActivity{
-    private String deviceID;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
+
+    private String deviceID, userLocation;
     private Button createAccountButton, backButton;
-    private EditText firstNameEditText, lastNameEditText, emailEditText, passwordEditText, dateOfBirthEditText, phoneNumberEditText, editFacilityLocation;
-    private ToggleButton notificationToggleButton;
+    private EditText firstNameEditText, lastNameEditText, emailEditText, passwordEditText, dateOfBirthEditText, phoneNumberEditText;
+    private ToggleButton notificationToggleButton, geolocationToggleButton;
 
     // Organizer Fields
     private CheckBox organizerCheckbox;
@@ -51,6 +62,7 @@ public class EntrantSignupActivity extends AppCompatActivity{
     // Database Instances
     private FirebaseFirestore db;
     private FirebaseStorage storage;
+    private FusedLocationProviderClient fusedLocationClient;
 
     // Profile Picture
     private Uri profilePictureUri;
@@ -69,8 +81,10 @@ public class EntrantSignupActivity extends AppCompatActivity{
         deviceID = DeviceUtils.getDeviceID(this);
 
         db = FirebaseFirestore.getInstance();
-
         storage = FirebaseStorage.getInstance();
+
+        // Location client
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // Initializing UI elements
         backButton = findViewById(R.id.backButton);
@@ -81,11 +95,23 @@ public class EntrantSignupActivity extends AppCompatActivity{
         phoneNumberEditText = findViewById(R.id.editTextPhoneNumber);
         passwordEditText = findViewById(R.id.editTextPassword);
         notificationToggleButton = findViewById(R.id.toggleButtonNotification);
-
+        geolocationToggleButton = findViewById(R.id.toggleButtonGeolocation);
         organizerCheckbox = findViewById(R.id.checkBoxOrganizer);
         facilityLayout = findViewById(R.id.facilityLayout);
         facilityEditText = findViewById(R.id.editTextFacility);
-        editFacilityLocation = findViewById(R.id.editTextFacilityLocation);
+
+        // Check geolocation settings if toggle is checked
+        geolocationToggleButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                boolean isGeolocationEnabled = DeviceUtils.ensureGeolocationEnabled(this);
+                if (isGeolocationEnabled) {
+                    fetchUserLocation();
+                } else {
+                    geolocationToggleButton.setChecked(false);
+                    userLocation = null;
+                }
+            }
+        });
 
         // Toggling visibility of facility input based on organizer selection
         organizerCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -104,6 +130,49 @@ public class EntrantSignupActivity extends AppCompatActivity{
         backButton.setOnClickListener(v -> finish());
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permissions granted, fetch location again
+                fetchUserLocation();
+            } else {
+                // Permissions denied
+                Toast.makeText(this, "Location permission denied. Cannot fetch location.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+    /**
+     * Fetch users current location and set the userLocation field.
+     */
+    private void fetchUserLocation() {
+        // Check if location permissions are granted
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            // Permissions are granted; fetch the location
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, location -> {
+                        if (location != null) {
+                            userLocation = DeviceUtils.getAddressFromLocation(this, location);
+                            Log.d("EntrantSignupActivity", "User location fetched: " + userLocation);
+                        } else {
+                            Log.d("EntrantSignupActivity", "Unable to fetch location.");
+                        }
+                    })
+                    .addOnFailureListener(e -> Log.e("EntrantSignupActivity", "Error fetching location", e));
+        } else {
+            // Request location permissions
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE
+            );
+        }
+    }
+
     /**
      * Method to register a new user. Collects user details, validates input fields, and uploads user data to Firestore.
      */
@@ -118,6 +187,7 @@ public class EntrantSignupActivity extends AppCompatActivity{
         String dateOfBirth = dateOfBirthEditText.getText().toString();
         String phoneNumber = phoneNumberEditText.getText().toString();
         boolean notificationsEnabled = notificationToggleButton.isChecked();
+        boolean geolocationEnabled = geolocationToggleButton.isChecked();
 
         // Roles and permissions setup
         List<String> roles = new ArrayList<>();
@@ -128,23 +198,27 @@ public class EntrantSignupActivity extends AppCompatActivity{
         if (organizerCheckbox.isChecked()) {
             roles.add("organizer");
             String facilityName = facilityEditText.getText().toString();
-            String facilityLocation = editFacilityLocation.getText().toString();
             String facilityID = UUID.randomUUID().toString();
 
-            if (facilityName.isEmpty() || facilityLocation.isEmpty()) {
-                Toast.makeText(this, "Please enter facility name and location.", Toast.LENGTH_SHORT).show();
+            if (facilityName.isEmpty()) {
+                Toast.makeText(this, "Please enter facility name.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             Log.d("Debug", "Organizer role selected, facility details provided");
 
             // Check for existing facility with the same name
-            checkAndAddFacility(facilityID, facilityName, facilityLocation);
+            checkAndAddFacility(facilityID, facilityName);
         }
 
         // Validating input fields
         if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || password.isEmpty() || dateOfBirth.isEmpty()) {
             Toast.makeText(this, "Please fill out all required fields.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (geolocationEnabled && userLocation == null) {
+            Toast.makeText(this, "Fetching location... Please wait and try again.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -162,8 +236,9 @@ public class EntrantSignupActivity extends AppCompatActivity{
                 dateOfBirth,
                 phoneNumber,
                 notificationsEnabled,
+                geolocationEnabled,
                 deviceID,
-                null,
+                userLocation,
                 roles,
                 facilityList);
 
@@ -203,7 +278,9 @@ public class EntrantSignupActivity extends AppCompatActivity{
         userMap.put("dateOfBirth", newUser.getDateOfBirth());
         userMap.put("phoneNumber", newUser.getPhoneNumber());
         userMap.put("notificationsEnabled", newUser.isNotificationsEnabled());
+        userMap.put("geolocationEnabled", newUser.isGeolocationEnabled());
         userMap.put("deviceID", newUser.getDeviceID());
+        userMap.put("location", newUser.getLocation());
         userMap.put("roles", newUser.getRoles());
         userMap.put("permissions", newUser.getPermissions());
         userMap.put("userEventList", newUser.getUserEventList());
@@ -237,16 +314,15 @@ public class EntrantSignupActivity extends AppCompatActivity{
      * Method to check if a facility with the same name already exists in Firestore. If not, adds the facility.
      * @param facilityID The facility ID
      * @param facilityName The facility name
-     * @param facilityLocation The facility location
      */
-    private void checkAndAddFacility(String facilityID, String facilityName, String facilityLocation) {
+    private void checkAndAddFacility(String facilityID, String facilityName) {
         db.collection("facilities")
                 .whereEqualTo("facilityName", facilityName)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult().isEmpty()) {
                         // No facility with the same name exists, proceed to add it
-                        saveFacilityToFirestore(facilityID, facilityName, facilityLocation);
+                        saveFacilityToFirestore(facilityID, facilityName);
                     } else {
                         Log.d("FacilityCheck", "Facility with this name already exists, skipping addition.");
                     }
@@ -258,14 +334,12 @@ public class EntrantSignupActivity extends AppCompatActivity{
      * Method to save facility data to Firestore.
      * @param facilityID The facility ID
      * @param facilityName The facility name
-     * @param facilityLocation The facility location
      */
-    private void saveFacilityToFirestore(String facilityID, String facilityName, String facilityLocation) {
+    private void saveFacilityToFirestore(String facilityID, String facilityName) {
         // Create a map for facility data
         Map<String, Object> facilityData = new HashMap<>();
         facilityData.put("facilityID", facilityID);
         facilityData.put("facilityName", facilityName);
-        facilityData.put("facilityLocation", facilityLocation);
 
         // Add the facility document to Firestore
         db.collection("facilities").document(facilityID)

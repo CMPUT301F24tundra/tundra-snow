@@ -30,7 +30,7 @@
 
     <CheckBox
         android:id="@+id/notificationsCheckbox"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Enable Notifications"
         android:textColor="#FFFFFF"
@@ -38,8 +38,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:padding="16dp"
+        android:layout_marginLeft="10dp"
         app:buttonTint="#333333"/>
 
+    <CheckBox
+        android:id="@+id/geolocationCheckbox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enable Geolocation"
+        android:textColor="#FFFFFF"
+        app:layout_constraintTop_toBottomOf="@id/notificationsCheckbox"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="16dp"
+        android:layout_marginLeft="10dp"
+        app:buttonTint="#333333"/>
 
 
     <!-- Bottom Navigation View -->
