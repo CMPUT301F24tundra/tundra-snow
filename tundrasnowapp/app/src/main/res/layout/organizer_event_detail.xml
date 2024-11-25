@@ -50,27 +50,30 @@
                     android:padding="0dp"
                     android:layout_marginBottom="16dp"/>
 
+                <!-- Event Dates Section -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
 
-                    <!-- Date Section -->
+                    <!-- Start Date -->
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginEnd="24dp">
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="DATE"
-                            android:textSize="12sp"
+                            android:layout_weight="1"
+                            android:text="Start Date:"
+                            android:textSize="14sp"
                             android:textColor="#9E9E9E"/>
 
                         <EditText
-                            android:id="@+id/organizerEventDate"
+                            android:id="@+id/organizerStartDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text=""
@@ -81,9 +84,96 @@
                             android:padding="0dp"/>
                     </LinearLayout>
 
-                    <!-- Location Section -->
+                    <!-- End Date -->
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="End Date:"
+                            android:textSize="14sp"
+                            android:textColor="#9E9E9E"/>
+
+                        <EditText
+                            android:id="@+id/organizerEndDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:textSize="16sp"
+                            android:textColor="#E0E0E0"
+                            android:background="@null"
+                            android:enabled="false"
+                            android:padding="0dp"/>
+                    </LinearLayout>
+
+                    <!-- Registration Start Date -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Registration Start Date:"
+                            android:textSize="14sp"
+                            android:textColor="#9E9E9E"/>
+
+                        <EditText
+                            android:id="@+id/organizerRegStartDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:textSize="16sp"
+                            android:textColor="#E0E0E0"
+                            android:background="@null"
+                            android:enabled="false"
+                            android:padding="0dp"/>
+                    </LinearLayout>
+
+                    <!-- Registration End Date -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Registration End Date:"
+                            android:textSize="14sp"
+                            android:textColor="#9E9E9E"/>
+
+                        <EditText
+                            android:id="@+id/organizerRegEndDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:textSize="16sp"
+                            android:textColor="#E0E0E0"
+                            android:background="@null"
+                            android:enabled="false"
+                            android:padding="0dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Location Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <!-- Location -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
