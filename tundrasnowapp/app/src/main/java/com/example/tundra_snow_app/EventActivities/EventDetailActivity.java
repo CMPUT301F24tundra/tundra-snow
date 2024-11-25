@@ -1,5 +1,7 @@
 package com.example.tundra_snow_app.EventActivities;
 
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.tundra_snow_app.Helpers.DeviceUtils;
 import com.example.tundra_snow_app.Models.Events;
 
 import com.example.tundra_snow_app.R;
@@ -27,7 +30,8 @@ public class EventDetailActivity extends AppCompatActivity {
     private TextView titleTextView, dateTextView, locationTextView, descriptionTextView, geoLocationTextView;
     private Button signUpButton, backButton;
     private FirebaseFirestore db;
-    private String eventID, currentUserID;
+    private String eventID, currentUserID, location;
+    private boolean geolocationEnabled;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +50,7 @@ public class EventDetailActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         eventID = getIntent().getStringExtra("eventID");  // Get event ID from intent
 
-        fetchSessionUserId(() -> {
+        fetchSessionUser(() -> {
             loadEventDetails();
             backButton.setOnClickListener(view -> finish());
             signUpButton.setOnClickListener(v -> signUpForEvent());
@@ -68,10 +72,19 @@ public class EventDetailActivity extends AppCompatActivity {
                             descriptionTextView.setText(event.getDescription());
 
                             String geolocation = documentSnapshot.getString("geolocationRequirement");
-                            if (geolocation != null && geolocation.equals("In-person")) {
+                            if (geolocation != null && geolocation.equals("Enabled")) {
                                 geoLocationTextView.setVisibility(View.VISIBLE);
+
+                                if (!geolocationEnabled) {
+                                    signUpButton.setEnabled(false);
+                                    signUpButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#646566")));
+                                    Toast.makeText(this, "Geolocation is required. Please enable it in your user settings to sign up", Toast.LENGTH_LONG).show();
+                                } else {
+                                    signUpButton.setEnabled(true);
+                                }
                             } else {
                                 geoLocationTextView.setVisibility(View.GONE);
+                                signUpButton.setEnabled(true);
                             }
                         }
                     } else {
@@ -99,7 +112,7 @@ public class EventDetailActivity extends AppCompatActivity {
      * Fetch the userId of the current user from the latest session in the "sessions" collection.
      * @param onComplete Runnable to execute after fetching the userId
      */
-    private void fetchSessionUserId(@NonNull Runnable onComplete) {
+    private void fetchSessionUser(@NonNull Runnable onComplete) {
         CollectionReference sessionsRef = db.collection("sessions");
         sessionsRef.orderBy("loginTimestamp", Query.Direction.DESCENDING).limit(1)
                 .get()
@@ -107,6 +120,8 @@ public class EventDetailActivity extends AppCompatActivity {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         DocumentSnapshot latestSession = task.getResult().getDocuments().get(0);
                         currentUserID = latestSession.getString("userId");
+                        geolocationEnabled = Boolean.TRUE.equals(latestSession.getBoolean("geolocationEnabled"));
+                        location = latestSession.getString("location");
                         onComplete.run();
                     } else {
                         Toast.makeText(this, "No active session found.", Toast.LENGTH_SHORT).show();

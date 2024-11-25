@@ -6,4 +6,5 @@
     <string name="event_description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum tincidunt felis et lectus ullamcorper, ut varius nisl eleifend.</string>
     <string name="event_notice">Notice: Event Signup Requires Geolocation!</string>
     <string name="event_status">Event Full</string>
+    <string name="google_maps_key">lklk</string>
 </resources>
