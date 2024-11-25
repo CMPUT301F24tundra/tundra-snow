@@ -16,10 +16,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
 import com.example.tundra_snow_app.EventActivities.EventViewActivity;
 import com.example.tundra_snow_app.Helpers.DeviceUtils;
-import com.example.tundra_snow_app.ListActivities.EntrantSignupActivity;
+import com.example.tundra_snow_app.Activities.EntrantSignupActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -210,6 +209,8 @@ public class MainActivity extends AppCompatActivity {
                         sessionData.put("deviceID", documentSnapshot.getString("deviceID"));
                         sessionData.put("roles", documentSnapshot.get("roles")); // Assuming roles is stored as an array
                         sessionData.put("notificationsEnabled", documentSnapshot.getBoolean("notificationsEnabled"));
+                        sessionData.put("geolocationEnabled", documentSnapshot.getBoolean("geolocationEnabled"));
+                        sessionData.put("location", documentSnapshot.get("location"));
                         sessionData.put("dateOfBirth", documentSnapshot.getString("dateOfBirth"));
                         sessionData.put("organizerEventList", documentSnapshot.get("organizerEventList"));
                         sessionData.put("permissions", documentSnapshot.get("permissions"));
