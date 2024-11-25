@@ -3,14 +3,16 @@ package com.example.tundra_snow_app.EventActivities;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,30 +24,46 @@ import com.example.tundra_snow_app.ListActivities.ViewConfirmedParticipantListAc
 import com.example.tundra_snow_app.ListActivities.ViewParticipantListActivity;
 
 import com.example.tundra_snow_app.R;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Activity class for the Organizer Event Detail screen. This class is responsible for
  * displaying the details of an event and allowing the organizer to edit the event details.
  */
-public class OrganizerEventDetailActivity extends AppCompatActivity {
+public class OrganizerEventDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private EditText eventTitle, eventDate, eventLocation, eventDescription;
     private Button saveButton, editButton, backButton;
     private FirebaseFirestore db;
     private String eventID, currentUserID;
     private TextView viewWaitingList, viewEnrolledList, viewChosenList, viewCancelledList;
-    private ToggleButton toggleGeolocationButton;
+    private MapView mapView;
+    private GoogleMap googleMap;
+    private final Map<String, Integer> markerDuplicates = new HashMap<>();
+    private List<Marker> markerList = new ArrayList<>();
 
     /**
      * Initializes the views and loads the event details.
@@ -56,11 +74,14 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.organizer_event_detail);
 
+        mapView = findViewById(R.id.mapView);
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
+
         eventTitle = findViewById(R.id.organizerEventTitle);
         eventDate = findViewById(R.id.organizerEventDate);
         eventLocation = findViewById(R.id.organizerEventLocation);
         eventDescription = findViewById(R.id.organizerEventDescription);
-        toggleGeolocationButton = findViewById(R.id.toggleGeolocationRequirement);
 
         viewWaitingList = findViewById(R.id.viewWaitingList);
         viewEnrolledList = findViewById(R.id.viewEnrolledList);
@@ -73,11 +94,6 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         eventID = getIntent().getStringExtra("eventID");  // Get event ID from intent
-
-        // Set listener to update button text based on toggle state
-        toggleGeolocationButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            toggleGeolocationButton.setText(isChecked ? "Remote" : "In-person");
-        });
 
         fetchSessionUserId(() -> {
             loadEventDetails();
@@ -112,6 +128,171 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
             eventDate.setOnClickListener(v -> showDateTimePickerDialog(eventDate));
         });
     }
+    @Override
+    public void onMapReady(GoogleMap map) {
+        googleMap = map;
+
+        Log.d("OrganizerEventDetail", "Google Map is ready.");
+
+        loadParticipantLocations();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
+    private void loadParticipantLocations() {
+        db.collection("events").document(eventID)
+                .get()
+                .addOnSuccessListener(eventSnapshot -> {
+                    if (eventSnapshot.exists()) {
+                        List<String> entrantList = (List<String>) eventSnapshot.get("entrantList");
+                        if (entrantList != null && !entrantList.isEmpty()) {
+                            Log.d("OrganizerEventDetail", "Entrant list: " + entrantList);
+
+                            for (String userId : entrantList) {
+                                fetchUserLocationAndAddPin(userId);
+                            }
+
+                            // Delay camera adjustment to ensure all markers are added
+                            new Handler().postDelayed(this::adjustCameraBounds, 1000);
+                        } else {
+                            Log.d("OrganizerEventDetail", "No participants found for this event.");
+                        }
+                    } else {
+                        Log.e("OrganizerEventDetail", "Event not found: " + eventID);
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("OrganizerEventDetail", "Error fetching event details", e));
+    }
+
+
+    private void fetchUserLocationAndAddPin(String userId) {
+        Log.d("OrganizerEventDetail", "Fetching location for user ID: " + userId);
+
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(userSnapshot -> {
+                    if (userSnapshot.exists()) {
+                        String address = userSnapshot.getString("location");
+                        String firstName = userSnapshot.getString("firstName");
+                        String lastName = userSnapshot.getString("lastName");
+                        String name = (firstName != null ? firstName : "Unknown") + " " + (lastName != null ? lastName : "User");
+
+                        Log.d("OrganizerEventDetail", "User " + name + " has location: " + address);
+
+                        if (address != null) {
+                            LatLng latLng = getLatLngFromAddress(address);
+
+                            if (latLng != null) {
+                                LatLng adjustedLatLng = adjustForDuplicateMarkers(latLng);
+                                Log.d("OrganizerEventDetail", "Adding marker for " + name + " at: " + adjustedLatLng);
+
+                                // Add marker to map
+                                Marker marker = googleMap.addMarker(new MarkerOptions()
+                                        .position(adjustedLatLng)
+                                        .title(name)
+                                        .snippet(address));
+                                markerList.add(marker);
+
+                                Log.d("OrganizerEventDetail", "Marker added at " + adjustedLatLng);
+                            } else {
+                                Log.w("OrganizerEventDetail", "Could not convert address to LatLng: " + address);
+                            }
+                        } else {
+                            Log.w("OrganizerEventDetail", "User " + userId + " does not have a location.");
+                        }
+                    } else {
+                        Log.e("OrganizerEventDetail", "User document not found for user ID: " + userId);
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("OrganizerEventDetail", "Error fetching user document for user ID: " + userId, e));
+    }
+
+
+    private LatLng getLatLngFromAddress(String address) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            Log.d("OrganizerEventDetail", "Converting address to LatLng: " + address);
+
+            List<Address> addresses = geocoder.getFromLocationName(address, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address location = addresses.get(0);
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+                Log.d("OrganizerEventDetail", "Address converted to LatLng: " + latLng);
+
+                return latLng;
+            } else {
+                Log.w("OrganizerEventDetail", "No LatLng found for address: " + address);
+            }
+        } catch (IOException e) {
+            Log.e("OrganizerEventDetail", "Error getting LatLng from address: " + address, e);
+        }
+        return null;
+    }
+
+    private LatLng adjustForDuplicateMarkers(LatLng latLng) {
+        String key = latLng.latitude + "," + latLng.longitude;
+
+        // Track duplicate marker adjustments
+        int offsetCount = markerDuplicates.getOrDefault(key, 0);
+        markerDuplicates.put(key, offsetCount + 1);
+
+        // Apply a slight offset for duplicates
+        double offset = offsetCount * 0.0001; // Adjust this value as needed
+        return new LatLng(latLng.latitude + offset, latLng.longitude + offset);
+    }
+
+    private void adjustCameraBounds() {
+        LatLng edmontonCenter = new LatLng(53.5461, -113.4938);
+
+        if (markerList.isEmpty()) {
+            Log.w("OrganizerEventDetail", "No markers to adjust camera bounds. Defaulting to city view.");
+
+            // Example: Center the map on Edmonton, Alberta with a reasonable zoom level
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(edmontonCenter, 8));
+            return;
+        }
+
+        // Build bounds to include all markers
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+        for (Marker marker : markerList) {
+            boundsBuilder.include(marker.getPosition());
+        }
+
+        try {
+            LatLngBounds bounds = boundsBuilder.build();
+            int padding = 300;
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+        } catch (IllegalArgumentException e) {
+            Log.e("OrganizerEventDetail", "Error adjusting camera bounds: " + e.getMessage(), e);
+
+            // If there is an issue with the bounds, fallback to a city view
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(edmontonCenter, 8));
+        }
+    }
+
 
     /**
      * Load the event details from Firestore and populate the view with the event data.
@@ -137,13 +318,6 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
                             eventLocation.setText(event.getLocation());
                             eventDescription.setText(event.getDescription());
                         }
-
-                        // Set the toggle state based on the geoLocationRequirement in Firestore
-                        String geoLocationRequirement = documentSnapshot.getString("geoLocationRequirement");
-                        if (geoLocationRequirement != null) {
-                            toggleGeolocationButton.setChecked(geoLocationRequirement.equals("Remote"));
-                            toggleGeolocationButton.setText(geoLocationRequirement.equals("Remote") ? "Remote" : "In-person");
-                        }
                     } else {
                         Toast.makeText(this, "Event not found", Toast.LENGTH_SHORT).show();
                     }
@@ -168,16 +342,12 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
             return;
         }
 
-        // Determine the geoLocationRequirement value based on the toggle state
-        String geoLocationRequirement = toggleGeolocationButton.isChecked() ? "Remote" : "In-person";
-
         // Update the user profile in the "users" collection
         db.collection("events").document(eventID)
                 .update("title", editedEventTitle,
                         "startDate", new Timestamp(editedEventDate),
                         "location", editedEventLocation,
-                        "description", editedEventDescription,
-                        "geoLocationRequirement", geoLocationRequirement)
+                        "description", editedEventDescription)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Event Entry Updated Successfully.", Toast.LENGTH_LONG).show();
                     enableEditing(false);
@@ -304,7 +474,6 @@ public class OrganizerEventDetailActivity extends AppCompatActivity {
         eventDate.setClickable(isEditable);
         eventLocation.setEnabled(isEditable);
         eventDescription.setEnabled(isEditable);
-        toggleGeolocationButton.setEnabled(isEditable);
 
         // Toggle visibility of buttons
         editButton.setVisibility(isEditable ? View.GONE : View.VISIBLE);
