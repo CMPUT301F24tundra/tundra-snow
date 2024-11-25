@@ -265,19 +265,34 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
     }
 
     private void adjustCameraBounds() {
+        LatLng edmontonCenter = new LatLng(53.5461, -113.4938);
+
         if (markerList.isEmpty()) {
-            Log.w("OrganizerEventDetail", "No markers to adjust camera bounds.");
+            Log.w("OrganizerEventDetail", "No markers to adjust camera bounds. Defaulting to city view.");
+
+            // Example: Center the map on Edmonton, Alberta with a reasonable zoom level
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(edmontonCenter, 8));
             return;
         }
 
+        // Build bounds to include all markers
         LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
         for (Marker marker : markerList) {
             boundsBuilder.include(marker.getPosition());
         }
 
-        LatLngBounds bounds = boundsBuilder.build();
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100)); // Adjust padding as needed
+        try {
+            LatLngBounds bounds = boundsBuilder.build();
+            int padding = 300;
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+        } catch (IllegalArgumentException e) {
+            Log.e("OrganizerEventDetail", "Error adjusting camera bounds: " + e.getMessage(), e);
+
+            // If there is an issue with the bounds, fallback to a city view
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(edmontonCenter, 8));
+        }
     }
+
 
     /**
      * Load the event details from Firestore and populate the view with the event data.
