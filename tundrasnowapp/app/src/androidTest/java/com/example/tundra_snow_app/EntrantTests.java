@@ -18,12 +18,10 @@ import static org.hamcrest.CoreMatchers.allOf;
 
 import android.text.Spannable;
 import android.text.style.ClickableSpan;
-import android.util.Log;
 import android.view.View;
 import android.widget.Checkable;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
@@ -34,32 +32,20 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import com.example.tundra_snow_app.Activities.ProfileViewActivity;
 import com.example.tundra_snow_app.Activities.SettingsViewActivity;
 import com.example.tundra_snow_app.EventActivities.MyEventViewActivity;
-import com.example.tundra_snow_app.Helpers.DeviceUtils;
-import com.example.tundra_snow_app.ListActivities.EntrantSignupActivity;
-import com.example.tundra_snow_app.ListActivities.ViewCancelledParticipantListActivity;
-import com.example.tundra_snow_app.ListActivities.ViewChosenParticipantListActivity;
-import com.example.tundra_snow_app.ListActivities.ViewConfirmedParticipantListActivity;
-import com.example.tundra_snow_app.ListActivities.ViewParticipantListActivity;
-import com.example.tundra_snow_app.Models.Organizers;
+import com.example.tundra_snow_app.Activities.EntrantSignupActivity;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 
 /**

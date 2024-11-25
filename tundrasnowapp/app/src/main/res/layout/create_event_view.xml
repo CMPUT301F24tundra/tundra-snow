@@ -157,8 +157,8 @@
                             android:id="@+id/toggleGeolocationRequirement"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textOff="In-person"
-                            android:textOn="Remote"
+                            android:textOff="Enabled"
+                            android:textOn="Disabled"
                             android:backgroundTint="#BB86FC"
                             android:textColor="#000000"/>
                     </LinearLayout>
