@@ -27,7 +27,15 @@ import com.google.firebase.firestore.Query;
  */
 public class EventDetailActivity extends AppCompatActivity {
 
-    private TextView titleTextView, dateTextView, locationTextView, descriptionTextView, geoLocationTextView;
+    private TextView titleTextView,
+            locationTextView,
+            descriptionTextView,
+            geoLocationTextView,
+            startDateTextView,
+            endDateTextView,
+            regStartDateTextView,
+            regEndDateTextView;
+
     private Button signUpButton, backButton;
     private FirebaseFirestore db;
     private String eventID, currentUserID, location;
@@ -40,12 +48,17 @@ public class EventDetailActivity extends AppCompatActivity {
 
         // Initialize views
         titleTextView = findViewById(R.id.detailEventTitle);
-        dateTextView = findViewById(R.id.detailEventDate);
         locationTextView = findViewById(R.id.detailEventLocation);
         descriptionTextView = findViewById(R.id.detailEventDescription);
         geoLocationTextView = findViewById(R.id.geoLocationNotification);
         backButton = findViewById(R.id.backButton);
         signUpButton = findViewById(R.id.buttonSignUpForEvent);
+
+        // Date fields initialization
+        startDateTextView = findViewById(R.id.detailStartDate);
+        endDateTextView = findViewById(R.id.detailEndDate);
+        regStartDateTextView = findViewById(R.id.detailRegStartDate);
+        regEndDateTextView = findViewById(R.id.detailRegEndDate);
 
         db = FirebaseFirestore.getInstance();
         eventID = getIntent().getStringExtra("eventID");  // Get event ID from intent
@@ -67,7 +80,6 @@ public class EventDetailActivity extends AppCompatActivity {
                         Events event = documentSnapshot.toObject(Events.class);
                         if (event != null) {
                             titleTextView.setText(event.getTitle());
-                            dateTextView.setText(event.getFormattedDate(event.getStartDate()));  // Use formatted date
                             locationTextView.setText(event.getLocation());
                             descriptionTextView.setText(event.getDescription());
 
@@ -86,6 +98,11 @@ public class EventDetailActivity extends AppCompatActivity {
                                 geoLocationTextView.setVisibility(View.GONE);
                                 signUpButton.setEnabled(true);
                             }
+
+                            startDateTextView.setText(event.getFormattedDate(event.getStartDate()));
+                            endDateTextView.setText(event.getFormattedDate(event.getEndDate()));
+                            regStartDateTextView.setText(event.getFormattedDate(event.getRegistrationStartDate()));
+                            regEndDateTextView.setText(event.getFormattedDate(event.getRegistrationEndDate()));
                         }
                     } else {
                         Toast.makeText(this, "Event not found", Toast.LENGTH_SHORT).show();
