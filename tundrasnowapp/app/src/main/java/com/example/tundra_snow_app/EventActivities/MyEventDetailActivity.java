@@ -28,23 +28,28 @@ import java.util.List;
  */
 public class MyEventDetailActivity extends AppCompatActivity {
 
-    private TextView titleTextView, dateTextView, locationTextView, descriptionTextView, geoLocationTextView, statusMessage;
+    private TextView titleTextView,
+            locationTextView,
+            descriptionTextView,
+            geoLocationTextView,
+            statusMessage,
+            startDateTextView,
+            endDateTextView,
+            regStartDateTextView,
+            regEndDateTextView;
+
     private Button leftButton, rightButton;
     private FirebaseFirestore db;
     private String eventID, currentUserID, userStatus;
 
-    /**
-     * Initializes the views and loads the event details.
-     * @param savedInstanceState The saved instance state.
-     */
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.my_event_detail_view);
 
-        // Initialize views
+        // Initializations
         titleTextView = findViewById(R.id.detailEventTitle);
-        dateTextView = findViewById(R.id.detailEventDate);
         locationTextView = findViewById(R.id.detailEventLocation);
         descriptionTextView = findViewById(R.id.detailEventDescription);
         geoLocationTextView = findViewById(R.id.geoLocationNotification);
@@ -52,14 +57,20 @@ public class MyEventDetailActivity extends AppCompatActivity {
         rightButton = findViewById(R.id.rightButton);
         leftButton = findViewById(R.id.leftButton);
 
+        // Date fields initialization
+        startDateTextView = findViewById(R.id.detailStartDate);
+        endDateTextView = findViewById(R.id.detailEndDate);
+        regStartDateTextView = findViewById(R.id.detailRegStartDate);
+        regEndDateTextView = findViewById(R.id.detailRegEndDate);
+
         db = FirebaseFirestore.getInstance();
-        eventID = getIntent().getStringExtra("eventID");  // Get event ID from intent
+        eventID = getIntent().getStringExtra("eventID");
 
         fetchSessionUserId(this::loadEventDetails);
     }
-    
+
     /**
-     * Loads the event details from the Firestore database and populates the view with the event data.
+     * Loads the event details from Firestore and populates the view with all event data.
      */
     private void loadEventDetails() {
         db.collection("events").document(eventID).get()
@@ -67,11 +78,12 @@ public class MyEventDetailActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         Events event = documentSnapshot.toObject(Events.class);
                         if (event != null) {
+                            // Populate title, location, and description
                             titleTextView.setText(event.getTitle());
-                            dateTextView.setText(event.getFormattedDate(event.getStartDate()));  // Use formatted date
                             locationTextView.setText(event.getLocation());
                             descriptionTextView.setText(event.getDescription());
 
+                            // Populate geolocation
                             String geolocation = documentSnapshot.getString("geolocationRequirement");
                             if (geolocation != null && geolocation.equals("In-person")) {
                                 geoLocationTextView.setVisibility(View.VISIBLE);
@@ -79,7 +91,11 @@ public class MyEventDetailActivity extends AppCompatActivity {
                                 geoLocationTextView.setVisibility(View.GONE);
                             }
 
-                            // Determine user status by checking the lists
+                            startDateTextView.setText(event.getFormattedDate(event.getStartDate()));
+                            endDateTextView.setText(event.getFormattedDate(event.getEndDate()));
+                            regStartDateTextView.setText(event.getFormattedDate(event.getRegistrationStartDate()));
+                            regEndDateTextView.setText(event.getFormattedDate(event.getRegistrationEndDate()));
+
                             if (((List<String>) documentSnapshot.get("entrantList")).contains(currentUserID)) {
                                 userStatus = "entrant";
                                 statusMessage.setText("You have successfully signed up! Organizer has not yet sent you an invite.");
@@ -108,7 +124,7 @@ public class MyEventDetailActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to load event details", Toast.LENGTH_SHORT).show());
     }
-    
+
     /**
      * Configures the buttons based on the user's status for the event.
      */

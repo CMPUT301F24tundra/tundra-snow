@@ -55,7 +55,7 @@ import java.util.Map;
  */
 public class OrganizerEventDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    private EditText eventTitle, eventDate, eventLocation, eventDescription;
+    private EditText eventTitle, eventDate, eventEndDate, regStartDate, regEndDate, eventLocation, eventDescription;
     private Button saveButton, editButton, backButton;
     private FirebaseFirestore db;
     private String eventID, currentUserID;
@@ -79,7 +79,10 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
         mapView.getMapAsync(this);
 
         eventTitle = findViewById(R.id.organizerEventTitle);
-        eventDate = findViewById(R.id.organizerEventDate);
+        eventDate = findViewById(R.id.organizerStartDate);
+        eventEndDate = findViewById(R.id.organizerEndDate);
+        regStartDate = findViewById(R.id.organizerRegStartDate);
+        regEndDate = findViewById(R.id.organizerRegEndDate);
         eventLocation = findViewById(R.id.organizerEventLocation);
         eventDescription = findViewById(R.id.organizerEventDescription);
 
@@ -125,7 +128,12 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
             backButton.setOnClickListener(view -> finish());
             editButton.setOnClickListener(view -> enableEditing(true));
             saveButton.setOnClickListener(v -> saveEventUpdates());
+
+            // Setting date-time picker for each date field
             eventDate.setOnClickListener(v -> showDateTimePickerDialog(eventDate));
+            eventEndDate.setOnClickListener(v -> showDateTimePickerDialog(eventEndDate));
+            regStartDate.setOnClickListener(v -> showDateTimePickerDialog(regStartDate));
+            regEndDate.setOnClickListener(v -> showDateTimePickerDialog(regEndDate));
         });
     }
     @Override
@@ -314,7 +322,10 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
                         Events event = documentSnapshot.toObject(Events.class);
                         if (event != null) {
                             eventTitle.setText(event.getTitle());
-                            eventDate.setText(event.getFormattedDate(event.getStartDate()));  // Use formatted date
+                            eventDate.setText(event.getFormattedDate(event.getStartDate()));
+                            eventEndDate.setText(event.getFormattedDate(event.getEndDate()));
+                            regStartDate.setText(event.getFormattedDate(event.getRegistrationStartDate()));
+                            regEndDate.setText(event.getFormattedDate(event.getRegistrationEndDate()));
                             eventLocation.setText(event.getLocation());
                             eventDescription.setText(event.getDescription());
                         }
@@ -331,14 +342,14 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
     private void saveEventUpdates() {
         String editedEventTitle = eventTitle.getText().toString();
         Date editedEventDate = parseDate(eventDate.getText().toString());
-
-        Log.w("DEBUG", "eventDate: " + editedEventDate);
-
+        Date editedEventEndDate = parseDate(eventEndDate.getText().toString());
+        Date editedRegStartDate = parseDate(regStartDate.getText().toString());
+        Date editedRegEndDate = parseDate(regEndDate.getText().toString());
         String editedEventLocation = eventLocation.getText().toString();
         String editedEventDescription = eventDescription.getText().toString();
 
-        if (editedEventDate == null) {
-            Toast.makeText(this, "Please enter a valid date.", Toast.LENGTH_SHORT).show();
+        if (editedEventDate == null || editedEventEndDate == null || editedRegStartDate == null || editedRegEndDate == null) {
+            Toast.makeText(this, "Please enter valid dates for all fields.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -346,6 +357,9 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
         db.collection("events").document(eventID)
                 .update("title", editedEventTitle,
                         "startDate", new Timestamp(editedEventDate),
+                        "endDate", new Timestamp(editedEventEndDate),
+                        "registrationStartDate", new Timestamp(editedRegStartDate),
+                        "registrationEndDate", new Timestamp(editedRegEndDate),
                         "location", editedEventLocation,
                         "description", editedEventDescription)
                 .addOnSuccessListener(aVoid -> {
@@ -353,7 +367,7 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
                     enableEditing(false);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to update profile.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Failed to update event.", Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                 });
     }
@@ -471,11 +485,16 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
     private void enableEditing(boolean isEditable) {
         eventTitle.setEnabled(isEditable);
         eventDate.setEnabled(isEditable);
+        eventEndDate.setEnabled(isEditable);
+        regStartDate.setEnabled(isEditable);
+        regEndDate.setEnabled(isEditable);
         eventDate.setClickable(isEditable);
+        eventEndDate.setClickable(isEditable);
+        regStartDate.setClickable(isEditable);
+        regEndDate.setClickable(isEditable);
         eventLocation.setEnabled(isEditable);
         eventDescription.setEnabled(isEditable);
 
-        // Toggle visibility of buttons
         editButton.setVisibility(isEditable ? View.GONE : View.VISIBLE);
         saveButton.setVisibility(isEditable ? View.VISIBLE : View.GONE);
     }
