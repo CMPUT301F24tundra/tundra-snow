@@ -133,6 +133,44 @@ public class ProfileViewActivity extends AppCompatActivity {
         setupMenuButton();
     }
 
+    private void loadProfilePicture() {
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Reference to Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Get the user's document
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Get the profile picture URL
+                        String imageUrl = documentSnapshot.getString("profilePictureUrl");
+
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            // Load the image using Glide
+                            Glide.with(this)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.default_profile_picture) // Default placeholder
+                                    .into(profileImageView);
+                        } else {
+                            // Set a default image if no URL is available
+                            profileImageView.setImageResource(R.drawable.default_profile_picture);
+                        }
+                    } else {
+                        Toast.makeText(this, "User profile not found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to load profile picture: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                });
+    }
+
+
     private void openPhotoPicker() {
         photoPickerLauncher.launch(new PickVisualMediaRequest.Builder()
                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
@@ -304,6 +342,8 @@ public class ProfileViewActivity extends AppCompatActivity {
      */
     private void fetchUserProfile() {
         if (userId == null) return;
+
+        loadProfilePicture();
 
         db.collection("users").document(userId)
                 .get()
