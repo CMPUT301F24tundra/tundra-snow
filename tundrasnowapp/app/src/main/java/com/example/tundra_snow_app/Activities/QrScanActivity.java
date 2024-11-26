@@ -1,5 +1,6 @@
 package com.example.tundra_snow_app.Activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -17,8 +18,13 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 
+import com.example.tundra_snow_app.EventActivities.MyEventDetailActivity;
 import com.example.tundra_snow_app.R;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
@@ -30,18 +36,23 @@ import android.util.Log;
 import android.widget.Button;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
+@OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)
 public class QrScanActivity extends AppCompatActivity {
-
+    private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
     private PreviewView previewView;
     private Button scanButton;
     private ImageButton backButton;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    private String currentUserID;
+    private boolean isScanning = false;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,22 +63,23 @@ public class QrScanActivity extends AppCompatActivity {
         scanButton = findViewById(R.id.scanButton);
         backButton = findViewById(R.id.qrBackButton);
 
-        // Check for camera permission
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            startCamera();
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 100);
-        }
+        db = FirebaseFirestore.getInstance();
 
-        scanButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Trigger QR code scan
-                try {
-                    startQrScan();
-                } catch (ExecutionException | InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+        // Check for camera permission
+        fetchSessionUser(() -> {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                startCamera();
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 100);
+            }
+        });
+
+
+        scanButton.setOnClickListener(view -> {
+            try {
+                startQrScan();
+            } catch (ExecutionException | InterruptedException e) {
+                Log.e("QrScanActivity", "Error starting QR scan", e);
             }
         });
 
@@ -83,16 +95,12 @@ public class QrScanActivity extends AppCompatActivity {
     private void startCamera() {
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
 
-        cameraProviderFuture.addListener(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    // Initialize camera
-                    ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                    bindPreview(cameraProvider);
-                } catch (ExecutionException | InterruptedException e) {
-                    e.printStackTrace();
-                }
+        cameraProviderFuture.addListener(() -> {
+            try {
+                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                bindPreview(cameraProvider);
+            } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
             }
         }, ContextCompat.getMainExecutor(this));
     }
@@ -101,85 +109,151 @@ public class QrScanActivity extends AppCompatActivity {
         // Set up camera selector (back camera by default)
         CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
 
-        // Create the preview use case
         Preview preview = new Preview.Builder().build();
-
-        // Bind the preview to the PreviewView
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-        // Bind the camera to lifecycle
-        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, preview);
+        cameraProvider.bindToLifecycle(this, cameraSelector, preview);
     }
 
-    private void startQrScan() throws ExecutionException, InterruptedException {
-        // Initialize the barcode scanner from ML Kit
-        BarcodeScanner barcodeScanner = BarcodeScanning.getClient();
+    private void handleScannedQRCode(String qrData) {
+        Log.d("QrScanActivity", "QR Code scanned: " + qrData);
 
-        // Set up ImageAnalysis to process frames from the camera
-        ImageAnalysis imageAnalysis = new ImageAnalysis.Builder().build();
+        // Look for the event with the corresponding QR hash in Firestore
+        db.collection("events")
+                .whereEqualTo("qrHash", qrData)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        DocumentSnapshot document = querySnapshot.getDocuments().get(0);
+                        String eventId = document.getString("eventID");
 
-        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new ImageAnalysis.Analyzer() {
-            @OptIn(markerClass = ExperimentalGetImage.class) // may want to change implementation in the future to a more stable version
-            @Override
-            public void analyze(@NonNull ImageProxy image) {
-                int rotationDegrees = image.getImageInfo().getRotationDegrees();
+                        if (eventId != null) {
+                            Log.d("QrScanActivity", "Found matching event with eventID: " + eventId);
+                            signUpForEvent(eventId);
+                        } else {
+                            Log.e("QrScanActivity", "eventID not found in the document for the QR code.");
+                            Toast.makeText(this, "Invalid QR code. EventID is missing.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Log.w("QrScanActivity", "No event found for this QR code.");
+                        Toast.makeText(this, "No event found for this QR code.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("QrScanActivity", "Error looking up event in Firestore", e);
+                    Toast.makeText(this, "Failed to process QR code.", Toast.LENGTH_SHORT).show();
+                });
+    }
 
-                // Convert the camera frame to InputImage
-                InputImage inputImage = InputImage.fromMediaImage(Objects.requireNonNull(image.getImage()), rotationDegrees);
+    private void signUpForEvent(String eventId) {
+        db.collection("events").document(eventId)
+                .update("entrantList", com.google.firebase.firestore.FieldValue.arrayUnion(currentUserID))
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("QrScanActivity", "Successfully added " + currentUserID + " to entrantList.");
+                    Toast.makeText(this, "Signed up for the event successfully!", Toast.LENGTH_SHORT).show();
+                    navigateToEventDetails(eventId);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("QrScanActivity", "Error signing up for event", e);
+                    Toast.makeText(this, "Failed to sign up for the event.", Toast.LENGTH_SHORT).show();
+                });
+    }
 
-                // Process the image to scan for barcodes
-                barcodeScanner.process(inputImage)
-                        .addOnSuccessListener(barcodes -> {
-                            // Process all the detected barcodes
-                            for (Barcode barcode : barcodes) {
-                                String rawValue = barcode.getRawValue();
-                                if (rawValue != null) {
-                                    // Hash the raw value of the QR code
-                                    String qrHash = getSha256Hash(rawValue);
-                                    Log.d("QR Code", "Hash: " + qrHash);
-                                    /*
-                                    Store hash in the database possibly? Or url/image. Further
-                                    information on how system is implemented is needed to proceed
-                                     */
-                                }
-                            }
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e("QR Code", "QR code scanning failed", e);
-                        })
-                        .addOnCompleteListener(task -> {
-                            image.close();
-                        });
-            }
-        });
-
-        // Bind the image analysis use case to the camera lifecycle
-
-        ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-        CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
-        cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis);
+    private void navigateToEventDetails(String eventId) {
+        Intent intent = new Intent(this, MyEventDetailActivity.class);
+        intent.putExtra("eventID", eventId);
+        startActivity(intent);
+        finish();
     }
 
     /**
-     * Method to generate SHA-256 hash of a string
-     *
-     * @param rawValue the raw value of the QR code
-     * @return the SHA-256 hash of the raw value
+     * Fetch the userId of the current user from the latest session in the "sessions" collection.
+     * @param onComplete Runnable to execute after fetching the userId
      */
-    private String getSha256Hash(String rawValue) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(rawValue.getBytes());
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hashBytes) {
-                hexString.append(String.format("%02x", b));
+    private void fetchSessionUser(@NonNull Runnable onComplete) {
+        CollectionReference sessionsRef = db.collection("sessions");
+        sessionsRef.orderBy("loginTimestamp", Query.Direction.DESCENDING).limit(1)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                        DocumentSnapshot latestSession = task.getResult().getDocuments().get(0);
+                        currentUserID = latestSession.getString("userId");
+                        onComplete.run();
+                    } else {
+                        Toast.makeText(this, "No active session found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Session", "Error fetching session data", e));
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startCamera();
+            } else {
+                Toast.makeText(this, "Camera permission is required to scan QR codes.", Toast.LENGTH_SHORT).show();
+                finish();
             }
-            return hexString.toString();  // Return the SHA-256 hash as a hex string
-        } catch (NoSuchAlgorithmException e) {
-            Log.e("QR Hash", "Error hashing the QR value", e);
-            return null;
         }
     }
 
+    private void startQrScan() throws ExecutionException, InterruptedException {
+        if (isScanning) {
+            Toast.makeText(this, "Already scanning, please wait...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        isScanning = true;
+
+        BarcodeScanner barcodeScanner = BarcodeScanning.getClient();
+        ImageAnalysis imageAnalysis = new ImageAnalysis.Builder().build();
+
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new ImageAnalysis.Analyzer() {
+            @Override
+            public void analyze(@NonNull ImageProxy image) {
+                if (image.getImage() == null) {
+                    image.close();
+                    isScanning = false;
+                    return;
+                }
+
+                InputImage inputImage = InputImage.fromMediaImage(
+                        Objects.requireNonNull(image.getImage()),
+                        image.getImageInfo().getRotationDegrees()
+                );
+
+                barcodeScanner.process(inputImage)
+                        .addOnSuccessListener(barcodes -> {
+                            for (Barcode barcode : barcodes) {
+                                String rawValue = barcode.getRawValue();
+                                if (rawValue != null) {
+                                    handleScannedQRCode(rawValue);
+                                    image.close();
+                                    isScanning = false; // Reset scanning state
+                                    return;
+                                }
+                            }
+                            image.close();
+                            isScanning = false;
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("QrScanActivity", "Error processing QR code", e);
+                            image.close();
+                            isScanning = false;
+                        })
+                        .addOnCompleteListener(task -> image.close());
+            }
+        });
+
+        ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+        CameraSelector cameraSelector = new CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build();
+
+        cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis);
+    }
 }
 
