@@ -23,7 +23,7 @@ public class Events {
     private String published; // Publication status of the event
     private String qrHash; // Unique QR code hash for event validation
     private String status; // Current status of the event
-    private int capacity; // Maximum number of participants allowed
+    private Integer capacity; // Maximum number of participants allowed
 
     // Event Timing
     private Date startDate; // Start time of the event
@@ -361,7 +361,7 @@ public class Events {
      * Returns the capacity of the event.
      * @return Event capacity
      */
-    public int getCapacity() {
+    public Integer getCapacity() {
         return capacity;
     }
 
@@ -369,7 +369,7 @@ public class Events {
      * Sets the capacity of the event.
      * @param capacity Event capacity
      */
-    public void setCapacity(int capacity) {
+    public void setCapacity(Integer capacity) {
         this.capacity = capacity;
     }
 
