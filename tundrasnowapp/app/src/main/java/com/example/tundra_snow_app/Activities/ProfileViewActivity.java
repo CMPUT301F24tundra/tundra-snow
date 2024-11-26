@@ -3,7 +3,10 @@ package com.example.tundra_snow_app.Activities;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +18,11 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
@@ -23,10 +31,18 @@ import com.example.tundra_snow_app.Helpers.NavigationBarHelper;
 import com.example.tundra_snow_app.ListAdapters.FacilityListAdapter;
 import com.example.tundra_snow_app.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.bumptech.glide.Glide;
+
+
+import java.util.ArrayList;
+import java.util.List;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,9 +60,15 @@ public class ProfileViewActivity extends AppCompatActivity {
     private ListView facilitiesListView;
     private FacilityListAdapter adapter;
     private FirebaseFirestore db;
+    private FirebaseStorage storage;
     private String userId;
     private List<String> facilities = new ArrayList<>();
     private List<String> userRoles = new ArrayList<>();
+
+    private ImageView profileImageView;
+    private Button changePictureButton;
+
+    private ActivityResultLauncher<PickVisualMediaRequest> photoPickerLauncher;
 
     private ImageView menuButton;
     private View profileSection;
@@ -78,14 +100,31 @@ public class ProfileViewActivity extends AppCompatActivity {
         profileSection = findViewById(R.id.profileSection);
         facilitiesSection = findViewById(R.id.facilitiesSection);
         menuButton = findViewById(R.id.menuButton);
+        profileImageView = findViewById(R.id.profileImageView);
+        changePictureButton = findViewById(R.id.changePictureButton);
 
         // Initialize Firestore
-        db = FirebaseFirestore.getInstance();
+        db = FirebaseFirestore.getInstance();// Initialize Firebase instances
+        storage = FirebaseStorage.getInstance();
 
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         // Fetch user ID from the latest session
         fetchUserIdFromSession();
+
+        // Register the Photo Picker Launcher
+        photoPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.PickVisualMedia(),
+                uri -> {
+                    if (uri != null) {
+                        uploadProfilePictureToFirebase(uri);
+                    } else {
+                        Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        changePictureButton.setOnClickListener(v -> openPhotoPicker());
 
         // Set up button listeners
         editButton.setOnClickListener(v -> enableEditing(true));
@@ -93,6 +132,61 @@ public class ProfileViewActivity extends AppCompatActivity {
         addFacilityButton.setOnClickListener(v -> showAddFacilityDialog());
         setupMenuButton();
     }
+
+    private void openPhotoPicker() {
+        photoPickerLauncher.launch(new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                .build());
+    }
+
+    private void uploadProfilePictureToFirebase(Uri imageUri) {
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StorageReference storageReference = storage.getReference()
+                .child("profile_pictures")
+                .child(userId + ".jpg");
+
+        storageReference.putFile(imageUri)
+                .addOnSuccessListener(taskSnapshot ->
+                        storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                            String downloadUrl = uri.toString();
+                            saveProfilePictureUrlToDatabase(downloadUrl);
+                            Glide.with(this).load(downloadUrl).into(profileImageView);
+                        }))
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void saveProfilePictureUrlToDatabase(String imageUrl) {
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Reference to the Firestore instance
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Update the user's document with the profile picture URL
+        db.collection("users").document(userId)
+                .update("profilePictureUrl", imageUrl)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Profile picture updated successfully.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Failed to save profile picture URL.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error saving profile picture: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                });
+    }
+
+
 
     /**
      * Sets up the menu button to display role-based options.

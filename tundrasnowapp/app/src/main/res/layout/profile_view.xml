@@ -47,6 +47,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <ImageView
+            android:id="@+id/profileImageView"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_gravity="center"
+            android:src="@drawable/default_profile_picture"
+            android:contentDescription="Profile Picture"
+            android:scaleType="centerCrop" />
+
+        <Button
+            android:id="@+id/changePictureButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:backgroundTint="#333333"
+            android:text="Change Picture" />
+
+
         <TextView
             android:id="@+id/profileNameLabel"
             android:layout_width="wrap_content"
