@@ -145,6 +145,17 @@
             android:minHeight="48dp"
             android:padding="8dp"
             android:textSize="14sp" />
+
+        <!-- New EditText for Facility Location -->
+        <EditText
+            android:id="@+id/editTextFacilityLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#D3D3D3"
+            android:hint="Facility Location"
+            android:minHeight="48dp"
+            android:padding="8dp"
+            android:textSize="14sp" />
     </LinearLayout>
 
     <ToggleButton

@@ -39,6 +39,7 @@ public class OrganizersTest {
                 "1995-05-15",
                 "0987654321",
                 true,
+                true,
                 "device002",
                 "Location2",
                 roles,

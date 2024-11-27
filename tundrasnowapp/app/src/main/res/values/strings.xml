@@ -7,4 +7,6 @@
     <string name="event_notice">Notice: Event Signup Requires Geolocation!</string>
     <string name="event_status">Event Full</string>
     <string name="google_maps_key">AIzaSyC3I6ssSFHM3LNoVmOrMcIOl7WGf3BXIfA</string>
+    <string name="scan_qr_code">SCAN</string>
+    <string name="qrBackButton">Back Button</string>
 </resources>
