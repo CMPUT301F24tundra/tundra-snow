@@ -67,6 +67,8 @@ public class ProfileViewActivity extends AppCompatActivity {
 
     private ImageView profileImageView;
     private Button changePictureButton;
+    private Button removePictureButton;
+    private Button generatePictureButton;
 
     private ActivityResultLauncher<PickVisualMediaRequest> photoPickerLauncher;
 
@@ -102,6 +104,7 @@ public class ProfileViewActivity extends AppCompatActivity {
         menuButton = findViewById(R.id.menuButton);
         profileImageView = findViewById(R.id.profileImageView);
         changePictureButton = findViewById(R.id.changePictureButton);
+        removePictureButton = findViewById(R.id.removePictureButton);
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();// Initialize Firebase instances
@@ -125,12 +128,61 @@ public class ProfileViewActivity extends AppCompatActivity {
         );
 
         changePictureButton.setOnClickListener(v -> openPhotoPicker());
+        removePictureButton.setOnClickListener(v -> {
+            if (userId != null && !userId.isEmpty()) {
+                confirmAndRemoveProfilePicture();
+            } else {
+                Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        // Set up button listeners
         editButton.setOnClickListener(v -> enableEditing(true));
         saveButton.setOnClickListener(v -> saveProfileUpdates());
         addFacilityButton.setOnClickListener(v -> showAddFacilityDialog());
         setupMenuButton();
+    }
+
+    /**
+     * Confirms and removes the user's profile picture.
+     */
+    private void confirmAndRemoveProfilePicture() {
+        new AlertDialog.Builder(this)
+                .setTitle("Remove Profile Picture")
+                .setMessage("Are you sure you want to remove your profile picture?")
+                .setPositiveButton("Yes", (dialog, which) -> removeProfilePicture())
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    /**
+     * Removes the profile picture from Firebase Storage and Firestore.
+     */
+    private void removeProfilePicture() {
+        // Reference to the profile picture in Firebase Storage
+        StorageReference profilePicRef = storage.getReference()
+                .child("profile_pictures")
+                .child(userId + ".jpg");
+
+        // Delete the picture from Storage
+        profilePicRef.delete()
+                .addOnSuccessListener(aVoid -> {
+                    // Remove the profile picture URL from Firestore
+                    db.collection("users").document(userId)
+                            .update("profilePictureUrl", null)
+                            .addOnSuccessListener(aVoid1 -> {
+                                // Reset the profile picture to a default image
+                                profileImageView.setImageResource(R.drawable.default_profile_picture);
+                                Toast.makeText(this, "Profile picture removed successfully.", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(this, "Failed to update profile picture URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                e.printStackTrace();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to remove profile picture: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                });
     }
 
     private void loadProfilePicture() {
