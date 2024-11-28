@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -18,9 +19,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.ListActivities.ViewCancelledParticipantListActivity;
 import com.example.tundra_snow_app.ListActivities.ViewChosenParticipantListActivity;
@@ -41,6 +46,8 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.qrcode.QRCodeWriter;
@@ -73,6 +80,10 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
     private List<Marker> markerList = new ArrayList<>();
     private FrameLayout qrView;
     private ImageView qrImageView;
+    private ImageView eventImageView;
+    private ActivityResultLauncher<PickVisualMediaRequest> photoPickerLauncher;
+    private Uri selectedImageUri;
+    private Button updateImageButton;
 
     /**
      * Initializes the views and loads the event details.
@@ -89,6 +100,9 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
 
         qrView = findViewById(R.id.QRView);
         qrImageView = findViewById(R.id.qrImageView);
+
+        eventImageView = findViewById(R.id.eventImageView);
+        updateImageButton = findViewById(R.id.updateImageButton);
 
         eventTitle = findViewById(R.id.organizerEventTitle);
         eventDate = findViewById(R.id.organizerStartDate);
@@ -147,6 +161,25 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
             regStartDate.setOnClickListener(v -> showDateTimePickerDialog(regStartDate));
             regEndDate.setOnClickListener(v -> showDateTimePickerDialog(regEndDate));
         });
+
+
+        // Photo Picker Logic
+        photoPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.PickVisualMedia(),
+                uri -> {
+                    if (uri != null) {
+                        selectedImageUri = uri;
+                        Glide.with(this).load(uri).into(eventImageView); // Show selected image
+                        uploadImageToFirebase(); // Trigger upload to Firebase
+                    } else {
+                        Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        updateImageButton.setOnClickListener(v -> {
+            photoPickerLauncher.launch(new PickVisualMediaRequest.Builder().build());
+        });
     }
     @Override
     public void onMapReady(GoogleMap map) {
@@ -180,6 +213,45 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
         super.onLowMemory();
         mapView.onLowMemory();
     }
+
+    private void uploadImageToFirebase() {
+        if (selectedImageUri != null) {
+            StorageReference fileReference = FirebaseStorage.getInstance()
+                    .getReference("event_posters/" + eventID + ".jpg");
+
+            fileReference.putFile(selectedImageUri)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        fileReference.getDownloadUrl()
+                                .addOnSuccessListener(uri -> {
+                                    String downloadUrl = uri.toString();
+                                    updateImageInFirestore(downloadUrl); // Update Firestore with new image URL
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this, "Failed to get image URL", Toast.LENGTH_SHORT).show();
+                                    Log.e("ImageUpload", "Error fetching download URL", e);
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Image upload failed", Toast.LENGTH_SHORT).show();
+                        Log.e("ImageUpload", "Error uploading image", e);
+                    });
+        } else {
+            Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updateImageInFirestore(String downloadUrl) {
+        db.collection("events").document(eventID)
+                .update("imageUrl", downloadUrl)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Image updated successfully!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to update image URL in database", Toast.LENGTH_SHORT).show();
+                    Log.e("FirestoreUpdate", "Error updating Firestore", e);
+                });
+    }
+
 
     private void loadParticipantLocations() {
         db.collection("events").document(eventID)
@@ -328,6 +400,14 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
                             Toast.makeText(this, "ERROR: You are not the organizer of this event!", Toast.LENGTH_LONG).show();
                             finish();
                             return;
+                        }
+
+                        // Load image using Glide (or your preferred library)
+                        String imageUrl = documentSnapshot.getString("imageUrl");
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            Glide.with(this)
+                                    .load(imageUrl)
+                                    .into(eventImageView);
                         }
 
                         // If the user is the organizer, proceed to load event details
@@ -518,6 +598,7 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
 
         editButton.setVisibility(isEditable ? View.GONE : View.VISIBLE);
         saveButton.setVisibility(isEditable ? View.VISIBLE : View.GONE);
+        updateImageButton.setVisibility(isEditable ? View.VISIBLE : View.GONE);
     }
 
     /**
