@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -27,6 +28,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
 import com.example.tundra_snow_app.EventActivities.EventViewActivity;
+import com.example.tundra_snow_app.Helpers.IdenticonGenerator;
 import com.example.tundra_snow_app.Helpers.NavigationBarHelper;
 import com.example.tundra_snow_app.ListAdapters.FacilityListAdapter;
 import com.example.tundra_snow_app.R;
@@ -41,6 +43,7 @@ import com.google.firebase.storage.StorageReference;
 import com.bumptech.glide.Glide;
 
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -105,6 +108,7 @@ public class ProfileViewActivity extends AppCompatActivity {
         profileImageView = findViewById(R.id.profileImageView);
         changePictureButton = findViewById(R.id.changePictureButton);
         removePictureButton = findViewById(R.id.removePictureButton);
+        generatePictureButton = findViewById(R.id.generatePictureButton);
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();// Initialize Firebase instances
@@ -135,12 +139,59 @@ public class ProfileViewActivity extends AppCompatActivity {
                 Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
             }
         });
-
+        generatePictureButton.setOnClickListener(v -> generateIdenticonProfilePicture());
         editButton.setOnClickListener(v -> enableEditing(true));
         saveButton.setOnClickListener(v -> saveProfileUpdates());
         addFacilityButton.setOnClickListener(v -> showAddFacilityDialog());
         setupMenuButton();
     }
+
+    private void generateIdenticonProfilePicture() {
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Generate an Identicon using the user ID's hashCode
+        int hash = userId.hashCode();
+        Bitmap identicon = IdenticonGenerator.generateIdenticon(hash, 256);
+
+        // Save the Bitmap to Firebase
+        saveBitmapToFirebase(identicon);
+    }
+
+    private void saveBitmapToFirebase(Bitmap bitmap) {
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StorageReference storageReference = storage.getReference()
+                .child("profile_pictures")
+                .child(userId + ".jpg");
+
+        // Convert the Bitmap to a ByteArray
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] data = baos.toByteArray();
+
+        // Upload the ByteArray to Firebase Storage
+        storageReference.putBytes(data)
+                .addOnSuccessListener(taskSnapshot ->
+                        storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                            String downloadUrl = uri.toString();
+                            saveProfilePictureUrlToDatabase(downloadUrl);
+                            Glide.with(this).load(downloadUrl).into(profileImageView);
+                            Toast.makeText(this, "Generated profile picture set successfully.", Toast.LENGTH_SHORT).show();
+                        })
+                )
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to upload generated image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                });
+    }
+
+
 
     /**
      * Confirms and removes the user's profile picture.
