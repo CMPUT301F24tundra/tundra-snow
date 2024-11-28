@@ -199,7 +199,7 @@ public class MyEventDetailActivity extends AppCompatActivity {
                         .update("chosenList", FieldValue.arrayRemove(currentUserID),
                                 "confirmedList", FieldValue.arrayUnion(currentUserID))
                         .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(this, "You have cancelled your participation.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "You have confirmed your participation.", Toast.LENGTH_SHORT).show();
                             finishWithResult();
                         })
                         .addOnFailureListener(e -> Toast.makeText(this, "Failed to cancel.", Toast.LENGTH_SHORT).show());

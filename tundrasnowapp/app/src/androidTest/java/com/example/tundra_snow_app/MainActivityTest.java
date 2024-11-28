@@ -27,6 +27,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.example.tundra_snow_app.Activities.EntrantSignupActivity;
+import com.example.tundra_snow_app.EventActivities.EventViewActivity;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -134,6 +135,10 @@ public class MainActivityTest {
         intended(hasComponent(EntrantSignupActivity.class.getName()));
     }
 
+    /** US 01.02.01 As an entrant, I want to provide my personal information such
+     * as name, email and optional phone number in the app
+     * @throws InterruptedException
+     */
     @Test
     public void testSignUpAndLogin() throws InterruptedException {
         // Navigate to the sign-up screen
@@ -177,13 +182,17 @@ public class MainActivityTest {
         onView(withId(R.id.modeToggle)).check(matches(isDisplayed()));
     }
 
+    /** US 1.07.01
+     * Test to verify the sign-in process with the device identifier.
+     * @throws InterruptedException
+     */
     @Test
-    public void testSignInWithDeviceId() throws InterruptedException {
-        String testDeviceId = "device001";
+    public void testSignInWithDevice() throws InterruptedException {
 
         onView(withId(R.id.signInWithDeviceButton)).perform(click());
 
-        // Allow time for asynchronous operation
-        Thread.sleep(3000);
+        Thread.sleep(1000);
+
+        intended(hasComponent(EventViewActivity.class.getName()));
     }
 }
