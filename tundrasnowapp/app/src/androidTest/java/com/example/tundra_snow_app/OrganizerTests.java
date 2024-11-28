@@ -10,7 +10,6 @@ import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static androidx.test.espresso.matcher.ViewMatchers.withClassName;
 import static androidx.test.espresso.matcher.ViewMatchers.withHint;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
@@ -20,9 +19,7 @@ import static org.hamcrest.CoreMatchers.allOf;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
-import android.widget.DatePicker;
 import android.widget.TextView;
-import android.widget.TimePicker;
 
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.test.espresso.NoMatchingViewException;
@@ -31,7 +28,6 @@ import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.espresso.intent.Intents;
-import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.espresso.util.HumanReadables;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -48,7 +44,6 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -121,25 +116,18 @@ public class OrganizerTests {
     }
 
     private void toggleToOrganizerMode() {
-        // First, find and click the menu button to open the menu
         ViewInteraction menuButton = onView(withId(R.id.menuButton));
 
         try {
-            // Click the menu button to open the menu
             menuButton.perform(click());
 
-            // After opening the menu, we need to wait briefly for the menu items to be displayed
-            // This helps ensure menu animations are complete and items are clickable
             SystemClock.sleep(500);
 
-            // Now find and click the organizer option in the opened menu
-            // Note: You'll need to replace "Organizer" with the exact text that appears in your menu
             onView(withText("Organizer")).perform(click());
 
         } catch (NoMatchingViewException | PerformException e) {
             // Log the error for debugging purposes
             Log.e("MenuInteraction", "Failed to interact with menu", e);
-            // Optionally handle the error case based on your app's needs
         }
     }
 

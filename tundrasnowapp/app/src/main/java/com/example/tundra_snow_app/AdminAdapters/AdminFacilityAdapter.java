@@ -101,7 +101,7 @@ public class AdminFacilityAdapter extends RecyclerView.Adapter<AdminFacilityAdap
             super(itemView);
             facilityName = itemView.findViewById(R.id.facilityName);
             facilityLocation = itemView.findViewById(R.id.facilityLocation);
-            removeFacilityButton = itemView.findViewById(R.id.removeEventButton);
+            removeFacilityButton = itemView.findViewById(R.id.removeFacilityButton);
         }
     }
 }

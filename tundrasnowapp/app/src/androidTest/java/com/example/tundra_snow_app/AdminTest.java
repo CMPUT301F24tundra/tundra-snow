@@ -2,47 +2,56 @@ package com.example.tundra_snow_app;
 
 import static androidx.test.espresso.Espresso.onView;
 
-import androidx.test.espresso.Espresso;
-import androidx.test.espresso.action.ViewActions;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.test.espresso.NoMatchingViewException;
+import androidx.test.espresso.PerformException;
+import androidx.test.espresso.UiController;
+import androidx.test.espresso.ViewAction;
+import androidx.test.espresso.ViewInteraction;
 import androidx.test.espresso.intent.Intents;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.action.ViewActions.scrollTo;
 import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
-import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
-import static androidx.test.espresso.matcher.ViewMatchers.hasDescendant;
-import static androidx.test.espresso.matcher.ViewMatchers.hasSibling;
+import static androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 
 import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.not;
 
-import androidx.test.espresso.UiController;
-import androidx.test.espresso.ViewAction;
-import androidx.test.espresso.matcher.BoundedMatcher;
-import androidx.test.espresso.matcher.ViewMatchers;
+import android.os.SystemClock;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import androidx.test.espresso.util.HumanReadables;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.google.firebase.Timestamp;
+import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @RunWith(AndroidJUnit4.class)
 public class AdminTest {
@@ -51,11 +60,14 @@ public class AdminTest {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    // Add test data to firebase
-    String testEventTitle = "7^7^7";
-    String testFacilityTitle = "8^8^8";
-    String testUserFirst = "999";
-    String testUserLast = "555";
+
+    // Test data for database
+    String testEventTitle = "Important Admin Test Event";
+    String testFacilityTitle = "Test Facility Title";
+    String testUserFirst = "Test";
+    String testUserLast = "User";
+
+    Set<String> generatedTitles  = new HashSet<>();
 
     /**
      * Generates test data for a facility, event and user.
@@ -66,70 +78,8 @@ public class AdminTest {
         Intents.init();
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        // filling the fields of the test facility
-        Map<String, Object> facility = new HashMap<>();
-        facility.put("facilityID", "833189b6-ec5b-489b-a450-0725b87f4a2e");
-        facility.put("facilityLocation", "testfacloc");
-        facility.put("facilityName", testFacilityTitle);
-        // add to facilities collection with the id "testFacilityId"
-        db.collection("facilities").document("00testFacilityId").set(facility);
-        Map<String, Object> user = new HashMap<>();
-        user.put("dateOfBirth", "Jan 1 2001");
-        user.put("deviceID", "5a75fb942b3e0c48");
-        user.put("email", "testing@2^2^2.ca");
-        user.put("facilityList", Arrays.asList()); // empty array
-        user.put("firstName", testUserFirst);
-        user.put("lastName", testUserLast);
-        user.put("notificationsEnabled", false);
-        user.put("organizerEventList", Arrays.asList()); // empty array
-        user.put("password", "Testing123");
 
-        user.put("permissions", Arrays.asList(
-                "NOTIFY_ENTRANTS",
-                "JOIN_WAITLIST",
-                "MANAGE_ENTRANTS",
-                "CREATE_EVENT",
-                "VIEW_EVENT_DETAILS",
-                "UPDATE_PROFILE",
-                "VIEW_ENTRANT_LIST"
-        ));
-
-        user.put("phoneNumber", "7804737373");
-
-        // Roles array with specified values
-        user.put("roles", Arrays.asList("user", "organizer"));
-
-        user.put("userEventList", Arrays.asList()); // empty array
-        user.put("userID", "0848c905-872b-4d3e-a561-17539179bf2c");
-        db.collection("users").document("00testUserId").set(user);
-
-        Map<String, Object> event = new HashMap<>();
-        event.put("cancelledList", Arrays.asList()); // empty array
-        event.put("capacity", 50);
-        event.put("chosenList", Arrays.asList()); // empty array
-        event.put("confirmedList", Arrays.asList()); // empty array
-        event.put("declinedList", Arrays.asList()); // empty array
-        event.put("description", "This is a description for the test event.");
-
-        // Timestamps for dates
-        Timestamp currentTimestamp = Timestamp.now();
-        event.put("endDate", currentTimestamp);
-        event.put("registrationEndDate", currentTimestamp);
-        event.put("registrationStartDate", currentTimestamp);
-        event.put("startDate", currentTimestamp);
-
-        event.put("entrantList", Arrays.asList()); // empty array
-        event.put("eventID", "206f230b-a1b5-4a3d-a887-9d8c3869a009");
-        event.put("facility", Arrays.asList()); // empty array
-        event.put("geolocationRequirement", "Remote");
-        event.put("location", "Test Location");
-        event.put("organizer", "2af6bd2b-cf5d-452c-919c-520059e7670c");
-        event.put("published", "yes");
-        event.put("status", "open");
-        event.put("title", testEventTitle);
-        db.collection("events").document("00testEventId").set(event);
-
-        // log in with admin credentials
+        // This account is an Admin/Entrant/Organizer
         onView(withId(R.id.usernameEditText)).perform(replaceText("admin@gmail.com"));
         onView(withId(R.id.passwordEditText)).perform(replaceText("admin123"));
         onView(withId(R.id.loginButton)).perform(click());
@@ -142,77 +92,507 @@ public class AdminTest {
      */
     @After
     public void tearDown() {
-        // Log out after all tests
-        db.collection("users").document("00testUserId").delete();
-        db.collection("events").document("00testEventId").delete();
-        db.collection("facilities").document("00testFacilityId").delete();
         auth.signOut();
         Intents.release();
+
+        // Delete test user
+        db.collection("users")
+                .whereEqualTo("firstName", testUserFirst)
+                .whereEqualTo("lastName", testUserLast)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot doc : task.getResult()) {
+                            doc.getReference().delete()
+                                    .addOnSuccessListener(aVoid -> Log.d("TearDown", "Test user deleted"))
+                                    .addOnFailureListener(e -> Log.e("TearDown", "Error deleting user", e));
+                        }
+                    }
+                });
+
+        // Delete test user
+        db.collection("facilities")
+                .whereEqualTo("facilityName", testFacilityTitle)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot doc : task.getResult()) {
+                            doc.getReference().delete()
+                                    .addOnSuccessListener(aVoid -> Log.d("TearDown", "Test facility deleted"))
+                                    .addOnFailureListener(e -> Log.e("TearDown", "Error deleting facility", e));
+                        }
+                    }
+                });
+
+        // Delete test events
+        for (String title : generatedTitles) {
+            db.collection("events")
+                    .whereEqualTo("title", title)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            for (DocumentSnapshot doc : task.getResult()) {
+                                doc.getReference().delete()
+                                        .addOnSuccessListener(aVoid -> Log.d("TearDown", "Event deleted: " + title))
+                                        .addOnFailureListener(e -> Log.e("TearDown", "Error deleting event: " + title, e));
+                            }
+                        }
+                    });
+        }
+    }
+
+    private void toggleToOrganizerMode() throws InterruptedException {
+        ViewInteraction menuButton = onView(withId(R.id.menuButton));
+
+        try {
+            menuButton.perform(click());
+
+            Thread.sleep(500);
+
+            onView(withText("Organizer")).perform(click());
+
+        } catch (NoMatchingViewException | PerformException e) {
+            // Log the error for debugging purposes
+            Log.e("MenuInteraction", "Failed to interact with menu", e);
+        }
+    }
+
+    private void toggleToAdminMode() throws InterruptedException {
+        ViewInteraction menuButton = onView(withId(R.id.menuButton));
+
+        try {
+            menuButton.perform(click());
+
+            Thread.sleep(500);
+
+            onView(withText("Admin")).perform(click());
+
+        } catch (NoMatchingViewException | PerformException e) {
+            // Log the error for debugging purposes
+            Log.e("MenuInteraction", "Failed to interact with menu", e);
+        }
+    }
+
+    private void toggleToUserMode() {
+        // First, find and click the menu button to open the menu
+        ViewInteraction menuButton = onView(withId(R.id.menuButton));
+
+        try {
+            // Click the menu button to open the menu
+            menuButton.perform(click());
+
+            // After opening the menu, we need to wait briefly for the menu items to be displayed
+            // This helps ensure menu animations are complete and items are clickable
+            SystemClock.sleep(500);
+
+            // Now find and click the organizer option in the opened menu
+            // Note: You'll need to replace "Organizer" with the exact text that appears in your menu
+            onView(withText("User")).perform(click());
+
+        } catch (NoMatchingViewException | PerformException e) {
+            // Log the error for debugging purposes
+            Log.e("MenuInteraction", "Failed to interact with menu", e);
+            // Optionally handle the error case based on your app's needs
+        }
+    }
+
+    public void addEvent(String title) throws InterruptedException {
+
+        // Switch to organizer mode before creating event
+        toggleToOrganizerMode();
+
+        // Navigate to event creation screen
+        onView(withId(R.id.addEventButton)).perform(click());
+        Thread.sleep(1000); // Allow time for the Create Event screen to load
+
+        // Fill out basic event information
+        onView(withId(R.id.editTextEventTitle)).perform(replaceText(title));
+        onView(withId(R.id.editTextEventDescription))
+                .perform(replaceText("This is a description for the test event."));
+        onView(withId(R.id.editTextLocation)).perform(replaceText("Test Location"));
+
+        // Calculate dates that ensure everything is in the future with proper spacing
+        LocalDate today = LocalDate.now();
+
+        // Registration starts tomorrow morning
+        LocalDate registrationStart = today.plusDays(1);
+        String registrationStartFormatted = String.format("%02d/%02d/%d",
+                registrationStart.getDayOfMonth(),
+                registrationStart.getMonthValue(),
+                registrationStart.getYear());
+
+        // Registration ends the next day in the afternoon
+        LocalDate registrationEnd = today.plusDays(2);
+        String registrationEndFormatted = String.format("%02d/%02d/%d",
+                registrationEnd.getDayOfMonth(),
+                registrationEnd.getMonthValue(),
+                registrationEnd.getYear());
+
+        // Event starts the day after registration ends
+        LocalDate eventStart = today.plusDays(3);
+        String eventStartFormatted = String.format("%02d/%02d/%d",
+                eventStart.getDayOfMonth(),
+                eventStart.getMonthValue(),
+                eventStart.getYear());
+
+        // Event ends the next day
+        LocalDate eventEnd = today.plusDays(4);
+        String eventEndFormatted = String.format("%02d/%02d/%d",
+                eventEnd.getDayOfMonth(),
+                eventEnd.getMonthValue(),
+                eventEnd.getYear());
+
+        // Set registration period
+        // Registration starts tomorrow at 9:00 AM
+        onView(withId(R.id.editRegistrationStartDate)).perform(scrollTo(), replaceText(registrationStartFormatted));
+        onView(withId(R.id.editRegistrationStartTime)).perform(scrollTo(), replaceText("09:00"));
+
+        // Registration ends the next day at 5:00 PM
+        onView(withId(R.id.editRegistrationEndDate)).perform(scrollTo(), replaceText(registrationEndFormatted));
+        onView(withId(R.id.editRegistrationEndTime)).perform(scrollTo(), replaceText("17:00"));
+
+        // Set event dates and times
+        // Event starts the day after registration ends at 10:00 AM
+        onView(withId(R.id.editTextStartDate)).perform(scrollTo(), replaceText(eventStartFormatted));
+        onView(withId(R.id.editTextStartTime)).perform(scrollTo(), replaceText("10:00"));
+
+        // Event ends the next day at 4:00 PM
+        onView(withId(R.id.editTextEndDate)).perform(scrollTo(), replaceText(eventEndFormatted));
+        onView(withId(R.id.editTextEndTime)).perform(scrollTo(), replaceText("16:00"));
+
+        // Set event capacity
+        onView(withId(R.id.editTextCapacity)).perform(scrollTo(), replaceText("50"));
+
+        // Toggle geolocation requirement (default is Enabled, clicking makes it Disabled)
+        onView(withId(R.id.toggleGeolocationRequirement)).perform(scrollTo(), click());
+
+        // Create the event
+        onView(withId(R.id.buttonCreateEvent)).perform(click());
+        Thread.sleep(1000); // Allow time for event creation and database update
+
+        generatedTitles.add(title);
+    }
+
+    public void addProfile(String first, String last) {
+        String userID = UUID.randomUUID().toString();
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("userID", userID);
+        userData.put("firstName", first);
+        userData.put("lastName", last);
+        userData.put("roles", Arrays.asList("user"));
+        userData.put("email", "test@example.com");
+        userData.put("password", "password123");
+
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(userID)
+                .set(userData)
+                .addOnSuccessListener(aVoid -> Log.d("AddProfile", "Profile added: " + userID))
+                .addOnFailureListener(e -> Log.e("AddProfile", "Error adding profile", e));
+    }
+
+    public void addFacility(String facilityName) {
+        String facilityID = UUID.randomUUID().toString();
+        Map<String, Object> facilityData = new HashMap<>();
+        facilityData.put("facilityID", facilityID);
+        facilityData.put("facilityName", facilityName);
+        facilityData.put("facilityLocation", "Edmonton, AB");
+
+        FirebaseFirestore.getInstance()
+                .collection("facilities")
+                .document(facilityID)
+                .set(facilityData)
+                .addOnSuccessListener(aVoid -> Log.d("Test", "Facility added: " + facilityID))
+                .addOnFailureListener(e -> Log.e("Test", "Error adding facility", e));
+    }
+
+    static ViewAction scrollToItemWithText(final String text) {
+        return new ViewAction() {
+            @Override
+            public Matcher<View> getConstraints() {
+                // The view must be a RecyclerView and be displayed
+                return allOf(isDisplayed(), isAssignableFrom(RecyclerView.class));
+            }
+
+            @Override
+            public String getDescription() {
+                return "Scroll RecyclerView to find item with text: " + text;
+            }
+
+            @Override
+            public void perform(UiController uiController, View view) {
+                RecyclerView recyclerView = (RecyclerView) view;
+                RecyclerView.Adapter adapter = recyclerView.getAdapter();
+
+                if (adapter == null) {
+                    Log.e("ScrollToItemWithText", "Adapter is null. Make sure an adapter is attached to the RecyclerView.");
+                    throw new PerformException.Builder()
+                            .withActionDescription(getDescription())
+                            .withViewDescription(HumanReadables.describe(view))
+                            .withCause(new RuntimeException("Adapter is null"))
+                            .build();
+                } else {
+                    Log.d("ScrollToItemWithText", "Adapter class: " + adapter.getClass().getName());
+                    Log.d("ScrollToItemWithText", "Adapter item count: " + adapter.getItemCount());
+                }
+
+                Log.d("ScrollToItemWithText", "Starting search for item with text: " + text);
+
+                // Iterate through all items in the RecyclerView
+                for (int position = 0; position < adapter.getItemCount(); position++) {
+                    Log.d("ScrollToItemWithText", "Scrolling to position: " + position);
+                    recyclerView.scrollToPosition(position);
+                    uiController.loopMainThreadUntilIdle();
+
+                    // Get the view holder at this position
+                    RecyclerView.ViewHolder holder =
+                            recyclerView.findViewHolderForAdapterPosition(position);
+
+                    if (holder != null) {
+                        Log.d("ScrollToItemWithText", "ViewHolder found at position: " + position);
+
+                        // Find the title TextView within the item view using the ID from your adapter
+                        TextView titleView = holder.itemView.findViewById(R.id.eventName);
+
+                        if (titleView != null) {
+                            String itemText = titleView.getText().toString();
+                            Log.d("ScrollToItemWithText", "Found TextView with text: " + itemText);
+
+                            if (itemText.equals(text)) {
+                                Log.d("ScrollToItemWithText", "Match found for text: " + text + " at position: " + position);
+
+                                // We found the item, smooth scroll to it
+                                recyclerView.smoothScrollToPosition(position);
+                                uiController.loopMainThreadUntilIdle();
+                                return;
+                            }
+                        } else {
+                            Log.w("ScrollToItemWithText", "TextView (R.id.eventName) not found in ViewHolder at position: " + position);
+                        }
+                    } else {
+                        Log.w("ScrollToItemWithText", "ViewHolder is null at position: " + position);
+                    }
+                }
+
+                // If we get here, we didn't find the item
+                Log.e("ScrollToItemWithText", "Could not find item with text: " + text);
+                throw new PerformException.Builder()
+                        .withActionDescription(getDescription())
+                        .withViewDescription(HumanReadables.describe(view))
+                        .withCause(new RuntimeException("Could not find item with text: " + text))
+                        .build();
+            }
+        };
+    }
+
+    static ViewAction scrollToItemWithTextAndClickDelete(final String text, final int nameId, final int buttonId) {
+        return new ViewAction() {
+            @Override
+            public Matcher<View> getConstraints() {
+                return allOf(isDisplayed(), isAssignableFrom(RecyclerView.class));
+            }
+
+            @Override
+            public String getDescription() {
+                return "Find item with text and click delete: " + text;
+            }
+
+            @Override
+            public void perform(UiController uiController, View view) {
+                RecyclerView recyclerView = (RecyclerView) view;
+                RecyclerView.Adapter adapter = recyclerView.getAdapter();
+
+                if (adapter == null) {
+                    throw new PerformException.Builder()
+                            .withActionDescription(getDescription())
+                            .withViewDescription(HumanReadables.describe(view))
+                            .withCause(new RuntimeException("Adapter is null"))
+                            .build();
+                }
+
+                for (int position = 0; position < adapter.getItemCount(); position++) {
+                    recyclerView.scrollToPosition(position);
+                    uiController.loopMainThreadUntilIdle();
+
+                    RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(position);
+
+                    if (holder != null) {
+                        TextView titleView = holder.itemView.findViewById(nameId);
+                        Button deleteButton = holder.itemView.findViewById(buttonId);
+
+                        if (titleView != null && deleteButton != null &&
+                                titleView.getText().toString().equals(text)) {
+
+                            deleteButton.performClick();
+                            uiController.loopMainThreadUntilIdle();
+                            return;
+                        }
+                    }
+                }
+
+                throw new PerformException.Builder()
+                        .withActionDescription(getDescription())
+                        .withViewDescription(HumanReadables.describe(view))
+                        .withCause(new RuntimeException("Item not found: " + text))
+                        .build();
+            }
+        };
     }
 
     /**
-     * Testing US 03.04.01 and US 03.01.01
-     * As an administrator, I want to be able to browse/remove events
-     * First an event is generated at the top of the view, then checked if it is displayed
-     * Second the event is deleted from the view, then checked if it is gone
+     * US 03.01.01 As an administrator, I want to be able to remove events.
      * @throws InterruptedException
      */
     @Test
-    public void testAdminEventViewDelete() throws InterruptedException {
-        onView(withId(R.id.admin_nav_events)).perform(click());
-        // check if event is displayed
+    public void testAdminEventRemoval() throws InterruptedException {
+        addEvent(testEventTitle);
+
+        Thread.sleep(1000); // Wait for the event to be added
+
+        toggleToAdminMode();
+
+        Thread.sleep(2000); // Wait for the Admin mode to load
+
+        // Scroll to the item with the specified event title
+        onView(withId(R.id.adminEventsRecyclerView))
+                .perform(scrollToItemWithTextAndClickDelete(testEventTitle, R.id.eventName, R.id.removeEventButton));
+
         Thread.sleep(1000);
-        onView(withText(testEventTitle)).check(matches(isDisplayed()));
-        Thread.sleep(1000);
-        // click the button that has the right name next to it
-        onView(allOf(withId(R.id.removeEventButton), hasSibling(hasDescendant(withText(testEventTitle))))).perform(click());
-        Thread.sleep(1000);
-        // check that it's now gone
+
+        // Verify the event no longer exists
+        Thread.sleep(1000); // Wait for the deletion to propagate
         onView(withText(testEventTitle)).check(doesNotExist());
 
-
     }
 
     /**
-     * Testing US 03.07.01
-     *  As an administrator I want to remove facilities that violate app policy
-     * First a facility is generated at the top of the view, then checked if it is displayed
-     * Second the facility is deleted from the view, then checked if it is gone
+     * US 03.02.01 As an administrator, I want to be able to remove profiles.
      * @throws InterruptedException
      */
     @Test
-    public void testAdminFacilityViewDelete() throws InterruptedException {
-        // move to the facility view
-        onView(withId(R.id.admin_nav_facilities)).perform(click());
-        Thread.sleep(1000);
-        // check if displayed
-        onView(withText(testFacilityTitle)).check(matches(isDisplayed()));
-        Thread.sleep(1000);
-        // click the button that has the right name next to it
-        onView(allOf(withId(R.id.removeEventButton), hasSibling(hasDescendant(withText(testFacilityTitle))))).perform(click());
-        Thread.sleep(1000);
-        onView(withText(testFacilityTitle)).check(doesNotExist());
-    }
+    public void testAdminProfileRemoval() throws InterruptedException {
+        addProfile(testUserFirst, testUserLast);
 
-    /**
-     * Testing US 03.02.01 and US 03.05.01
-     * As an administrator, I want to be able to browse/remove users
-     * First a user is generated at the top of the view, then checked if it is displayed
-     * Second the user is deleted from the view, then checked if it is gone
-     * @throws InterruptedException
-     */
-    @Test
-    public void testAdminUserViewDelete() throws InterruptedException {
+        String fullname = testUserFirst + " " + testUserLast;
+
+        Thread.sleep(1000); // Wait for the event to be added
+
+        toggleToAdminMode();
+
+        Thread.sleep(2000); // Wait for the Admin mode to load
+
         onView(withId(R.id.admin_nav_profiles)).perform(click());
-        Thread.sleep(1000);
-        onView(withText(testUserFirst + " " + testUserLast)).check(matches(isDisplayed()));
 
         Thread.sleep(1000);
-        onView(allOf(withId(R.id.removeUserButton), hasSibling(hasDescendant(withText(testUserFirst + " " + testUserLast))))).perform(click());
+
+        // Scroll to the item with the specified event title
+        onView(withId(R.id.adminUsersRecyclerView))
+                .perform(scrollToItemWithTextAndClickDelete(fullname, R.id.userFullName, R.id.removeUserButton));
+
         Thread.sleep(1000);
-        onView(withText(testUserFirst + " " + testUserLast)).check(doesNotExist());
+
+        // Verify the event no longer exists
+        Thread.sleep(1000); // Wait for the deletion to propagate
+        onView(withText(fullname)).check(doesNotExist());
+    }
+
+    /**
+     * TODO US 03.03.01 As an administrator, I want to be able to remove images.
+     * @throws InterruptedException
+     */
+    @Test
+    public void testAdminImageRemoval() throws InterruptedException {
+
+    }
+
+    /**
+     * TODO US 03.03.02 As an administrator, I want to be able to remove hashed
+     * QR code data
+     * @throws InterruptedException
+     */
+    @Test
+    public void testAdminHashDataRemoval() throws InterruptedException {
+
+    }
+
+    /**
+     * US 03.04.01 As an administrator, I want to be able to browse events.
+     * @throws InterruptedException
+     */
+    @Test
+    public void testAdminEventBrowsing() throws InterruptedException {
+        addEvent(testEventTitle);
+
+        Thread.sleep(1000); // Wait for the event to be added
+
+        // TODO currently we have to toggle back to user if we want to be able to
+        //  browse events and view additional details about an event. we should be able to
+        //  click the event while browsing as an admin so we can view more details
+        toggleToUserMode();
+
+        Thread.sleep(1000);
+
+        // Browse events and find added event
+        onView(withId(R.id.eventsRecyclerView))
+                .perform(scrollToItemWithText(testEventTitle));
+
+        // Scroll to the item with the specific title and click it
+        onView(withText(testEventTitle)).perform(click());
+
+        Thread.sleep(1000);
+
+        // Make sure the details activity is shown
+        intended(hasComponent(EventDetailActivity.class.getName()));
+    }
 
 
+    /**
+     * TODO US 03.05.01 As an administrator, I want to be able to browse profiles.
+     * @throws InterruptedException
+     */
+    @Test
+    public void testAdminProfileBrowsing() throws InterruptedException {
+        // TODO currently we can browse few details but we should be able to click and
+        //  view additional details like phone number and email address ( similar to an event details screen)
+    }
+
+    /**
+     * TODO US 03.06.01 As an administrator, I want to be able to browse images.
+     * @throws InterruptedException
+     */
+    @Test
+    public void testAdminImageBrowsing() throws InterruptedException {
+
+    }
+
+    /**
+     * US 03.07.01 As an administrator I want to remove facilities that
+     * violate app policy
+     * @throws InterruptedException
+     */
+    @Test
+    public void testAdminFacilityRemoval() throws InterruptedException {
+        addFacility(testFacilityTitle);
+
+        Thread.sleep(1000); // Wait for the event to be added
+
+        toggleToAdminMode();
+
+        Thread.sleep(2000); // Wait for the Admin mode to load
+
+        onView(withId(R.id.admin_nav_facilities)).perform(click());
+
+        Thread.sleep(1000);
+
+        // Scroll to the item with the specified event title
+        onView(withId(R.id.adminFacilitiesRecyclerView))
+                .perform(scrollToItemWithTextAndClickDelete(testFacilityTitle, R.id.facilityName, R.id.removeFacilityButton));
+
+        Thread.sleep(1000);
+
+        // Verify the event no longer exists
+        Thread.sleep(1000); // Wait for the deletion to propagate
+        onView(withText(testFacilityTitle)).check(doesNotExist());
     }
 
 }

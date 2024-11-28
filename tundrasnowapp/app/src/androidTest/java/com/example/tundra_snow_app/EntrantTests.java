@@ -1,15 +1,11 @@
 package com.example.tundra_snow_app;
 
-import static android.app.PendingIntent.getActivity;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
-import static androidx.test.espresso.action.ViewActions.scrollTo;
-import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
-import static androidx.test.espresso.matcher.RootMatchers.withDecorView;
 import static androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static androidx.test.espresso.matcher.ViewMatchers.isChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -18,8 +14,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 
 import android.text.Spannable;
 import android.text.style.ClickableSpan;
@@ -40,7 +34,7 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule;
 
 import com.example.tundra_snow_app.Activities.ProfileViewActivity;
 import com.example.tundra_snow_app.Activities.SettingsViewActivity;
-import com.example.tundra_snow_app.EventActivities.MyEventViewActivity;
+import com.example.tundra_snow_app.EventActivities.MyEventDetailActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -67,16 +61,10 @@ public class EntrantTests {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
-    String permanentEvent = "Important Testing Event";
-    String permanentEventID = "ada10f4e-014f-4ee6-a76d-5d5b36a096c6";
+    String permanentEvent = "Important Test Event";
+    String permanentEventID = "ef375549-e7b5-4078-8d22-959be14937f0";
 
     String testEntrantID = "2bbfb1db-d2d7-4941-a8c0-5e4a5ca30b8c";
-
-    String testEmail = "newuser@example.com";
-    String testPassword = "password123";
-    String testFacility = "testSetFacility";
-    String facilityLocation = "testLocation";
-
 
     /**
      * Custom ViewAction to click on a specified ClickableSpan text inside a TextView.
@@ -162,7 +150,7 @@ public class EntrantTests {
     /**
      * Method to move a user from the waitingList to the chosenList
      */
-    private void moveFromWaitlist(){
+    private void moveFromWaitlistToChosenList(){
         db.collection("events")
                 .whereEqualTo("title", permanentEvent)
                 .get()
@@ -359,7 +347,8 @@ public class EntrantTests {
         };
     }
 
-    /** US 01.02.02 As an entrant I want to update information such as name,
+    /**
+     * US 01.02.02 As an entrant I want to update information such as name,
      * email and contact information on my profile
      * @throws InterruptedException
      */
@@ -403,7 +392,8 @@ public class EntrantTests {
         onView(withId(R.id.profilePhone)).check(matches(withText("780-777-7777")));
     }
 
-    /** US 01.01.01 As an entrant, I want to join the waiting list for a specific event
+    /**
+     * US 01.01.01 As an entrant, I want to join the waiting list for a specific event
      * @throws InterruptedException
      */
     @Test
@@ -447,7 +437,8 @@ public class EntrantTests {
         )).check(matches(isDisplayed()));
     }
 
-    /** US 01.01.02 As an entrant, I want to leave the waiting list for a specific event
+    /**
+     * US 01.01.02 As an entrant, I want to leave the waiting list for a specific event
      * @throws InterruptedException
      */
     @Test
@@ -503,7 +494,8 @@ public class EntrantTests {
         )).check(matches(isDisplayed()));
     }
 
-    /** TODO US 01.03.01 As an entrant I want to upload a profile picture for a more
+    /**
+     * TODO US 01.03.01 As an entrant I want to upload a profile picture for a more
      * personalized experience
      * @throws InterruptedException
      */
@@ -512,7 +504,8 @@ public class EntrantTests {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    /** TODO US 01.03.02 As an entrant I want remove profile picture if need be
+    /**
+     * TODO US 01.03.02 As an entrant I want remove profile picture if need be
      * @throws InterruptedException
      */
     @Test
@@ -520,7 +513,8 @@ public class EntrantTests {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    /** TODO US 01.03.03 As an entrant I want my profile picture to be deterministically
+    /**
+     * TODO US 01.03.03 As an entrant I want my profile picture to be deterministically
      * generated from my profile name if I haven't uploaded a profile image yet.
      * @throws InterruptedException
      */
@@ -529,7 +523,8 @@ public class EntrantTests {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    /** TODO US 01.04.01 As an entrant I want to receive notification when chosen from the
+    /**
+     * TODO US 01.04.01 As an entrant I want to receive notification when chosen from the
      * waiting list (when I "win" the lottery)
      * @throws InterruptedException
      */
@@ -538,7 +533,8 @@ public class EntrantTests {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    /** TODO US 01.04.02 As an entrant I want to receive notification of not chosen on the
+    /**
+     * TODO US 01.04.02 As an entrant I want to receive notification of not chosen on the
      * app (when I "lose" the lottery)
      * @throws InterruptedException
      */
@@ -547,7 +543,8 @@ public class EntrantTests {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    /** US 01.04.03 As an entrant I want to opt out of receiving notifications from
+    /**
+     * US 01.04.03 As an entrant I want to opt out of receiving notifications from
      * organizers and admin
      * @throws InterruptedException
      */
@@ -584,7 +581,8 @@ public class EntrantTests {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    /** US 01.05.02 As an entrant I want to be able to accept the invitation to register/sign
+    /**
+     * US 01.05.02 As an entrant I want to be able to accept the invitation to register/sign
      * up when chosen to participate in an event
       * @throws InterruptedException
       */
@@ -617,7 +615,7 @@ public class EntrantTests {
 
         onView(withId(R.id.buttonSignUpForEvent)).perform(click());
 
-        moveFromWaitlist();
+        moveFromWaitlistToChosenList();
 
         Thread.sleep(1000);
 
@@ -676,7 +674,7 @@ public class EntrantTests {
 
         onView(withId(R.id.buttonSignUpForEvent)).perform(click());
 
-        moveFromWaitlist();
+        moveFromWaitlistToChosenList();
 
         Thread.sleep(1000);
 
@@ -720,7 +718,8 @@ public class EntrantTests {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    /** US 01.08.01 As an entrant, I want to be warned before joining a waiting list that it requires geolocation.
+    /**
+     * US 01.08.01 As an entrant, I want to be warned before joining a waiting list that it requires geolocation.
 
      * Test to verify that warning is shown before joining waiting list that has geolocation.
      * @throws InterruptedException
