@@ -85,7 +85,7 @@ public class MyEventDetailActivity extends AppCompatActivity {
 
                             // Populate geolocation
                             String geolocation = documentSnapshot.getString("geolocationRequirement");
-                            if (geolocation != null && geolocation.equals("In-person")) {
+                            if (geolocation != null && geolocation.equals("Enabled")) {
                                 geoLocationTextView.setVisibility(View.VISIBLE);
                             } else {
                                 geoLocationTextView.setVisibility(View.GONE);

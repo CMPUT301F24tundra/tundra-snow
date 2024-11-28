@@ -226,16 +226,70 @@
                 android:layout_marginBottom="16dp"
                 android:backgroundTint="#1E1E1E">
 
-                <FrameLayout
-                    android:id="@+id/mapContainer"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="250dp">
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                    <com.google.android.gms.maps.MapView
-                        android:id="@+id/mapView"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PARTICIPANT LOCATIONS"
+                        android:textSize="12sp"
+                        android:textColor="#9E9E9E"
+                        android:layout_marginBottom="16dp"/>
+
+                    <FrameLayout
+                        android:id="@+id/mapContainer"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-                </FrameLayout>
+                        android:layout_height="250dp">
+
+                        <com.google.android.gms.maps.MapView
+                            android:id="@+id/mapView"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+                    </FrameLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- QR Code -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="#1E1E1E">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="QR CODE"
+                        android:textSize="12sp"
+                        android:textColor="#9E9E9E"
+                        android:layout_marginBottom="16dp"/>
+
+                    <FrameLayout
+                        android:id="@+id/QRView"
+                        android:layout_width="match_parent"
+                        android:layout_height="250dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_gravity="center">
+
+                        <ImageView
+                            android:id="@+id/qrImageView"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside"
+                            android:contentDescription="QR-image" />
+                    </FrameLayout>
+                </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <!-- List View Options -->
