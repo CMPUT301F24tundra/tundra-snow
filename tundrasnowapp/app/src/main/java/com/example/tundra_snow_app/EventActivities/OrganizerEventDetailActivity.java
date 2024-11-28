@@ -278,7 +278,6 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
                 .addOnFailureListener(e -> Log.e("OrganizerEventDetail", "Error fetching event details", e));
     }
 
-
     private void fetchUserLocationAndAddPin(String userId) {
         Log.d("OrganizerEventDetail", "Fetching location for user ID: " + userId);
 
@@ -320,7 +319,6 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
                 })
                 .addOnFailureListener(e -> Log.e("OrganizerEventDetail", "Error fetching user document for user ID: " + userId, e));
     }
-
 
     private LatLng getLatLngFromAddress(String address) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
@@ -438,9 +436,151 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
     }
 
     /**
+     * Shows an error message to the user.
+     * @param message The error message to display.
+     */
+    private void showError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Validates the dates and times for the event.
+     * @return True if a field is invalid, otherwise false.
+     */
+    private boolean validateDates() {
+        // Parse all dates
+        Date startDateTime = parseDate(eventDate.getText().toString());
+        Date endDateTime = parseDate(eventEndDate.getText().toString());
+        Date regStartDateTime = parseDate(regStartDate.getText().toString());
+        Date regEndDateTime = parseDate(regEndDate.getText().toString());
+
+        // Check if any date is null
+        if (startDateTime == null || endDateTime == null ||
+                regStartDateTime == null || regEndDateTime == null) {
+            showError("All dates and times must be selected");
+            return true;
+        }
+
+        // Get current date/time
+        Date currentDateTime = new Date();
+
+        // Future date validations
+        if (startDateTime.before(currentDateTime)) {
+            showError("Event start must be in the future");
+            return true;
+        }
+        if (endDateTime.before(currentDateTime)) {
+            showError("Event end must be in the future");
+            return true;
+        }
+        if (regStartDateTime.before(currentDateTime)) {
+            showError("Registration start must be in the future");
+            return true;
+        }
+        if (regEndDateTime.before(currentDateTime)) {
+            showError("Registration end must be in the future");
+            return true;
+        }
+
+        // Logical relationship validations
+        if (endDateTime.before(startDateTime)) {
+            showError("Event end must be after start");
+            return true;
+        }
+        if (regEndDateTime.before(regStartDateTime)) {
+            showError("Registration end must be after start");
+            return true;
+        }
+        if (regStartDateTime.after(startDateTime)) {
+            showError("Registration must start before event starts");
+            return true;
+        }
+        if (regEndDateTime.after(startDateTime)) {
+            showError("Registration must end before event starts");
+            return true;
+        }
+
+        // Duration validations
+        long hourInMillis = 60 * 60 * 1000;
+        if (startDateTime.getTime() - regStartDateTime.getTime() < hourInMillis) {
+            showError("Registration must start at least 1 hour before event");
+            return true;
+        }
+        if (endDateTime.getTime() - startDateTime.getTime() < 30 * 60 * 1000) {
+            showError("Event must be at least 30 minutes long");
+            return true;
+        }
+        if (regEndDateTime.getTime() - regStartDateTime.getTime() < hourInMillis) {
+            showError("Registration period must be at least 1 hour");
+            return true;
+        }
+
+        // Check if event is too far in future
+        Calendar twoYearsFromNow = Calendar.getInstance();
+        twoYearsFromNow.add(Calendar.YEAR, 2);
+        if (startDateTime.after(twoYearsFromNow.getTime())) {
+            showError("Event cannot be scheduled more than 2 years ahead");
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Validates the input fields for creating an event.
+     * @return True if a field is invalid, otherwise false.
+     */
+    private boolean validateInputs() {
+        // Check for empty required fields
+        if (eventTitle.getText().toString().trim().isEmpty()) {
+            showError("Event title is required");
+            return true;
+        }
+
+        if (eventDescription.getText().toString().trim().isEmpty()) {
+            showError("Event description is required");
+            return true;
+        }
+
+        if (eventLocation.getText().toString().trim().isEmpty()) {
+            showError("Event location is required");
+            return true;
+        }
+
+        // For a published event, all dates must be provided
+        if (eventDate.getText().toString().isEmpty()) {
+            showError("Start date is required");
+            return true;
+        }
+
+        if (eventEndDate.getText().toString().isEmpty()) {
+            showError("End date is required");
+            return true;
+        }
+
+        if (regStartDate.getText().toString().isEmpty()) {
+            showError("Registration start date is required");
+            return true;
+        }
+
+        if (regEndDate.getText().toString().isEmpty()) {
+            showError("Registration end date is required");
+            return true;
+        }
+
+        // Validate the dates
+        return validateDates();
+    }
+
+    /**
      * Save the updated event details to Firestore.
      */
     private void saveEventUpdates() {
+
+        if(validateInputs()){
+            return;
+        }
+
         String editedEventTitle = eventTitle.getText().toString();
         Date editedEventDate = parseDate(eventDate.getText().toString());
         Date editedEventEndDate = parseDate(eventEndDate.getText().toString());
