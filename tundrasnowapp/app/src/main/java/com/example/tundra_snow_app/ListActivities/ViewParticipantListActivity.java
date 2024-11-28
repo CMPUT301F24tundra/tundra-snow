@@ -12,7 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.example.tundra_snow_app.ListAdapters.UserListAdapter;
+import com.example.tundra_snow_app.Models.Notifications;
 import com.example.tundra_snow_app.R;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -31,7 +34,7 @@ public class ViewParticipantListActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private UserListAdapter adapter;
     private String eventID;
-    private Button backButton, editButton, saveButton, regSample;
+    private Button backButton, editButton, saveButton, regSample, sendNotificationButton;
     private EditText maxParticipantEdit;
 
     /**
@@ -50,6 +53,7 @@ public class ViewParticipantListActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         editButton = findViewById(R.id.editButton);
         saveButton = findViewById(R.id.saveButton);
+        sendNotificationButton = findViewById(R.id.sendNotificationButton);
         regSample = findViewById(R.id.selectRegSampleButton);
 
         db = FirebaseFirestore.getInstance();
@@ -60,6 +64,8 @@ public class ViewParticipantListActivity extends AppCompatActivity {
         editButton.setOnClickListener(view -> enableEditing(true));
         saveButton.setOnClickListener(view -> saveEventUpdates());
         regSample.setOnClickListener(view -> selectRandomSample());
+
+        sendNotificationButton.setOnClickListener(view -> sendNotifications());
     }
 
     /**
@@ -203,4 +209,71 @@ public class ViewParticipantListActivity extends AppCompatActivity {
         editButton.setVisibility(isEditable ? View.GONE : View.VISIBLE);
         saveButton.setVisibility(isEditable ? View.VISIBLE : View.GONE);
     }
+
+
+
+
+
+
+    private void sendNotifications() {
+
+
+        db.collection("events").document(eventID).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                List<String> entrantList = (List<String>) documentSnapshot.get("entrantList");
+
+                if (entrantList != null && !entrantList.isEmpty()) {
+                    db.collection("users")
+                            .whereIn(FieldPath.documentId(), entrantList)
+                            .get()
+                            .addOnSuccessListener(querySnapshot -> {
+                                for (DocumentSnapshot userSnapshot : querySnapshot.getDocuments()) {
+                                    Boolean notificationsEnabled = userSnapshot.getBoolean("notificationsEnabled");
+
+                                    if (notificationsEnabled != null && notificationsEnabled) {
+                                        String userId = userSnapshot.getId();
+                                        sendNotificationToUser(userId);
+                                    }
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(this, "Error fetching users for notifications.", Toast.LENGTH_SHORT).show();
+                            });
+                } else {
+                    Toast.makeText(this, "No participants in the event.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(this, "Error fetching event details.", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void sendNotificationToUser(String userId) {
+        String notifID = db.collection("notifications").document().getId();
+
+        db.collection("events").document(eventID).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                String eventName = documentSnapshot.getString("eventName");
+                String text = "You have a new event notification for: " + eventName;
+
+                Notifications notification = new Notifications(notifID, eventID, eventName, text, userId);
+
+                db.collection("notifications").add(notification)
+                        .addOnSuccessListener(documentReference -> {
+                            Toast.makeText(this, "Notification sent to user: " + userId, Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(this, "Error sending notification to user: " + userId, Toast.LENGTH_SHORT).show();
+                        });
+            } else {
+                Toast.makeText(this, "Event not found.", Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(this, "Error fetching event details.", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+
+
+
 }
