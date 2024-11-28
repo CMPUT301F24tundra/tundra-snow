@@ -502,7 +502,7 @@ public class AdminTest {
      */
     @Test
     public void testAdminImageRemoval() throws InterruptedException {
-
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
@@ -512,11 +512,11 @@ public class AdminTest {
      */
     @Test
     public void testAdminHashDataRemoval() throws InterruptedException {
-
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
-     * US 03.04.01 As an administrator, I want to be able to browse events.
+     * TODO US 03.04.01 As an administrator, I want to be able to browse events.
      * @throws InterruptedException
      */
     @Test
@@ -554,6 +554,7 @@ public class AdminTest {
     public void testAdminProfileBrowsing() throws InterruptedException {
         // TODO currently we can browse few details but we should be able to click and
         //  view additional details like phone number and email address ( similar to an event details screen)
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
@@ -562,7 +563,7 @@ public class AdminTest {
      */
     @Test
     public void testAdminImageBrowsing() throws InterruptedException {
-
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**

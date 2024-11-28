@@ -223,6 +223,27 @@ public class OrganizerTests {
     }
 
     /**
+     * TODO US 02.01.01 As an organizer I want to create a new event and
+     *  generate a unique promotional QR code that links to the event description
+     *  and event poster in the app
+     * @throws InterruptedException
+     */
+    @Test
+    public void testHashGeneration(){
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * TODO US 02.01.02 As an organizer I want to store the generated QR code
+     *  in my database
+     * @throws InterruptedException
+     */
+    @Test
+    public void testHashGenerationStored(){
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
      * Testing US 02.01.03
      * As an organizer, I want to create and manage my facility profile.
      * @throws InterruptedException
@@ -286,23 +307,18 @@ public class OrganizerTests {
     }
 
     /**
-     * Testing US 02.06.04
-     * As an organizer I want to cancel entrants that did not sign up for the event
+     * Testing US 02.02.01.
+     * As an organizer I want to view the list of entrants who joined my event waiting list
      * @throws InterruptedException
      */
     @Test
-    public void testDeletingEntrantFromWaitlist() throws InterruptedException {
+    public void testViewWaitingList() throws InterruptedException {
 
-        addEntrantToWaitingList();
         toggleToOrganizerMode();
 
         Thread.sleep(1000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
-
-        Thread.sleep(1000);
-
-        onView(withText(permanentEvent)).check(matches(isDisplayed()));
 
         Thread.sleep(1000);
 
@@ -317,13 +333,7 @@ public class OrganizerTests {
 
         Thread.sleep(1000);
 
-        onView(withId(R.id.rejectUser)).perform(click());
-
-        // Verify rejection
-        Thread.sleep(1000);
-
-        // check that the entrant was removed
-        onView(withText(permanentEntrant)).check(doesNotExist());
+        intended(hasComponent(ViewParticipantListActivity.class.getName()));
     }
 
     /**
@@ -332,7 +342,7 @@ public class OrganizerTests {
      * @throws InterruptedException
      */
     @Test
-    public void testCreateEvent() throws InterruptedException {
+    public void testCreateEventGeolocation() throws InterruptedException {
         // Generate a random event title to ensure uniqueness
         int randomNumber = new Random().nextInt(1000);
         testEventTitle = "Organizer Test Event " + randomNumber;
@@ -422,7 +432,6 @@ public class OrganizerTests {
         // Verify the event is visible
         onView(withText(testEventTitle)).check(matches(isDisplayed()));
     }
-
 
     /**
      * Testing US 02.03.01
@@ -521,33 +530,53 @@ public class OrganizerTests {
     }
 
     /**
-     * Testing US 02.02.01.
-     * As an organizer I want to view the list of entrants who joined my event waiting list
+     * TODO US 02.04.01 As an organizer I want to upload an event poster to provide
+     *  visual information to entrants
      * @throws InterruptedException
      */
     @Test
-    public void testViewWaitingList() throws InterruptedException {
+    public void testEventPosterUpload(){
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
-        toggleToOrganizerMode();
+    /**
+     * TODO US 02.04.02 As an organizer I want to update an event poster to provide
+     *  visual information to entrants
+     * @throws InterruptedException
+     */
+    @Test
+    public void testEventPosterUpdate(){
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
-        Thread.sleep(1000);
+    /**
+     * TODO US 02.05.01 As an organizer I want to send a notification to chosen entrants
+     *  to sign up for events.
+     * @throws InterruptedException
+     */
+    @Test
+    public void testNotifisToChosen(){
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
-        onView(withId(R.id.nav_my_events)).perform(click());
+    /**
+     * TODO US 02.05.02 As an organizer I want to set the system to sample a specified number
+     *  of attendees to register for the event
+     * @throws InterruptedException
+     */
+    @Test
+    public void testRegistrationSample(){
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
-        Thread.sleep(1000);
-
-        // Scroll to the item with the specific title and click it
-        onView(withText(permanentEvent)).perform(scrollTo(), click());
-
-        Thread.sleep(1000);
-
-        intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
-
-        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
-
-        Thread.sleep(1000);
-
-        intended(hasComponent(ViewParticipantListActivity.class.getName()));
+    /**
+     * TODO US 02.05.03 As an organizer I want to be able to draw a replacement applicant from
+     *  the pooling system when a previously selected applicant cancels or rejects the invitation
+     * @throws InterruptedException
+     */
+    @Test
+    public void testDrawingReplacement(){
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
@@ -643,5 +672,86 @@ public class OrganizerTests {
 
         intended(hasComponent(ViewConfirmedParticipantListActivity.class.getName()));
 
+    }
+
+    /**
+     * TODO Testing US 02.06.04 As an organizer I want to cancel entrants that
+     *  did not sign up for the event
+     * @throws InterruptedException
+     */
+    @Test
+    public void testDeletingEntrantFromWaitlist() throws InterruptedException {
+
+        addEntrantToWaitingList();
+        toggleToOrganizerMode();
+
+        Thread.sleep(1000);
+
+        onView(withId(R.id.nav_my_events)).perform(click());
+
+        Thread.sleep(1000);
+
+        onView(withText(permanentEvent)).check(matches(isDisplayed()));
+
+        Thread.sleep(1000);
+
+        // Scroll to the item with the specific title and click it
+        onView(withText(permanentEvent)).perform(scrollTo(), click());
+
+        Thread.sleep(1000);
+
+        intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
+
+        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
+
+        Thread.sleep(1000);
+
+        onView(withId(R.id.rejectUser)).perform(click());
+
+        // Verify rejection
+        Thread.sleep(1000);
+
+        // check that the entrant was removed
+        onView(withText(permanentEntrant)).check(doesNotExist());
+    }
+
+    /**
+     * TODO US 02.06.04 As an organizer I want to cancel entrants that did not
+     *  sign up for the event
+     * @throws InterruptedException
+     */
+    @Test
+    public void testCancellingEntrants() throws InterruptedException {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * TODO US 02.07.01 As an organizer I want to send notifications to all entrants
+     *  on the waiting list
+     * @throws InterruptedException
+     */
+    @Test
+    public void testSendingNotifsToWaitlist() throws InterruptedException {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * TODO US 02.07.02 As an organizer I want to send notifications to all
+     *  selected entrants
+     * @throws InterruptedException
+     */
+    @Test
+    public void testSendingNotifsToSelected() throws InterruptedException {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * TODO US 02.07.03 As an organizer I want to send a notification to all
+     *  cancelled entrants
+     * @throws InterruptedException
+     */
+    @Test
+    public void testSendingNotifsToCancelled() throws InterruptedException {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 }

@@ -34,7 +34,6 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule;
 
 import com.example.tundra_snow_app.Activities.ProfileViewActivity;
 import com.example.tundra_snow_app.Activities.SettingsViewActivity;
-import com.example.tundra_snow_app.EventActivities.MyEventDetailActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -348,51 +347,6 @@ public class EntrantTests {
     }
 
     /**
-     * US 01.02.02 As an entrant I want to update information such as name,
-     * email and contact information on my profile
-     * @throws InterruptedException
-     */
-    @Test
-    public void testUpdateProfileInformation() throws InterruptedException {
-
-        onView(withId(R.id.nav_profile)).perform(click());
-
-        Thread.sleep(1000);
-
-        intended(hasComponent(ProfileViewActivity.class.getName()));
-
-        // Update email and phone number
-        onView(withId(R.id.editButton)).perform(click());
-
-        onView(withId(R.id.profileEmail)).perform(replaceText("updated.email@example.com"));
-        onView(withId(R.id.profilePhone)).perform(replaceText("123-456-7890"));
-
-
-        onView(withId(R.id.saveButton)).perform(click());
-
-
-        Thread.sleep(1000);
-
-        // Ensure the fields were updated
-        onView(withId(R.id.profileEmail)).check(matches(withText("updated.email@example.com")));
-        onView(withId(R.id.profilePhone)).check(matches(withText("123-456-7890")));
-
-
-        // Revert the email and phone number
-        onView(withId(R.id.editButton)).perform(click());
-        onView(withId(R.id.profileEmail)).perform(replaceText("111@gmail.com"));
-        onView(withId(R.id.profilePhone)).perform(replaceText("780-777-7777"));
-        onView(withId(R.id.saveButton)).perform(click());
-
-
-        Thread.sleep(1000);
-
-        // Verify the reverted information is displayed correctly
-        onView(withId(R.id.profileEmail)).check(matches(withText("111@gmail.com")));
-        onView(withId(R.id.profilePhone)).check(matches(withText("780-777-7777")));
-    }
-
-    /**
      * US 01.01.01 As an entrant, I want to join the waiting list for a specific event
      * @throws InterruptedException
      */
@@ -492,6 +446,51 @@ public class EntrantTests {
                 withId(R.id.eventStatus),
                 withText("Cancelled.")
         )).check(matches(isDisplayed()));
+    }
+
+    /**
+     * US 01.02.02 As an entrant I want to update information such as name,
+     * email and contact information on my profile
+     * @throws InterruptedException
+     */
+    @Test
+    public void testUpdateProfileInformation() throws InterruptedException {
+
+        onView(withId(R.id.nav_profile)).perform(click());
+
+        Thread.sleep(1000);
+
+        intended(hasComponent(ProfileViewActivity.class.getName()));
+
+        // Update email and phone number
+        onView(withId(R.id.editButton)).perform(click());
+
+        onView(withId(R.id.profileEmail)).perform(replaceText("updated.email@example.com"));
+        onView(withId(R.id.profilePhone)).perform(replaceText("123-456-7890"));
+
+
+        onView(withId(R.id.saveButton)).perform(click());
+
+
+        Thread.sleep(1000);
+
+        // Ensure the fields were updated
+        onView(withId(R.id.profileEmail)).check(matches(withText("updated.email@example.com")));
+        onView(withId(R.id.profilePhone)).check(matches(withText("123-456-7890")));
+
+
+        // Revert the email and phone number
+        onView(withId(R.id.editButton)).perform(click());
+        onView(withId(R.id.profileEmail)).perform(replaceText("111@gmail.com"));
+        onView(withId(R.id.profilePhone)).perform(replaceText("780-777-7777"));
+        onView(withId(R.id.saveButton)).perform(click());
+
+
+        Thread.sleep(1000);
+
+        // Verify the reverted information is displayed correctly
+        onView(withId(R.id.profileEmail)).check(matches(withText("111@gmail.com")));
+        onView(withId(R.id.profilePhone)).check(matches(withText("780-777-7777")));
     }
 
     /**
