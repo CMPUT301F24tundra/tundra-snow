@@ -6,11 +6,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.tundra_snow_app.Models.Events;
 
 import com.example.tundra_snow_app.R;
@@ -41,6 +43,7 @@ public class MyEventDetailActivity extends AppCompatActivity {
     private Button leftButton, rightButton;
     private FirebaseFirestore db;
     private String eventID, currentUserID, userStatus;
+    private ImageView eventImageView;
 
 
     @Override
@@ -56,6 +59,8 @@ public class MyEventDetailActivity extends AppCompatActivity {
         statusMessage = findViewById(R.id.statusMessage);
         rightButton = findViewById(R.id.rightButton);
         leftButton = findViewById(R.id.leftButton);
+        eventImageView = findViewById(R.id.eventImageView);
+
 
         // Date fields initialization
         startDateTextView = findViewById(R.id.detailStartDate);
@@ -95,6 +100,14 @@ public class MyEventDetailActivity extends AppCompatActivity {
                             endDateTextView.setText(event.getFormattedDate(event.getEndDate()));
                             regStartDateTextView.setText(event.getFormattedDate(event.getRegistrationStartDate()));
                             regEndDateTextView.setText(event.getFormattedDate(event.getRegistrationEndDate()));
+
+                            // Load image using Glide (or your preferred library)
+                            String imageUrl = documentSnapshot.getString("imageUrl");
+                            if (imageUrl != null && !imageUrl.isEmpty()) {
+                                Glide.with(this)
+                                        .load(imageUrl)
+                                        .into(eventImageView);
+                            }
 
                             if (((List<String>) documentSnapshot.get("entrantList")).contains(currentUserID)) {
                                 userStatus = "entrant";
