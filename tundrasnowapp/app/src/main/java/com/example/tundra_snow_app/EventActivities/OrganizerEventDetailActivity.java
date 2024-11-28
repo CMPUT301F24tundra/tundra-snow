@@ -217,7 +217,7 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
     private void uploadImageToFirebase() {
         if (selectedImageUri != null) {
             StorageReference fileReference = FirebaseStorage.getInstance()
-                    .getReference("event_posters/" + eventID + ".jpg");
+                    .getReference("event_images/" + eventID + ".jpg");
 
             fileReference.putFile(selectedImageUri)
                     .addOnSuccessListener(taskSnapshot -> {
