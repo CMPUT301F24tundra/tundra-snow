@@ -46,6 +46,8 @@ import java.util.concurrent.ExecutionException;
 @OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)
 public class QrScanActivity extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
+    private boolean isProcessing = false;
+
     private PreviewView previewView;
     private Button scanButton;
     private ImageButton backButton;
@@ -133,15 +135,18 @@ public class QrScanActivity extends AppCompatActivity {
                         } else {
                             Log.e("QrScanActivity", "eventID not found in the document for the QR code.");
                             Toast.makeText(this, "Invalid QR code. EventID is missing.", Toast.LENGTH_SHORT).show();
+                            isProcessing = false;
                         }
                     } else {
                         Log.w("QrScanActivity", "No event found for this QR code.");
                         Toast.makeText(this, "No event found for this QR code.", Toast.LENGTH_SHORT).show();
+                        isProcessing = false;
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e("QrScanActivity", "Error looking up event in Firestore", e);
                     Toast.makeText(this, "Failed to process QR code.", Toast.LENGTH_SHORT).show();
+                    isProcessing = false;
                 });
     }
 
@@ -156,6 +161,7 @@ public class QrScanActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Log.e("QrScanActivity", "Error signing up for event", e);
                     Toast.makeText(this, "Failed to sign up for the event.", Toast.LENGTH_SHORT).show();
+                    isProcessing = false;
                 });
     }
 
@@ -201,12 +207,10 @@ public class QrScanActivity extends AppCompatActivity {
     }
 
     private void startQrScan() throws ExecutionException, InterruptedException {
-        if (isScanning) {
-            Toast.makeText(this, "Already scanning, please wait...", Toast.LENGTH_SHORT).show();
-            return;
+        if (isProcessing) {
+            return; // Exit if a QR code is already being processed
         }
-
-        isScanning = true;
+        isProcessing = true;
 
         BarcodeScanner barcodeScanner = BarcodeScanning.getClient();
         ImageAnalysis imageAnalysis = new ImageAnalysis.Builder().build();
@@ -216,7 +220,6 @@ public class QrScanActivity extends AppCompatActivity {
             public void analyze(@NonNull ImageProxy image) {
                 if (image.getImage() == null) {
                     image.close();
-                    isScanning = false;
                     return;
                 }
 
@@ -231,8 +234,7 @@ public class QrScanActivity extends AppCompatActivity {
                                 String rawValue = barcode.getRawValue();
                                 if (rawValue != null) {
                                     handleScannedQRCode(rawValue);
-                                    image.close();
-                                    isScanning = false; // Reset scanning state
+                                    stopScanning();
                                     return;
                                 }
                             }
@@ -241,10 +243,11 @@ public class QrScanActivity extends AppCompatActivity {
                         })
                         .addOnFailureListener(e -> {
                             Log.e("QrScanActivity", "Error processing QR code", e);
-                            image.close();
-                            isScanning = false;
+                            isProcessing = false;
                         })
-                        .addOnCompleteListener(task -> image.close());
+                        .addOnCompleteListener(task -> {
+                            image.close();
+                        });
             }
         });
 
@@ -254,6 +257,17 @@ public class QrScanActivity extends AppCompatActivity {
                 .build();
 
         cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis);
+    }
+
+    private void stopScanning() {
+        // Unbind the camera pipeline to stop further QR code scanning
+        try {
+            ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+            cameraProvider.unbindAll(); // Stops camera use cases, including image analysis
+        } catch (ExecutionException | InterruptedException e) {
+            Log.e("QrScanActivity", "Error stopping camera pipeline", e);
+        }
+        isProcessing = false; // Reset processing state for future scans
     }
 }
 
