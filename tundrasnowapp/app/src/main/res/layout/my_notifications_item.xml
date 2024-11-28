@@ -4,15 +4,8 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="10dp"
-    android:background="#B4B4B4"
+    android:background="#000000"
     android:gravity="center_vertical">
-
-    <!-- Left Section with Icon -->
-    <ImageView
-        android:id="@+id/userProfilePicture"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginEnd="10dp" />
 
     <!-- Center Section with Event Details -->
     <LinearLayout
@@ -23,21 +16,31 @@
 
         <!-- Event Name -->
         <TextView
-            android:id="@+id/fullName"
+            android:id="@+id/eventName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#FFFFFF"
-            android:textSize="12sp"
+            android:textSize="17sp"
             android:textStyle="bold"
-            android:text="John Doe" />
+            android:text="Networking Conference" />
 
         <!-- Event Location -->
         <TextView
-            android:id="@+id/userEmail"
+            android:id="@+id/notificationText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#000000"
-            android:textSize="10sp"
-            android:text="johndoe@gmail.com" />
+            android:textColor="#D3D3D3"
+            android:textSize="13sp"
+            android:text="Winner! You have been chosen for this event.." />
     </LinearLayout>
+
+    <!-- Right Section with Status -->
+    <TextView
+        android:id="@+id/eventStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=">"
+        android:textColor="#D3D3D3"
+        android:textSize="20sp"
+        android:gravity="center" />
 </LinearLayout>

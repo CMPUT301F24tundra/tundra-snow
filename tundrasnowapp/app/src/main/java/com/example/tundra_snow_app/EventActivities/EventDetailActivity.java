@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 import com.bumptech.glide.Glide;
 import com.example.tundra_snow_app.Helpers.DeviceUtils;
@@ -24,6 +25,8 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+
+import java.util.List;
 
 /**
  * Activity class for the event detail view. This class is responsible for displaying
@@ -39,6 +42,8 @@ public class EventDetailActivity extends AppCompatActivity {
             endDateTextView,
             regStartDateTextView,
             regEndDateTextView;
+
+    private CardView eventStatus;
 
     private Button signUpButton, backButton;
     private FirebaseFirestore db;
@@ -58,7 +63,9 @@ public class EventDetailActivity extends AppCompatActivity {
         geoLocationTextView = findViewById(R.id.geoLocationNotification);
         backButton = findViewById(R.id.backButton);
         signUpButton = findViewById(R.id.buttonSignUpForEvent);
+
         eventImageView = findViewById(R.id.eventImageView);
+        eventStatus = findViewById(R.id.detailEventStatus);
 
         // Date fields initialization
         startDateTextView = findViewById(R.id.detailStartDate);
@@ -108,12 +115,52 @@ public class EventDetailActivity extends AppCompatActivity {
                                     signUpButton.setEnabled(false);
                                     signUpButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#646566")));
                                     Toast.makeText(this, "Geolocation is required. Please enable it in your user settings to sign up", Toast.LENGTH_LONG).show();
-                                } else {
-                                    signUpButton.setEnabled(true);
-                                }
+                                  
+                            // Check if currentUserID is in entrantList
+                            List<String> entrantList = (List<String>) documentSnapshot.get("entrantList");
+                            List<String> chosenList = (List<String>) documentSnapshot.get("chosenList");
+                            List<String> declinedList = (List<String>) documentSnapshot.get("declinedList");
+
+                            Long capacityLong = documentSnapshot.getLong("capacity");
+                            int capacity = (capacityLong != null) ? capacityLong.intValue() : 0;
+
+                            if (entrantList != null && entrantList.contains(currentUserID)) {
+                                // Disable the sign-up button if the user is already signed up
+                                signUpButton.setEnabled(false);
+                                signUpButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#646566")));
+                                Toast.makeText(this, "You are already signed up for this event.", Toast.LENGTH_LONG).show();
+
+                            } else if (chosenList != null && chosenList.contains(currentUserID)) {
+                                signUpButton.setEnabled(false);
+                                signUpButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#646566")));
+                                Toast.makeText(this, "You have already been chosen for this event.", Toast.LENGTH_LONG).show();
+                            } else if (declinedList != null && declinedList.contains(currentUserID)) {
+                                signUpButton.setEnabled(false);
+                                signUpButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#646566")));
+                                Toast.makeText(this, "You are already signed up for this event.", Toast.LENGTH_LONG).show();
+                            } else if (chosenList.size() >= capacity) {
+                                signUpButton.setVisibility(View.GONE);
+                                eventStatus.setVisibility(View.VISIBLE);
+                                Toast.makeText(this, "Event is currently full!",  Toast.LENGTH_LONG).show();
                             } else {
-                                geoLocationTextView.setVisibility(View.GONE);
-                                signUpButton.setEnabled(true);
+                                // Check geolocation requirements if not already signed up
+                                String geolocation = documentSnapshot.getString("geolocationRequirement");
+                                if (geolocation != null && geolocation.equals("Enabled")) {
+                                    geoLocationTextView.setVisibility(View.VISIBLE);
+
+                                    if (!geolocationEnabled) {
+                                        signUpButton.setEnabled(false);
+                                        signUpButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#646566")));
+                                        Toast.makeText(this, "Geolocation is required. Enable it to sign up.", Toast.LENGTH_LONG).show();
+                                    } else {
+                                        signUpButton.setEnabled(true);
+                                        signUpButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#BB86FC")));
+                                    }
+                                } else {
+                                    geoLocationTextView.setVisibility(View.GONE);
+                                    signUpButton.setEnabled(true);
+                                    signUpButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#BB86FC")));
+                                }
                             }
 
                             startDateTextView.setText(event.getFormattedDate(event.getStartDate()));

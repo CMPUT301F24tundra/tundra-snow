@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.tundra_snow_app.Models.Events;
 
+import com.example.tundra_snow_app.Models.Notifications;
 import com.example.tundra_snow_app.R;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -40,7 +41,7 @@ public class MyEventDetailActivity extends AppCompatActivity {
             regStartDateTextView,
             regEndDateTextView;
 
-    private Button leftButton, rightButton;
+    private Button leftButton, rightButton, middleButton;
     private FirebaseFirestore db;
     private String eventID, currentUserID, userStatus;
     private ImageView eventImageView;
@@ -61,6 +62,7 @@ public class MyEventDetailActivity extends AppCompatActivity {
         leftButton = findViewById(R.id.leftButton);
         eventImageView = findViewById(R.id.eventImageView);
 
+        middleButton = findViewById(R.id.middleButton);
 
         // Date fields initialization
         startDateTextView = findViewById(R.id.detailStartDate);
@@ -148,6 +150,8 @@ public class MyEventDetailActivity extends AppCompatActivity {
             leftButton.setText("Back");
             leftButton.setOnClickListener(v -> finish());
 
+            middleButton.setVisibility(View.GONE);
+
             rightButton.setVisibility(View.VISIBLE);
             rightButton.setText("Cancel");
             rightButton.setOnClickListener(v -> {
@@ -156,6 +160,7 @@ public class MyEventDetailActivity extends AppCompatActivity {
                                 "cancelledList", FieldValue.arrayUnion(currentUserID))
                         .addOnSuccessListener(aVoid -> {
                             Toast.makeText(this, "You have cancelled your participation.", Toast.LENGTH_SHORT).show();
+                            sendCancelNotification();
                             finishWithResult();
                         })
                         .addOnFailureListener(e -> Toast.makeText(this, "Failed to cancel.", Toast.LENGTH_SHORT).show());
@@ -165,16 +170,23 @@ public class MyEventDetailActivity extends AppCompatActivity {
             leftButton.setText("Back");
             leftButton.setOnClickListener(v -> finish());
 
+            middleButton.setVisibility(View.GONE);
+
             rightButton.setVisibility(View.GONE);
         } else if (userStatus.equals("chosen")) {
             leftButton.setVisibility(View.VISIBLE);
-            leftButton.setText("Decline");
-            leftButton.setOnClickListener(v -> {
+            leftButton.setText("Back");
+            leftButton.setOnClickListener(v -> finish());
+
+            middleButton.setVisibility(View.VISIBLE);
+            middleButton.setText("Decline");
+            middleButton.setOnClickListener(v -> {
                 db.collection("events").document(eventID)
                         .update("chosenList", FieldValue.arrayRemove(currentUserID),
                                 "declinedList", FieldValue.arrayUnion(currentUserID))
                         .addOnSuccessListener(aVoid -> {
                             Toast.makeText(this, "You have declined your participation.", Toast.LENGTH_SHORT).show();
+                            sendCancelNotification();
                             finishWithResult();
                         })
                         .addOnFailureListener(e -> Toast.makeText(this, "Failed to cancel.", Toast.LENGTH_SHORT).show());
@@ -216,11 +228,70 @@ public class MyEventDetailActivity extends AppCompatActivity {
     }
 
     /**
+     * Sends a cancellation notification to the user.
+     */
+    private void sendCancelNotification() {
+        db.collection("events").document(eventID).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                String eventName = documentSnapshot.getString("title");
+                if (eventName != null) {
+                    createNotification(
+                            "cancel",
+                            List.of(currentUserID), // Single user being notified
+                            eventID,
+                            eventName,
+                            "You have successfully cancelled your participation in the event."
+                    );
+                } else {
+                    Log.e("Notifications", "Event name is null, cancel notification not sent.");
+                }
+            } else {
+                Log.e("Notifications", "Event document does not exist, cancel notification not sent.");
+            }
+        }).addOnFailureListener(e -> Log.e("Notifications", "Error fetching event details for cancel notification: ", e));
+    }
+
+    /**
      * Finishes the activity with a result.
      */
     private void finishWithResult() {
         Intent resultIntent = new Intent();
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
+    }
+
+    /**
+     * Creates a notification document in Firestore.
+     *
+     * @param type        The type of the notification (e.g., "winner", "loser").
+     * @param userIDs     List of user IDs to notify.
+     * @param eventID     ID of the associated event.
+     * @param eventName   Name of the associated event.
+     * @param notificationText The message content for the notification.
+     */
+    private void createNotification(String type, List<String> userIDs, String eventID, String eventName, String notificationText) {
+        String notificationID = db.collection("notifications").document().getId(); // Auto-generate ID
+
+        Log.d("Notifications", "Creating notification with the following details:");
+        Log.d("Notifications", "Type: " + type);
+        Log.d("Notifications", "Notification ID: " + notificationID);
+        Log.d("Notifications", "Event ID: " + eventID);
+        Log.d("Notifications", "Event Name: " + eventName);
+        Log.d("Notifications", "User IDs: " + userIDs.toString());
+        Log.d("Notifications", "Notification Text: " + notificationText);
+
+        Notifications notification = new Notifications(
+                notificationID,
+                userIDs,
+                eventID,
+                eventName,
+                notificationText,
+                type
+        );
+
+        db.collection("notifications").document(notificationID)
+                .set(notification)
+                .addOnSuccessListener(aVoid -> Log.d("Notifications", "Notification (" + type + ") created successfully."))
+                .addOnFailureListener(e -> Log.e("Notifications", "Failed to create notification (" + type + "): ", e));
     }
 }
