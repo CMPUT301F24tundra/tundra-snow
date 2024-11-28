@@ -16,6 +16,7 @@ import static org.hamcrest.CoreMatchers.allOf;
 
 import android.text.Spannable;
 import android.text.style.ClickableSpan;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -24,10 +25,11 @@ import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.example.tundra_snow_app.Activities.EntrantSignupActivity;
 import com.example.tundra_snow_app.EventActivities.EventViewActivity;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -42,6 +44,10 @@ public class MainActivityTest {
 
     @Rule
     public ActivityScenarioRule<MainActivity> activityRule = new ActivityScenarioRule<>(MainActivity.class);
+
+    private FirebaseFirestore db;
+
+    String testEmail = "newuser@example.com";
 
     // Custom matcher to check if TextView has clickable spans
     private static Matcher<View> hasClickableSpan() {
@@ -95,11 +101,29 @@ public class MainActivityTest {
     @Before
     public void setUp() {
         Intents.init();
+        db = FirebaseFirestore.getInstance();
     }
 
     @After
     public void tearDown() {
         Intents.release();
+
+        db.collection("users")
+                .whereEqualTo("email", testEmail)  // Use the current title in the loop
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            document.getReference().delete()
+                                    .addOnSuccessListener(aVoid ->
+                                            Log.d("TearDown", "User with email '" + testEmail + "' deleted successfully"))
+                                    .addOnFailureListener(e ->
+                                            Log.e("TearDown", "Error deleting user with email '" + testEmail + "'", e));
+                        }
+                    } else {
+                        Log.e("TearDown", "Error finding users with email '" + testEmail + "'", task.getException());
+                    }
+                });
     }
 
     @Test
@@ -147,9 +171,7 @@ public class MainActivityTest {
         // Verify navigation to EntrantSignupActivity
         intended(hasComponent(EntrantSignupActivity.class.getName()));
 
-        String testEmail = "newuserSignUp@example.com";
         String testPassword = "password123";
-
         String testFacility = "testSetFacility";
         String facilityLocation = "testLocation";
         
@@ -179,7 +201,7 @@ public class MainActivityTest {
         Thread.sleep(2000);
 
         // Verify successful login by checking for an element in the target activity
-        onView(withId(R.id.modeToggle)).check(matches(isDisplayed()));
+        intended(hasComponent(EventViewActivity.class.getName()));
     }
 
     /** US 1.07.01

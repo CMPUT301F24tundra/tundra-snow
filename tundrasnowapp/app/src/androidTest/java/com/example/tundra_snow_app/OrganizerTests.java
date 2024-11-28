@@ -65,8 +65,8 @@ public class OrganizerTests {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    String permanentEvent = "Important Testing Event";
-    String permanentEventID = "ada10f4e-014f-4ee6-a76d-5d5b36a096c6";
+    String permanentEvent = "Important Test Event";
+    String permanentEventID = "ef375549-e7b5-4078-8d22-959be14937f0";
     String permanentEntrant = "Main Organizer";
     String permanentEntrantID = "ef375549-e7b5-4078-8d22-959be14937f0";
 
