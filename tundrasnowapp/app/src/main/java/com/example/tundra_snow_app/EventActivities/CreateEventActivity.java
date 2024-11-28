@@ -2,17 +2,20 @@ package com.example.tundra_snow_app.EventActivities;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
@@ -20,7 +23,13 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.gson.Gson;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -53,10 +62,13 @@ public class CreateEventActivity extends AppCompatActivity{
     private EditText eventRegistrationEndTimePicker;
 
     private EditText eventCapacityEditText;
-    private Button createEventButton, backButton, saveButton;
-    private String eventID, currentUserID;
+    private Button createEventButton, backButton, saveButton, generateHash;
+    private String eventID, currentUserID, hashedData;
     private ToggleButton toggleGeolocationButton;
     private List<String> facility, entrantList, confirmedList, declinedList, cancelledList, chosenList;
+
+    private FrameLayout QRView;
+    private ImageView qrImageView;
 
     private FirebaseFirestore db;
     private FirebaseStorage storage;
@@ -105,6 +117,12 @@ public class CreateEventActivity extends AppCompatActivity{
         createEventButton = findViewById(R.id.buttonCreateEvent);
         backButton = findViewById(R.id.buttonBack);
         saveButton = findViewById(R.id.saveButton);
+        generateHash = findViewById(R.id.generateHashInformation);
+
+        // Frame Layout for QR Code
+        QRView = findViewById(R.id.QRView);
+        // Image View for QR Code
+        qrImageView = findViewById(R.id.qrImageView);
 
         // Click listeners
         eventStartDatePicker.setOnClickListener(v -> showDatePickerDialog(eventStartDatePicker));
@@ -112,6 +130,7 @@ public class CreateEventActivity extends AppCompatActivity{
         eventRegistrationStartDatePicker.setOnClickListener(v -> showDatePickerDialog(eventRegistrationStartDatePicker));
         eventRegistrationEndDatePicker.setOnClickListener(v -> showDatePickerDialog(eventRegistrationEndDatePicker));
 
+        generateHash.setOnClickListener(v -> generateHashAndQRCode());
         createEventButton.setOnClickListener(v -> createEvent());
         saveButton.setOnClickListener(v -> saveEvent());
         backButton.setOnClickListener(v -> finish());
@@ -347,6 +366,10 @@ public class CreateEventActivity extends AppCompatActivity{
         event.put("declinedList", declinedList);
         event.put("cancelledList", cancelledList);
         event.put("chosenList", chosenList);
+
+        if (hashedData != null) {
+            event.put("qrHash", hashedData);
+        }
 
         return event;
     }
@@ -661,6 +684,55 @@ public class CreateEventActivity extends AppCompatActivity{
         } catch (ParseException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    private void generateHashAndQRCode() {
+        if (!validateInputs()) {
+            return;
+        }
+
+        Map<String, Object> eventData = collectEventDetails("draft");
+        String eventJson = new Gson().toJson(eventData);
+
+        hashedData = hashEventData(eventJson);
+        Log.d("CreateEventActivity", "Hashed data generated: " + hashedData);
+
+        generateAndDisplayQRCode(hashedData);
+    }
+
+    private String hashEventData(String data) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(data.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (Exception e) {
+            Log.e("CreateEvent", "Error generating hash: " + e.getMessage(), e);
+            return null;
+        }
+    }
+
+    private void generateAndDisplayQRCode(String hashedData) {
+        try {
+            BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
+            Bitmap qrBitmap = barcodeEncoder.encodeBitmap(hashedData, BarcodeFormat.QR_CODE, 400, 400);
+
+            qrImageView.setImageBitmap(qrBitmap);
+            QRView.setVisibility(View.VISIBLE);
+        } catch (WriterException e) {
+            Log.e("CreateEvent", "Error generating QR code: " + e.getMessage(), e);
+            Toast.makeText(this, "Error generating QR code.", Toast.LENGTH_SHORT).show();
         }
     }
 }

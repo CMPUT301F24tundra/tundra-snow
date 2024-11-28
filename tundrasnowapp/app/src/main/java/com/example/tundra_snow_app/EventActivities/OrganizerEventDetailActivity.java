@@ -3,6 +3,8 @@ package com.example.tundra_snow_app.EventActivities;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
@@ -11,6 +13,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +41,9 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -58,12 +65,14 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
     private EditText eventTitle, eventDate, eventEndDate, regStartDate, regEndDate, eventLocation, eventDescription;
     private Button saveButton, editButton, backButton;
     private FirebaseFirestore db;
-    private String eventID, currentUserID;
+    private String eventID, currentUserID, hashedData;
     private TextView viewWaitingList, viewEnrolledList, viewChosenList, viewCancelledList;
     private MapView mapView;
     private GoogleMap googleMap;
     private final Map<String, Integer> markerDuplicates = new HashMap<>();
     private List<Marker> markerList = new ArrayList<>();
+    private FrameLayout qrView;
+    private ImageView qrImageView;
 
     /**
      * Initializes the views and loads the event details.
@@ -77,6 +86,9 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+
+        qrView = findViewById(R.id.QRView);
+        qrImageView = findViewById(R.id.qrImageView);
 
         eventTitle = findViewById(R.id.organizerEventTitle);
         eventDate = findViewById(R.id.organizerStartDate);
@@ -328,6 +340,15 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
                             regEndDate.setText(event.getFormattedDate(event.getRegistrationEndDate()));
                             eventLocation.setText(event.getLocation());
                             eventDescription.setText(event.getDescription());
+
+                            // Fetch QR hash and generate QR code
+                            hashedData = documentSnapshot.getString("qrHash");
+                            if (hashedData != null) {
+                                generateQRCode(hashedData);
+                            } else {
+                                qrView.setVisibility(View.GONE); // Hide QR view if no hash
+                                Log.w("OrganizerEventDetail", "No QR hash found for event.");
+                            }
                         }
                     } else {
                         Toast.makeText(this, "Event not found", Toast.LENGTH_SHORT).show();
@@ -497,5 +518,36 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
 
         editButton.setVisibility(isEditable ? View.GONE : View.VISIBLE);
         saveButton.setVisibility(isEditable ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Generates a QR code for the given hashed data and displays it in the qrImageView.
+     *
+     * @param hashedData The hashed data to encode in the QR code.
+     */
+    private void generateQRCode(String hashedData) {
+        Log.d("OrganizerEventDetail", "Hash Data: " + hashedData);
+
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        try {
+            int size = 512;
+            Bitmap qrBitmap;
+            com.google.zxing.common.BitMatrix bitMatrix = qrCodeWriter.encode(hashedData, BarcodeFormat.QR_CODE, size, size);
+
+            qrBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
+            for (int x = 0; x < size; x++) {
+                for (int y = 0; y < size; y++) {
+                    qrBitmap.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+
+            qrImageView.setImageBitmap(qrBitmap);
+            qrView.setVisibility(View.VISIBLE);
+
+            Log.d("OrganizerEventDetail", "QR code generated successfully.");
+        } catch (WriterException e) {
+            Log.e("OrganizerEventDetail", "Error generating QR code: " + e.getMessage(), e);
+            Toast.makeText(this, "Failed to generate QR code.", Toast.LENGTH_SHORT).show();
+        }
     }
 }
