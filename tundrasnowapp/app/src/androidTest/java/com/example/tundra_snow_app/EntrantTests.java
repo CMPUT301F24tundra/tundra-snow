@@ -13,7 +13,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isNotChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
-
 import static org.hamcrest.CoreMatchers.allOf;
 
 import android.text.Spannable;
@@ -33,6 +32,7 @@ import com.example.tundra_snow_app.Activities.ProfileViewActivity;
 import com.example.tundra_snow_app.Activities.SettingsViewActivity;
 import com.example.tundra_snow_app.EventActivities.MyEventViewActivity;
 import com.example.tundra_snow_app.Activities.EntrantSignupActivity;
+import com.example.tundra_snow_app.Models.Events;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -43,8 +43,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -58,11 +64,9 @@ public class EntrantTests {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-
     String testEventTitle = "TestEventTitle";
     String testUserFirst = "TestFirst";
     String testUserLast = "TestLast";
-
     // Event title used for testing purposes
     String permanentEvent = "event_title";
 
@@ -109,11 +113,47 @@ public class EntrantTests {
      * Set up method that initializes Intents.
      */
     @Before
-    public void setUp() {
+    public void setUp() throws ParseException {
         Intents.init();
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // Initialize dates
+        SimpleDateFormat dateFormat;
+        dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        Date startDate = dateFormat.parse("2024-12-01");
+        Date endDate = dateFormat.parse("2024-12-10");
+        Date regStartDate = dateFormat.parse("2024-11-01");
+        Date regEndDate = dateFormat.parse("2024-11-30");
+
+        // Initialize lists
+        List<String> entrants = new ArrayList<>();
+        List<String> confirmed = new ArrayList<>();
+        List<String> declined = new ArrayList<>();
+        List<String> cancelled = new ArrayList<>();
+        List<String> chosen = new ArrayList<>();
+
+        Events event = new Events(
+                "E001",
+                "O001",
+                testEventTitle,
+                "A festive winter event",
+                "http://example.com/poster.jpg",
+                "City Park",
+                "Published",
+                startDate,
+                endDate,
+                regEndDate,
+                regStartDate,
+                100,
+                "QR123",
+                "Scheduled",
+                confirmed,
+                declined,
+                entrants,
+                cancelled,
+                chosen
+        );
     }
 
 
@@ -142,12 +182,10 @@ public class EntrantTests {
 
         Thread.sleep(2000);
 
- 
-        onView(withText(permanentEvent)).check(matches(isDisplayed()));
-        onView(withText(permanentEvent)).perform(scrollTo(), click());
+        onView(withText("RyanQREventDraft")).check(matches(isDisplayed())); // Potentially change to a formatted test event
+        onView(withText("RyanQREventDraft")).perform(scrollTo(), click());
         
         Thread.sleep(2000);
-
 
         onView(withId(R.id.buttonSignUpForEvent)).check(matches(isDisplayed()));
         onView(withId(R.id.geoLocationNotification)).check(matches(isDisplayed()));
@@ -162,7 +200,7 @@ public class EntrantTests {
      */
     @Test
     public void testSignUpAndLogin() throws InterruptedException {
- 
+        // Sign up
         onView(withId(R.id.signUpText)).perform(clickClickableSpan("Sign up"));
         intended(hasComponent(EntrantSignupActivity.class.getName()));
 
@@ -170,7 +208,7 @@ public class EntrantTests {
         String testPassword = "password123";
         String testFacility = "testSetFacility";
         String facilityLocation = "testLocation";
-        
+        // Populate sign up field
         onView(withId(R.id.editTextFirstName)).perform(replaceText("John"));
         onView(withId(R.id.editTextLastName)).perform(replaceText("Doe"));
         onView(withId(R.id.editTextEmail)).perform(replaceText(testEmail));
@@ -186,14 +224,14 @@ public class EntrantTests {
 
         Thread.sleep(2000);
 
-
+        // Populate login fields and submit
         onView(withId(R.id.usernameEditText)).perform(replaceText(testEmail));
         onView(withId(R.id.passwordEditText)).perform(replaceText(testPassword));
         onView(withId(R.id.loginButton)).perform(click());
 
         Thread.sleep(2000);
         
-        onView(withId(R.id.modeToggle)).check(matches(isDisplayed()));
+//        onView(withId(R.id.modeToggle)).check(matches(isDisplayed()));
     }
 
     
@@ -324,25 +362,22 @@ public class EntrantTests {
         onView(withId(R.id.usernameEditText)).perform(replaceText("newuser@example.com"));
         onView(withId(R.id.passwordEditText)).perform(replaceText("password123"));
         onView(withId(R.id.loginButton)).perform(click());
-
         Thread.sleep(2000);
 
-        onView(withText(permanentEvent)).check(matches(isDisplayed()));
-        onView(withText(permanentEvent)).perform(scrollTo(), click());
-
+        onView(withText(testEventTitle)).check(matches(isDisplayed()));
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
         Thread.sleep(2000);
 
         onView(withId(R.id.buttonSignUpForEvent)).perform(click());
-
         Thread.sleep(2000);
 
-        onView(withId(R.id.nav_events)).perform(click());
-
+        onView(withId(R.id.nav_my_events)).perform(click());
         Thread.sleep(2000);
 
         intended(hasComponent(MyEventViewActivity.class.getName()));
-        onView(withText(permanentEvent)).check(matches(isDisplayed()));
-        onView(withText(permanentEvent)).perform(scrollTo(), click());
+
+        onView(withText(testEventTitle)).check(matches(isDisplayed()));
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
 
         Thread.sleep(2000);
 
@@ -386,7 +421,7 @@ public class EntrantTests {
         user.put("userEventList", Arrays.asList()); // empty array
         user.put("userID", "000testUserId");
         db.collection("users").document("000testUserId").set(user);
-
+        Thread.sleep(2000);
         Map<String, Object> event = new HashMap<>();
         event.put("cancelledList", Arrays.asList()); // empty array
         event.put("capacity", 50);

@@ -155,4 +155,43 @@ public class OrganizersTest {
         assertTrue(permissions.contains("MANAGE_ENTRANTS"));
         assertTrue(permissions.contains("NOTIFY_ENTRANTS"));
     }
+
+    /**
+     * Test for checking if email is in valid form
+     */
+    @Test
+    public void testInvalidEmail() {
+        try {
+            organizer.setEmail("invalid-email");
+            fail("Exception not thrown for invalid email");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Invalid email format", e.getMessage());
+        }
+    }
+
+    /**
+     * Test for checking init on facilities
+     */
+    @Test
+    public void testEmptyFacilityList() {
+        organizer = new Organizers(
+                "003",
+                "Bob",
+                "Brown",
+                "bob.brown@example.com",
+                "password789",
+                "",
+                "",
+                "",
+                false,
+                false,
+                "device003",
+                "Location3",
+                new ArrayList<>(),
+                new ArrayList<>()
+        );
+        organizer.addRole("organizer");
+        List<String> facilityList = organizer.getFacilityList();
+        assertNull(facilityList);
+    }
 }

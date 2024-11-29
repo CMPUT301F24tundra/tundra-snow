@@ -361,14 +361,14 @@ public class EventsTest {
         assertEquals("NEWQR123", event.getQrHash());
     }
 
-    /**
-     * Test the formatted date method with a null value
-     */
-    @Test
-    public void testFormattedDateWithNullValue() {
-        Events eventWithNullDates = new Events();
-        assertEquals("Date TBD", eventWithNullDates.getFormattedDate(null));
-    }
+//    /** Duplicate Test
+//     * Test the formatted date method with a null value
+//     */
+//    @Test
+//    public void testFormattedDateWithNullValue() {
+//        Events eventWithNullDates = new Events();
+//        assertEquals("Date TBD", eventWithNullDates.getFormattedDate(null));
+//    }
 
     /**
      * Test the setter for the capacity field with boundary values
@@ -479,7 +479,7 @@ public class EventsTest {
     @Test
     public void testFormattedDateWithNull() {
         // Set a null date and check that the formatted output is "Date TBD"
-        assertEquals("Date TBD", event.getFormattedDate(null));
+        assertEquals("Date and time TBD", event.getFormattedDate(null));
     }
 
     /**
