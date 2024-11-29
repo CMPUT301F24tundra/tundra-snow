@@ -84,7 +84,7 @@ public class EventsTest {
         assertEquals("Published", event.getPublished());
         assertEquals("QR123", event.getQrHash());
         assertEquals("Scheduled", event.getStatus());
-        assertEquals(100, event.getCapacity());
+        assertEquals(100, (int) event.getCapacity());
     }
 
     /**
@@ -277,7 +277,7 @@ public class EventsTest {
     @Test
     public void testSetCapacity() {
         event.setCapacity(150);
-        assertEquals(150, event.getCapacity());
+        assertEquals(150, (int) event.getCapacity());
     }
 
     /**
@@ -376,10 +376,10 @@ public class EventsTest {
     @Test
     public void testCapacityBoundary() {
         event.setCapacity(0);
-        assertEquals(0, event.getCapacity());
+        assertEquals(0, (int) event.getCapacity());
 
         event.setCapacity(5000);
-        assertEquals(5000, event.getCapacity());
+        assertEquals(5000, (int) event.getCapacity());
     }
 
     /**

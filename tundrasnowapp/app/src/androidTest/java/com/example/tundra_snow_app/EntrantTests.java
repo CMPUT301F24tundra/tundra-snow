@@ -59,9 +59,9 @@ public class EntrantTests {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
-    String testEventTitle = "7^7^7";
-    String testUserFirst = "999";
-    String testUserLast = "555";
+    String testEventTitle = "TestEventTitle";
+    String testUserFirst = "TestFirst";
+    String testUserLast = "TestLast";
 
     // Event title used for testing purposes
     String permanentEvent = "event_title";
