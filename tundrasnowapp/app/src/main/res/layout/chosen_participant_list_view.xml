@@ -69,9 +69,10 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Send Notification"
+                            android:text="Send Sign-up Reminder to Chosen Entrants"
                             android:textColor="#E0E0E0"
-                            android:textSize="16sp"/>
+                            android:textSize="15sp"
+                            android:paddingEnd="10dp"/>
 
                         <Button
                             android:id="@+id/sendNotificationButton"

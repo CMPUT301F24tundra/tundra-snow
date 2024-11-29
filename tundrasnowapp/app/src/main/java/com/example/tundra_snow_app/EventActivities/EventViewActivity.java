@@ -4,23 +4,21 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.tundra_snow_app.Activities.NotificationsActivity;
 import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
 import com.example.tundra_snow_app.EventAdapters.EventAdapter;
-import com.example.tundra_snow_app.MainActivity;
 import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.Helpers.NavigationBarHelper;
 
@@ -33,11 +31,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Activity class for the event view. This class is responsible for displaying
@@ -57,7 +52,7 @@ public class EventViewActivity extends AppCompatActivity {
     private FloatingActionButton addEventButton;
     private String currentUserID;
     private List<String> userRoles = new ArrayList<>();
-    private ImageView menuButton;
+    private ImageView menuButton, notificationButton;
     private boolean isOrganizerMode;
 
     /**
@@ -76,6 +71,7 @@ public class EventViewActivity extends AppCompatActivity {
         noEventsLayout = findViewById(R.id.noEventsLayout);
 
         // Organizer UI components
+        notificationButton = findViewById(R.id.notificationButton);
         menuButton = findViewById(R.id.menuButton);
         eventTitle = findViewById(R.id.ongoingEventTitle);
         addEventButton = findViewById(R.id.addEventButton);
@@ -94,6 +90,14 @@ public class EventViewActivity extends AppCompatActivity {
         // Setting listener for addEventButton
         addEventButton.setOnClickListener(view -> {
             Intent intent = new Intent(EventViewActivity.this, CreateEventActivity.class);
+            startActivity(intent);
+        });
+
+        // Setting listener for notification button
+        notificationButton.setOnClickListener(view -> {
+            Log.d("EventViewActivity", "Notification button clicked. Starting NotificationsActivity...");
+
+            Intent intent = new Intent(EventViewActivity.this, NotificationsActivity.class);
             startActivity(intent);
         });
 
@@ -164,6 +168,8 @@ public class EventViewActivity extends AppCompatActivity {
         super.onResume();
         if (isOrganizerMode()) {
             loadOrganizerEventsFromFirestore();
+        } else {
+            loadUserEventFromFirestore();
         }
     }
 
@@ -189,6 +195,7 @@ public class EventViewActivity extends AppCompatActivity {
                 loadOrganizerEventsFromFirestore();
                 eventTitle.setText("Draft Events View");
                 addEventButton.setVisibility(View.VISIBLE);
+                notificationButton.setVisibility(View.GONE);
                 break;
             case "admin":
                 Intent intent = new Intent(EventViewActivity.this, AdminEventViewActivity.class); // Regular user view
@@ -197,6 +204,7 @@ public class EventViewActivity extends AppCompatActivity {
                 loadUserEventFromFirestore();
                 eventTitle.setText("Events View");
                 addEventButton.setVisibility(View.GONE);
+                notificationButton.setVisibility(View.VISIBLE);
                 break;
         }
     }
@@ -213,7 +221,19 @@ public class EventViewActivity extends AppCompatActivity {
                             eventList.clear();
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Events event = document.toObject(Events.class);
-                                eventList.add(event);
+
+                                // Check if the currentUserID is not in these lists
+                                List<String> entrantList = (List<String>) document.get("entrantList");
+                                List<String> chosenList = (List<String>) document.get("chosenList");
+                                List<String> declinedList = (List<String>) document.get("declinedList");
+
+                                if ((entrantList == null || !entrantList.contains(currentUserID)) &&
+                                        (chosenList == null || !chosenList.contains(currentUserID)) &&
+                                        (declinedList == null || !declinedList.contains(currentUserID))) {
+                                    eventList.add(event); // Add the event if user is not in the lists
+                                } else {
+                                    Log.d("EventFilter", "User is already in entrant list for event: " + event.getTitle());
+                                }
                             }
 
                             // Update UI based on the data
