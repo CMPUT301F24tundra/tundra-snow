@@ -3,6 +3,7 @@ package com.example.tundra_snow_app.EventActivities;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,9 +14,14 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
+import com.bumptech.glide.Glide;
 import com.example.tundra_snow_app.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
@@ -70,6 +76,13 @@ public class CreateEventActivity extends AppCompatActivity{
     private FrameLayout QRView;
     private ImageView qrImageView;
 
+    private ActivityResultLauncher<PickVisualMediaRequest> photoPickerLauncher;
+    private Uri selectedImageUri;
+    private ImageView eventImageView;
+    private CardView eventImageCardView;
+    private Button selectImageButton;
+
+
     private FirebaseFirestore db;
     private FirebaseStorage storage;
     private FirebaseAuth auth;
@@ -123,6 +136,33 @@ public class CreateEventActivity extends AppCompatActivity{
         QRView = findViewById(R.id.QRView);
         // Image View for QR Code
         qrImageView = findViewById(R.id.qrImageView);
+
+        // Image poster preview
+        eventImageView = findViewById(R.id.eventImageView);
+        eventImageCardView = findViewById(R.id.eventImageCardView);
+        selectImageButton = findViewById(R.id.selectImageButton);
+
+        // Register the Photo Picker Launcher
+        photoPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.PickVisualMedia(),
+                uri -> {
+                    if (uri != null) {
+                        selectedImageUri = uri;
+                        eventImageCardView.setVisibility(View.VISIBLE);
+                        Glide.with(this).load(uri).into(eventImageView);
+                    } else {
+                        Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        // Set the button click listener
+        selectImageButton.setOnClickListener(v -> {
+            photoPickerLauncher.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                    .build());
+        });
+
 
         // Click listeners
         eventStartDatePicker.setOnClickListener(v -> showDatePickerDialog(eventStartDatePicker));
@@ -181,6 +221,13 @@ public class CreateEventActivity extends AppCompatActivity{
                         eventTitleEditText.setText(documentSnapshot.getString("title"));
                         eventDescriptionEditText.setText(documentSnapshot.getString("description"));
                         eventLocationEditText.setText(documentSnapshot.getString("location"));
+
+                        // Load and display image if available
+                        String imageUrl = documentSnapshot.getString("imageUrl");
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            eventImageCardView.setVisibility(View.VISIBLE);
+                            Glide.with(this).load(imageUrl).into(eventImageView);
+                        }
 
                         // Handle capacity - check if it exists first
                         Long capacity = documentSnapshot.getLong("capacity");
@@ -268,13 +315,36 @@ public class CreateEventActivity extends AppCompatActivity{
      * Creates an event in the Firestore database.
      */
     private void createEvent() {
-        
         if (!validateInputs()) {
             return;
         }
 
+        // Collect other event details
         Map<String, Object> event = collectEventDetails("yes");
 
+        if (selectedImageUri != null) {
+            // Upload the image to Firebase Storage
+            FirebaseStorage storage = FirebaseStorage.getInstance();
+            String imagePath = "event_images/" + UUID.randomUUID() + ".jpg";
+            storage.getReference(imagePath)
+                    .putFile(selectedImageUri)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        // Get the image URL and save it in the event details
+                        storage.getReference(imagePath).getDownloadUrl().addOnSuccessListener(uri -> {
+                            event.put("imageUrl", uri.toString());
+                            saveEventToFirestore(event);
+                        });
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            // No image selected, save the event without an image URL
+            saveEventToFirestore(event);
+        }
+    }
+
+    private void saveEventToFirestore(Map<String, Object> event) {
         db.collection("events").document(eventID)
                 .set(event)
                 .addOnSuccessListener(aVoid -> {
@@ -287,6 +357,7 @@ public class CreateEventActivity extends AppCompatActivity{
                     Log.w("Firestore", "Error publishing document", e);
                 });
     }
+
 
     /**
      * Collects the details of the event from the UI.

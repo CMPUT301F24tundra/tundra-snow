@@ -40,6 +40,7 @@ import android.widget.Toast;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
@@ -151,16 +152,60 @@ public class QrScanActivity extends AppCompatActivity {
     }
 
     private void signUpForEvent(String eventId) {
-        db.collection("events").document(eventId)
-                .update("entrantList", com.google.firebase.firestore.FieldValue.arrayUnion(currentUserID))
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("QrScanActivity", "Successfully added " + currentUserID + " to entrantList.");
-                    Toast.makeText(this, "Signed up for the event successfully!", Toast.LENGTH_SHORT).show();
-                    navigateToEventDetails(eventId);
+        db.collection("events").document(eventId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        List<String> entrantList = (List<String>) documentSnapshot.get("entrantList");
+                        List<String> chosenList = (List<String>) documentSnapshot.get("chosenList");
+                        List<String> declinedList = (List<String>) documentSnapshot.get("declinedList");
+
+                        if (entrantList != null && entrantList.contains(currentUserID)) {
+                            // User is already signed up
+                            Log.d("QrScanActivity", "User " + currentUserID + " is already signed up for event " + eventId);
+                            Toast.makeText(this, "You are already signed up for this event.", Toast.LENGTH_SHORT).show();
+                            isProcessing = false;
+                            navigateToEventDetails(eventId);
+                            return;
+                        }
+
+                        if (chosenList != null && chosenList.contains(currentUserID)) {
+                            Log.d("QrScanActivity", "User " + currentUserID + " has already been chosen for event " + eventId);
+                            Toast.makeText(this, "You have already been chosen for this event.", Toast.LENGTH_SHORT).show();
+                            isProcessing = false;
+                            navigateToEventDetails(eventId);
+                            return;
+                        }
+
+                        if (declinedList != null && declinedList.contains(currentUserID)) {
+                            Log.d("QrScanActivity", "User " + currentUserID + " has been rejected from event " + eventId);
+                            Toast.makeText(this, "You have already been rejected from this event.", Toast.LENGTH_SHORT).show();
+                            isProcessing = false;
+                            navigateToEventDetails(eventId);
+                            return;
+                        }
+
+                        // Proceed with signing up the user
+                        db.collection("events").document(eventId)
+                                .update("entrantList", com.google.firebase.firestore.FieldValue.arrayUnion(currentUserID))
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("QrScanActivity", "Successfully added " + currentUserID + " to entrantList.");
+                                    Toast.makeText(this, "Signed up for the event successfully!", Toast.LENGTH_SHORT).show();
+                                    navigateToEventDetails(eventId);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("QrScanActivity", "Error signing up for event", e);
+                                    Toast.makeText(this, "Failed to sign up for the event.", Toast.LENGTH_SHORT).show();
+                                    isProcessing = false;
+                                });
+                    } else {
+                        Log.w("QrScanActivity", "Event " + eventId + " not found.");
+                        Toast.makeText(this, "Event not found.", Toast.LENGTH_SHORT).show();
+                        isProcessing = false;
+                    }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("QrScanActivity", "Error signing up for event", e);
-                    Toast.makeText(this, "Failed to sign up for the event.", Toast.LENGTH_SHORT).show();
+                    Log.e("QrScanActivity", "Error fetching event details for sign-up check", e);
+                    Toast.makeText(this, "Failed to check sign-up status.", Toast.LENGTH_SHORT).show();
                     isProcessing = false;
                 });
     }
