@@ -681,38 +681,7 @@ public class OrganizerTests {
      */
     @Test
     public void testDeletingEntrantFromWaitlist() throws InterruptedException {
-
-        addEntrantToWaitingList();
-        toggleToOrganizerMode();
-
-        Thread.sleep(1000);
-
-        onView(withId(R.id.nav_my_events)).perform(click());
-
-        Thread.sleep(1000);
-
-        onView(withText(permanentEvent)).check(matches(isDisplayed()));
-
-        Thread.sleep(1000);
-
-        // Scroll to the item with the specific title and click it
-        onView(withText(permanentEvent)).perform(scrollTo(), click());
-
-        Thread.sleep(1000);
-
-        intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
-
-        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
-
-        Thread.sleep(1000);
-
-        onView(withId(R.id.rejectUser)).perform(click());
-
-        // Verify rejection
-        Thread.sleep(1000);
-
-        // check that the entrant was removed
-        onView(withText(permanentEntrant)).check(doesNotExist());
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
