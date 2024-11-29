@@ -6,6 +6,7 @@ import android.view.MenuItem;
 
 import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
 import com.example.tundra_snow_app.AdminActivities.AdminFacilityViewActivity;
+import com.example.tundra_snow_app.AdminActivities.AdminImagesViewActivity;
 import com.example.tundra_snow_app.AdminActivities.AdminUsersViewActivity;
 import com.example.tundra_snow_app.Activities.QrScanActivity;
 
@@ -71,7 +72,7 @@ public class AdminNavbarHelper {
 
         } else if (item.getItemId() == R.id.admin_nav_images) {
             if (!(activity instanceof SettingsViewActivity)) {
-                intent = new Intent(activity, SettingsViewActivity.class);
+                intent = new Intent(activity, AdminImagesViewActivity.class);
                 startActivityWithTransition(activity, intent);
             }
             return true;
