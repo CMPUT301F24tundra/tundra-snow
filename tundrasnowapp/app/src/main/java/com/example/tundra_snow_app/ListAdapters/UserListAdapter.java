@@ -75,35 +75,6 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
                 holder.emailTextView.setText(email != null ? email : "No email available");
             }
         });
-
-        // Set actions for Select and Reject buttons
-        holder.selectUserButton.setOnClickListener(v -> {
-            // Move user to chosenList and remove from entrantList
-            db.collection("events").document(eventID)
-                    .update(
-                            "chosenList", FieldValue.arrayUnion(userId),
-                            "entrantList", FieldValue.arrayRemove(userId)
-                    )
-                    .addOnSuccessListener(aVoid -> {
-                        entrantList.remove(userId);  // Update local list for immediate UI feedback
-                        notifyDataSetChanged();
-                        Toast.makeText(context, "User selected successfully.", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> Toast.makeText(context, "Error selecting user.", Toast.LENGTH_SHORT).show());
-        });
-        holder.rejectUserButton.setOnClickListener(v -> {
-            db.collection("events").document(eventID)
-                    .update(
-                            "declinedList", FieldValue.arrayUnion(userId),
-                            "entrantList", FieldValue.arrayRemove(userId)
-                    )
-                    .addOnSuccessListener(aVoid -> {
-                        entrantList.remove(userId);
-                        notifyDataSetChanged();
-                        Toast.makeText(context, "User rejected successfully.", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> Toast.makeText(context, "Error rejecting user.", Toast.LENGTH_SHORT).show());
-        });
     }
 
     /**
@@ -126,8 +97,6 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
             super(itemView);
             fullNameTextView = itemView.findViewById(R.id.fullName);
             emailTextView = itemView.findViewById(R.id.userEmail);
-            selectUserButton = itemView.findViewById(R.id.selectUser);
-            rejectUserButton = itemView.findViewById(R.id.rejectUser);
         }
     }
 }

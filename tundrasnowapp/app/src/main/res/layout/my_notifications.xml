@@ -15,45 +15,40 @@
         android:paddingTop="13dp"
         tools:ignore="MissingConstraints">
 
+        <ImageView
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:contentDescription="Back Button"
+            android:paddingTop="11dp"
+            android:paddingStart="17dp"
+            android:src="@drawable/back_30" />
+
         <TextView
-            android:id="@+id/myEventTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:gravity="center"
-            android:text=""
+            android:text="My Notifications"
             android:textColor="#FFFFFF"
             android:textSize="25sp" />
-
-        <ImageView
-            android:id="@+id/menuButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:contentDescription="Mode Menu"
-            android:paddingTop="11dp"
-            android:paddingRight="17dp"
-            android:src="@drawable/menu_30" />
     </FrameLayout>
 
-
-
-
-    <!-- Content area (e.g., for displaying events) -->
+    <!-- Content area (e.g., for displaying notifications) -->
     <LinearLayout
         android:id="@+id/contentLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="vertical"
         android:padding="16dp"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/header">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/myEventsRecyclerView"
+            android:id="@+id/myNotificationsRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false" />
@@ -61,7 +56,7 @@
 
     <!-- "No Events to List" message -->
     <LinearLayout
-        android:id="@+id/noEventsLayout"
+        android:id="@+id/noNotificationsLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -81,7 +76,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No Events to List"
+            android:text="No Notifications to List"
             android:textSize="20sp"
             android:textColor="#FFFFFF"
             android:layout_marginTop="8dp" />
@@ -89,18 +84,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sorry! There are currently no events to list.."
+            android:text="There are currently no notifications to list.."
             android:textSize="14sp"
             android:textColor="#AAAAAA"
             android:layout_marginTop="4dp" />
     </LinearLayout>
-
-    <!-- Bottom Navigation View -->
-    <include
-        android:id="@+id/bottomNavigationView"
-        layout="@layout/bottom_navigation"
-        app:layout_constraintTop_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

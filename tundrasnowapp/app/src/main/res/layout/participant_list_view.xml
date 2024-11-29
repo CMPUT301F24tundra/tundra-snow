@@ -69,7 +69,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Set Max Participant List"
+                            android:text="Set Max Participant List (Registration Sample)"
                             android:textColor="#E0E0E0"
                             android:textSize="16sp"/>
 
@@ -85,32 +85,9 @@
                             android:gravity="center"/>
                     </LinearLayout>
 
-                    <!-- Send Notification -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:padding="8dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Send Notification"
-                            android:textColor="#E0E0E0"
-                            android:textSize="16sp"/>
-
-                        <Button
-                            android:id="@+id/sendNotificationButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Send"
-                            android:backgroundTint="#BB86FC"
-                            android:textColor="#000000"/>
-                    </LinearLayout>
-
                     <!-- Random Selection -->
                     <LinearLayout
+                        android:id="@+id/regSampleLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
@@ -126,6 +103,32 @@
 
                         <Button
                             android:id="@+id/selectRegSampleButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Select"
+                            android:backgroundTint="#BB86FC"
+                            android:textColor="#000000"/>
+                    </LinearLayout>
+
+                    <!-- Random Selection -->
+                    <LinearLayout
+                        android:id="@+id/regReplaceLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:padding="8dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Select Random Replacement Sample"
+                            android:textColor="#E0E0E0"
+                            android:textSize="16sp"/>
+
+                        <Button
+                            android:id="@+id/selectReplaceButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Select"

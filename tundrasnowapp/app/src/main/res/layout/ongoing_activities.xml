@@ -12,6 +12,16 @@
         android:background="@drawable/header_underline"
         android:paddingTop="13dp">
 
+        <ImageView
+            android:id="@+id/notificationButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:contentDescription="NotificationButton"
+            android:paddingTop="11dp"
+            android:paddingStart="17dp"
+            android:src="@drawable/notifications_30" />
+
         <TextView
             android:id="@+id/ongoingEventTitle"
             android:layout_width="match_parent"

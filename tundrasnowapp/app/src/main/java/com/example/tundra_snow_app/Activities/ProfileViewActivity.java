@@ -3,7 +3,11 @@ package com.example.tundra_snow_app.Activities;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,18 +19,33 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
 import com.example.tundra_snow_app.EventActivities.EventViewActivity;
+import com.example.tundra_snow_app.Helpers.IdenticonGenerator;
 import com.example.tundra_snow_app.Helpers.NavigationBarHelper;
 import com.example.tundra_snow_app.ListAdapters.FacilityListAdapter;
 import com.example.tundra_snow_app.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.bumptech.glide.Glide;
+
+
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,9 +63,17 @@ public class ProfileViewActivity extends AppCompatActivity {
     private ListView facilitiesListView;
     private FacilityListAdapter adapter;
     private FirebaseFirestore db;
+    private FirebaseStorage storage;
     private String userId;
     private List<String> facilities = new ArrayList<>();
     private List<String> userRoles = new ArrayList<>();
+
+    private ImageView profileImageView;
+    private Button changePictureButton;
+    private Button removePictureButton;
+    private Button generatePictureButton;
+
+    private ActivityResultLauncher<PickVisualMediaRequest> photoPickerLauncher;
 
     private ImageView menuButton;
     private View profileSection;
@@ -78,21 +105,229 @@ public class ProfileViewActivity extends AppCompatActivity {
         profileSection = findViewById(R.id.profileSection);
         facilitiesSection = findViewById(R.id.facilitiesSection);
         menuButton = findViewById(R.id.menuButton);
+        profileImageView = findViewById(R.id.profileImageView);
+        changePictureButton = findViewById(R.id.changePictureButton);
+        removePictureButton = findViewById(R.id.removePictureButton);
+        generatePictureButton = findViewById(R.id.generatePictureButton);
 
         // Initialize Firestore
-        db = FirebaseFirestore.getInstance();
+        db = FirebaseFirestore.getInstance();// Initialize Firebase instances
+        storage = FirebaseStorage.getInstance();
 
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         // Fetch user ID from the latest session
         fetchUserIdFromSession();
 
-        // Set up button listeners
+        // Register the Photo Picker Launcher
+        photoPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.PickVisualMedia(),
+                uri -> {
+                    if (uri != null) {
+                        uploadProfilePictureToFirebase(uri);
+                    } else {
+                        Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        changePictureButton.setOnClickListener(v -> openPhotoPicker());
+        removePictureButton.setOnClickListener(v -> {
+            if (userId != null && !userId.isEmpty()) {
+                confirmAndRemoveProfilePicture();
+            } else {
+                Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            }
+        });
+        generatePictureButton.setOnClickListener(v -> generateIdenticonProfilePicture());
         editButton.setOnClickListener(v -> enableEditing(true));
         saveButton.setOnClickListener(v -> saveProfileUpdates());
         addFacilityButton.setOnClickListener(v -> showAddFacilityDialog());
         setupMenuButton();
     }
+
+    private void generateIdenticonProfilePicture() {
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Generate an Identicon using the user ID's hashCode
+        int hash = userId.hashCode();
+        Bitmap identicon = IdenticonGenerator.generateIdenticon(hash, 256);
+
+        // Save the Bitmap to Firebase
+        saveBitmapToFirebase(identicon);
+    }
+
+    private void saveBitmapToFirebase(Bitmap bitmap) {
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StorageReference storageReference = storage.getReference()
+                .child("profile_pictures")
+                .child(userId + ".jpg");
+
+        // Convert the Bitmap to a ByteArray
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] data = baos.toByteArray();
+
+        // Upload the ByteArray to Firebase Storage
+        storageReference.putBytes(data)
+                .addOnSuccessListener(taskSnapshot ->
+                        storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                            String downloadUrl = uri.toString();
+                            saveProfilePictureUrlToDatabase(downloadUrl);
+                            Glide.with(this).load(downloadUrl).into(profileImageView);
+                            Toast.makeText(this, "Generated profile picture set successfully.", Toast.LENGTH_SHORT).show();
+                        })
+                )
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to upload generated image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                });
+    }
+
+
+
+    /**
+     * Confirms and removes the user's profile picture.
+     */
+    private void confirmAndRemoveProfilePicture() {
+        new AlertDialog.Builder(this)
+                .setTitle("Remove Profile Picture")
+                .setMessage("Are you sure you want to remove your profile picture?")
+                .setPositiveButton("Yes", (dialog, which) -> removeProfilePicture())
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    /**
+     * Removes the profile picture from Firebase Storage and Firestore.
+     */
+    private void removeProfilePicture() {
+        // Reference to the profile picture in Firebase Storage
+        StorageReference profilePicRef = storage.getReference()
+                .child("profile_pictures")
+                .child(userId + ".jpg");
+
+        // Delete the picture from Storage
+        profilePicRef.delete()
+                .addOnSuccessListener(aVoid -> {
+                    // Remove the profile picture URL from Firestore
+                    db.collection("users").document(userId)
+                            .update("profilePictureUrl", null)
+                            .addOnSuccessListener(aVoid1 -> {
+                                // Reset the profile picture to a default image
+                                profileImageView.setImageResource(R.drawable.default_profile_picture);
+                                Toast.makeText(this, "Profile picture removed successfully.", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(this, "Failed to update profile picture URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                e.printStackTrace();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to remove profile picture: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                });
+    }
+
+    private void loadProfilePicture() {
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Reference to Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Get the user's document
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Get the profile picture URL
+                        String imageUrl = documentSnapshot.getString("profilePictureUrl");
+
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            // Load the image using Glide
+                            Glide.with(this)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.default_profile_picture) // Default placeholder
+                                    .into(profileImageView);
+                        } else {
+                            // Set a default image if no URL is available
+                            profileImageView.setImageResource(R.drawable.default_profile_picture);
+                        }
+                    } else {
+                        Toast.makeText(this, "User profile not found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to load profile picture: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                });
+    }
+
+
+    private void openPhotoPicker() {
+        photoPickerLauncher.launch(new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                .build());
+    }
+
+    private void uploadProfilePictureToFirebase(Uri imageUri) {
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StorageReference storageReference = storage.getReference()
+                .child("profile_pictures")
+                .child(userId + ".jpg");
+
+        storageReference.putFile(imageUri)
+                .addOnSuccessListener(taskSnapshot ->
+                        storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                            String downloadUrl = uri.toString();
+                            saveProfilePictureUrlToDatabase(downloadUrl);
+                            Glide.with(this).load(downloadUrl).into(profileImageView);
+                        }))
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void saveProfilePictureUrlToDatabase(String imageUrl) {
+        if (userId == null || userId.isEmpty()) {
+            Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Reference to the Firestore instance
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Update the user's document with the profile picture URL
+        db.collection("users").document(userId)
+                .update("profilePictureUrl", imageUrl)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Profile picture updated successfully.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Failed to save profile picture URL.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error saving profile picture: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                });
+    }
+
+
 
     /**
      * Sets up the menu button to display role-based options.
@@ -210,6 +445,8 @@ public class ProfileViewActivity extends AppCompatActivity {
      */
     private void fetchUserProfile() {
         if (userId == null) return;
+
+        loadProfilePicture();
 
         db.collection("users").document(userId)
                 .get()
