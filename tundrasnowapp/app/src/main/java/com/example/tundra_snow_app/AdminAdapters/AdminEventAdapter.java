@@ -1,6 +1,7 @@
 package com.example.tundra_snow_app.AdminAdapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.tundra_snow_app.EventActivities.CreateEventActivity;
+import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
 import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.R;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -19,6 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Adapter class for the RecyclerView in the AdminEventsActivity. This class
@@ -86,6 +90,21 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
                         Toast.makeText(context, "Error deleting event", Toast.LENGTH_SHORT).show();
                         Log.e("AdminEventAdapter", "Error deleting event", e);
                     });
+        });
+        holder.itemView.setOnClickListener(v -> {
+
+            Intent intent;
+
+            // If the event is a draft, go the Create Event page
+            if(Objects.equals(event.getPublished(), "no")){
+                intent = new Intent(context, CreateEventActivity.class);
+            } else {
+                intent = new Intent(context, EventDetailActivity.class);
+            }
+
+            // Pass event ID to either activity
+            intent.putExtra("eventID", event.getEventID());
+            context.startActivity(intent);
         });
     }
 

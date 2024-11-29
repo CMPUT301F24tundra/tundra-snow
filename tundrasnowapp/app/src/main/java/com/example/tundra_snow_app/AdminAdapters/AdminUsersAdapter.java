@@ -1,6 +1,7 @@
 package com.example.tundra_snow_app.AdminAdapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,11 +12,17 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.tundra_snow_app.Activities.ProfileViewActivity;
+import com.example.tundra_snow_app.AdminActivities.AdminUserProfileViewActivity;
+import com.example.tundra_snow_app.EventActivities.CreateEventActivity;
+import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
+import com.example.tundra_snow_app.AdminActivities.AdminUserProfileViewActivity;
 import com.example.tundra_snow_app.Models.Users;
 import com.example.tundra_snow_app.R;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Adapter class for the RecyclerView in the AdminUsersActivity. This class
@@ -82,6 +89,14 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
                     .addOnFailureListener(e -> {
                         Toast.makeText(context, "Error deleting user.", Toast.LENGTH_SHORT).show();
                     });
+        });
+        holder.itemView.setOnClickListener(v -> {
+
+            Intent intent;
+            intent = new Intent(context, AdminUserProfileViewActivity.class);
+
+            intent.putExtra("userID", user.getUserID());
+            context.startActivity(intent);
         });
     }
 
