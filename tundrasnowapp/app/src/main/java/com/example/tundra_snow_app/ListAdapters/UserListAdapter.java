@@ -53,6 +53,13 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
         return new UserViewHolder(view);
     }
 
+    // Add this method to allow dynamic updates
+    public void updateData(List<String> newUserList) {
+        this.entrantList.clear();
+        this.entrantList.addAll(newUserList);
+        notifyDataSetChanged(); // Notify the adapter of changes
+    }
+
     /**
      * Binds the data to the ViewHolder.
      * @param holder The ViewHolder
