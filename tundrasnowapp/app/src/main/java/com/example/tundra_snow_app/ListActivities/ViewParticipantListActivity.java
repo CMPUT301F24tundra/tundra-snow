@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.tundra_snow_app.ListAdapters.UserListAdapter;
 import com.example.tundra_snow_app.Models.Notifications;
 import com.example.tundra_snow_app.R;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FieldValue;
@@ -69,28 +70,32 @@ public class ViewParticipantListActivity extends AppCompatActivity {
         loadParticipantList();
         backButton.setOnClickListener(view -> finish());
         editButton.setOnClickListener(view -> enableEditing(true));
-        saveButton.setOnClickListener(view -> saveEventUpdates());
+        saveButton.setOnClickListener(view -> {
+            saveEventUpdates();
+            loadParticipantList();
+        });
         regSample.setOnClickListener(view -> selectRandomSample());
         repSample.setOnClickListener(view -> selectReplacementSample());
     }
 
-    /**
-     * Loads the list of participants for the event from Firestore.
-     */
     private void loadParticipantList() {
         db.collection("events").document(eventID).get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
+                // Retrieve lists from Firestore
                 List<String> entrantList = (List<String>) documentSnapshot.get("entrantList");
                 List<String> cancelledList = (List<String>) documentSnapshot.get("cancelledList");
                 List<String> chosenList = (List<String>) documentSnapshot.get("chosenList");
                 List<String> confirmedList = (List<String>) documentSnapshot.get("confirmedList");
+                List<String> declinedList = (List<String>) documentSnapshot.get("declinedList");
 
-                if (entrantList != null && !entrantList.isEmpty()) {
-                    adapter = new UserListAdapter(this, entrantList, eventID);
-                    participantRecyclerView.setAdapter(adapter);
-                } else {
-                    participantRecyclerView.setAdapter(null);
-                }
+                // Initialize lists to avoid null pointer issues
+                entrantList = (entrantList == null) ? new ArrayList<>() : entrantList;
+                cancelledList = (cancelledList == null) ? new ArrayList<>() : cancelledList;
+                chosenList = (chosenList == null) ? new ArrayList<>() : chosenList;
+                confirmedList = (confirmedList == null) ? new ArrayList<>() : confirmedList;
+                declinedList = (declinedList == null) ? new ArrayList<>() : declinedList;
+
+                Map<String, Object> updates = new HashMap<>();
 
                 // Retrieve and display capacity, or "N/A" if not available
                 Long capacityLong = documentSnapshot.getLong("capacity");
@@ -98,36 +103,137 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                     maxParticipantEdit.setText(String.valueOf(capacityLong.intValue()));
                     int capacity = capacityLong.intValue();
 
-                    if (confirmedList != null && confirmedList.size() == capacity) {
+                    // Handle full capacity: Move all entrants to declinedList
+                    if (confirmedList.size() >= capacity) {
+                        if (!entrantList.isEmpty()) {
+                            updates.put("declinedList", FieldValue.arrayUnion(entrantList.toArray()));
+                            updates.put("entrantList", FieldValue.arrayRemove(entrantList.toArray()));
+                        }
+
+                        if (chosenList != null && !chosenList.isEmpty()) {
+                            // Move chosen members to declinedList
+                            updates.put("declinedList", FieldValue.arrayUnion(chosenList.toArray()));
+                            updates.put("chosenList", FieldValue.arrayRemove(chosenList.toArray()));
+                        }
+
                         Toast.makeText(this, "Event is at full capacity!", Toast.LENGTH_LONG).show();
                         regSampleLayout.setVisibility(View.GONE);
                         regReplaceLayout.setVisibility(View.GONE);
-                        return;
-                    }
+                    } else if (chosenList.size() >= capacity) {
+                        if (!entrantList.isEmpty()) {
+                            updates.put("declinedList", FieldValue.arrayUnion(entrantList.toArray()));
+                        }
 
-                    if (chosenList != null && chosenList.size() == capacity) {
-                        Toast.makeText(this, "Max participants have been selected. If any cancel, sampling will enable", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Max participants have been selected. Sampling will enable if cancellations occur.", Toast.LENGTH_LONG).show();
                         regSampleLayout.setVisibility(View.GONE);
                         regReplaceLayout.setVisibility(View.GONE);
-                        return;
-                    }
+                    } else if (!cancelledList.isEmpty() && chosenList.size() < capacity) {
+                        if (!entrantList.isEmpty()) {
+                            updates.put("declinedList", FieldValue.arrayRemove(entrantList.toArray()));
+                        } else if (!declinedList.isEmpty()) {
+                            updates.put("entrantList", FieldValue.arrayUnion(declinedList.toArray()));
+                            updates.put("declinedList", FieldValue.arrayRemove(declinedList.toArray()));
+                        }
 
-                    if ((entrantList != null && cancelledList != null && chosenList != null) &&
-                        !cancelledList.isEmpty() && chosenList.size() < capacity) {
                         Toast.makeText(this, "There have been cancellations. Please select a replacement sample.", Toast.LENGTH_LONG).show();
                         regSampleLayout.setVisibility(View.GONE);
                         regReplaceLayout.setVisibility(View.VISIBLE);
-                    } else {
+                    } else if (chosenList.size() < capacity) {
+                        if (!entrantList.isEmpty()) {
+                            updates.put("declinedList", FieldValue.arrayRemove(entrantList.toArray()));
+                        } else if (!declinedList.isEmpty()) {
+                            updates.put("entrantList", FieldValue.arrayUnion(declinedList.toArray()));
+                            updates.put("declinedList", FieldValue.arrayRemove(declinedList.toArray()));
+                        }
+
                         regSampleLayout.setVisibility(View.VISIBLE);
                         regReplaceLayout.setVisibility(View.GONE);
                     }
                 } else {
+                    if (!entrantList.isEmpty()) {
+                        updates.put("declinedList", FieldValue.arrayRemove(entrantList.toArray()));
+                    } else {
+                        updates.put("declinedList", FieldValue.arrayRemove(declinedList.toArray()));
+                        updates.put("entrantList", FieldValue.arrayUnion(declinedList.toArray()));
+                    }
                     maxParticipantEdit.setText("N/A");
                     regSampleLayout.setVisibility(View.VISIBLE);
                     regReplaceLayout.setVisibility(View.GONE);
                 }
+
+                // Apply updates to Firestore
+                handleUpdates(updates);
+            } else {
+                Log.e("LoadParticipants", "Event document does not exist.");
             }
+        }).addOnFailureListener(e -> {
+            Log.e("LoadParticipants", "Failed to load event details: ", e);
+            Toast.makeText(this, "Error loading participants.", Toast.LENGTH_SHORT).show();
         });
+    }
+
+    private void updateRecyclerView(List<String> entrantList) {
+        if (entrantList != null && !entrantList.isEmpty()) {
+            if (adapter == null) {
+                // Initialize the adapter for the first time
+                adapter = new UserListAdapter(this, entrantList, eventID);
+                participantRecyclerView.setAdapter(adapter);
+            } else {
+                // Update the adapter's data and refresh
+                adapter.updateData(entrantList);
+                adapter.notifyDataSetChanged();
+            }
+            participantRecyclerView.setVisibility(View.VISIBLE);
+        } else {
+            // Clear the RecyclerView if the list is empty
+            if (adapter != null) {
+                adapter.updateData(new ArrayList<>());
+                adapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    /**
+     * Helper function for handling database updates and refreshing the UI.
+     */
+    private void handleUpdates(Map<String, Object> updates) {
+        if (updates.isEmpty()) {
+            Log.d("LoadParticipants", "No updates to apply.");
+            return;
+        }
+
+        // Apply updates to Firestore
+        db.collection("events").document(eventID)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("LoadParticipants", "Event details updated successfully.");
+
+                    // Fetch the updated document to refresh the RecyclerView
+                    db.collection("events").document(eventID).get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    List<String> entrantList = (List<String>) documentSnapshot.get("entrantList");
+
+                                    if (entrantList != null) {
+                                        updateRecyclerView(entrantList);
+                                    } else {
+                                        Log.d("LoadParticipants", "Entrant list is empty after update.");
+                                        updateRecyclerView(new ArrayList<>());
+                                    }
+                                } else {
+                                    Log.e("LoadParticipants", "Event document no longer exists.");
+                                    Toast.makeText(this, "Event not found.", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("LoadParticipants", "Error fetching updated document: ", e);
+                                Toast.makeText(this, "Error fetching updated event details.", Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("LoadParticipants", "Error updating Firestore: ", e);
+                    Toast.makeText(this, "Failed to update event details.", Toast.LENGTH_SHORT).show();
+                });
     }
 
     /**
@@ -141,7 +247,9 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         List<String> chosenList = (List<String>) documentSnapshot.get("chosenList");
+                        List<String> confirmedList = (List<String>) documentSnapshot.get("confirmedList");
                         int chosenListSize = chosenList != null ? chosenList.size() : 0;
+                        int confirmedListSize = confirmedList != null ? confirmedList.size() : 0;
 
                         Integer maxParticipantsEdited = null;
                         try {
@@ -150,7 +258,7 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                                 maxParticipantsEdited = Integer.parseInt(maxParticipantsText);
 
                                 // Validate capacity with chosenList size
-                                while (maxParticipantsEdited < chosenListSize) {
+                                while (maxParticipantsEdited < chosenListSize || maxParticipantsEdited < confirmedListSize) {
                                     Toast.makeText(this,
                                             "Invalid capacity. " + chosenListSize + " participants have already been chosen. Please enter a capacity larger than or equal to " + chosenListSize,
                                             Toast.LENGTH_LONG
@@ -260,6 +368,7 @@ public class ViewParticipantListActivity extends AppCompatActivity {
             if (documentSnapshot.exists()) {
                 List<String> entrantList = (List<String>) documentSnapshot.get("entrantList");
                 List<String> chosenList = (List<String>) documentSnapshot.get("chosenList");
+                List<String> confirmedList = (List<String>) documentSnapshot.get("confirmedList");
 
                 if (entrantList == null || entrantList.isEmpty()) {
                     Toast.makeText(this, "No participants available in the entrant list for replacement.", Toast.LENGTH_SHORT).show();
@@ -355,8 +464,17 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                 type
         );
 
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("notificationID", notification.getNotificationID());
+        notificationData.put("userIDs", notification.getUserIDs());
+        notificationData.put("eventID", notification.getEventID());
+        notificationData.put("eventName", notification.getEventName());
+        notificationData.put("text", notification.getText());
+        notificationData.put("notificationType", notification.getNotificationType());
+        notificationData.put("timestamp", System.currentTimeMillis());
+
         db.collection("notifications").document(notificationID)
-                .set(notification)
+                .set(notificationData)
                 .addOnSuccessListener(aVoid -> Log.d("Notifications", "Notification (" + type + ") created successfully."))
                 .addOnFailureListener(e -> Log.e("Notifications", "Failed to create notification (" + type + "): ", e));
     }

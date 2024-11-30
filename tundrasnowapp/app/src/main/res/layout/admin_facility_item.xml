@@ -7,18 +7,12 @@
     android:background="#000000"
     android:gravity="center_vertical">
 
-    <!-- Left Section with Icon -->
-    <ImageView
-        android:id="@+id/eventIcon"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginEnd="10dp" />
-
     <!-- Center Section with Event Details -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:layout_marginStart="10dp"
         android:orientation="vertical">
 
         <!-- Event Name -->
@@ -43,7 +37,7 @@
 
     <!-- Right Button to delete -->
     <Button
-        android:id="@+id/removeEventButton"
+        android:id="@+id/removeFacilityButton"
         android:layout_width="82dp"
         android:layout_height="45dp"
         android:text="Delete"

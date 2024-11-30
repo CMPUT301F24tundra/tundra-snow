@@ -11,7 +11,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tundra_snow_app.AdminAdapters.AdminQRAdapter;
+import com.example.tundra_snow_app.Helpers.AdminNavbarHelper;
 import com.example.tundra_snow_app.R;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -32,6 +34,9 @@ public class AdminQRViewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.admin_qr_view);
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.adminBottomNavigationView);
+        AdminNavbarHelper.setupBottomNavigation(this, bottomNavigationView);
 
         // Initialize UI components
         qrRecyclerView = findViewById(R.id.adminQRRecyclerView);

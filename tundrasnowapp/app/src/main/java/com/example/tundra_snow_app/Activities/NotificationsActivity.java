@@ -75,6 +75,7 @@ public class NotificationsActivity extends AppCompatActivity {
 
         db.collection("notifications")
                 .whereArrayContains("userIDs", currentUserID) // Check if the user is in userIDs
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
