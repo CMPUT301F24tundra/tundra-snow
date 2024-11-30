@@ -5,23 +5,40 @@ import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasType;
 import static androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static androidx.test.espresso.matcher.ViewMatchers.isChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isNotChecked;
+import static androidx.test.espresso.matcher.ViewMatchers.withContentDescription;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
-
+import android.util.Log;
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.core.IsNot.not;
 
+import android.app.Activity;
+import android.app.Instrumentation;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.text.Spannable;
 import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.Checkable;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.PerformException;
@@ -29,8 +46,19 @@ import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.ViewAssertion;
 import androidx.test.espresso.intent.Intents;
+import androidx.test.espresso.intent.matcher.IntentMatchers;
+import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.espresso.util.HumanReadables;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.uiautomator.By;
+import androidx.test.uiautomator.UiDevice;
+import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiObject2;
+import androidx.test.uiautomator.UiObjectNotFoundException;
+import androidx.test.uiautomator.UiScrollable;
+import androidx.test.uiautomator.UiSelector;
+import androidx.test.uiautomator.Until;
 
 import com.example.tundra_snow_app.Activities.ProfileViewActivity;
 import com.example.tundra_snow_app.Activities.SettingsViewActivity;
@@ -38,12 +66,15 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +90,8 @@ public class EntrantTests {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-
+    private String projectBasePath = System.getProperty("user.dir");
+    private UiDevice mDevice;
     String permanentEvent = "Important Test Event";
     String permanentEventID = "ef375549-e7b5-4078-8d22-959be14937f0";
 
@@ -198,17 +230,44 @@ public class EntrantTests {
      * Set up method that initializes Intents.
      */
     @Before
-    public void setUp() throws InterruptedException {
+    public void setUp() throws InterruptedException,IOException {
         Intents.init();
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
+        mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
         // This account is an only an Entrant
         onView(withId(R.id.usernameEditText)).perform(replaceText("111@gmail.com"));
         onView(withId(R.id.passwordEditText)).perform(replaceText("111"));
         onView(withId(R.id.loginButton)).perform(click());
+//        pushImageToDeviceAndScan(); Probems with ADB. have to do it manually for now
 
         Thread.sleep(1000);
+    }
+
+    public void pushImageToDeviceAndScan() throws IOException, InterruptedException {
+        String adbPath = "/Users/stro/Library/Android/sdk/platform-tools/adb";  // Path to adb
+        String imagePath = "/Users/stro/AndroidStudioProjects/tundra-snow/tundrasnowapp/app/src/main/res/drawable/test_image.png";  // Path to the image
+        String targetPath = "/sdcard/Pictures/";  // Target path on the device/emulator
+        String adbPushCommand = adbPath + " push \"" + imagePath + "\" " + targetPath;
+        Log.d("AdbTest", adbPushCommand);
+        String mediaScanCommand = adbPath + " shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://" + targetPath + "test_image.png";
+        executeCommand(adbPushCommand);
+        executeCommand(mediaScanCommand);
+
+    }
+
+    private void executeCommand(String command) throws IOException, InterruptedException {
+        String[] commandArgs = command.split(" ");
+        ProcessBuilder processBuilder = new ProcessBuilder(commandArgs);
+        processBuilder.inheritIO();  // Inherit the I/O streams for debugging/logging
+        Process process = processBuilder.start();
+        int exitCode = process.waitFor();
+
+        if (exitCode == 0) {
+            System.out.println("Command executed successfully: " + command);
+        } else {
+            System.err.println("Command failed with exit code " + exitCode + ": " + command);
+        }
     }
 
     /**
@@ -496,11 +555,113 @@ public class EntrantTests {
     /**
      * TODO US 01.03.01 As an entrant I want to upload a profile picture for a more
      * personalized experience
-     * @throws InterruptedException
      */
     @Test
-    public void testProfilePictureUpload(){
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void testProfilePictureUpload() throws InterruptedException {
+        onView(withId(R.id.nav_profile)).perform(click());
+
+        // Step 2: Perform the click action on the "Change Picture" button
+        onView(withId(R.id.changePictureButton)).perform(click());
+
+        // Step 3: Mock the result of the photo picker
+        String imagePath = "/sdcard/Download/test_image.png";  // Path to the image on the emulator
+        Uri imageUri = Uri.parse("file://" + imagePath);       // Convert path to a file URI
+
+        // Create a mock result for the photo picker
+        Intent resultData = new Intent();
+        resultData.setData(imageUri);  // Simulate the selected image
+        Instrumentation.ActivityResult mockResult = new Instrumentation.ActivityResult(Activity.RESULT_OK, resultData);
+
+        // Mock the response for the photo picker intent
+        Intents.intending(IntentMatchers.hasAction(Intent.ACTION_PICK)).respondWith(mockResult);
+
+        // Step 4: Verify the result
+        onView(withId(R.id.profileImageView))  // Assuming the image is displayed in this ImageView
+                .check(matches(withImageUri(imageUri)));
+    }
+
+    private Matcher<? super View> withImageUri(Uri imageUri) {
+        return new BoundedMatcher<View, ImageView>(ImageView.class) {
+
+            @Override
+            protected boolean matchesSafely(ImageView imageView) {
+                // Get the drawable from the ImageView
+                Drawable drawable = imageView.getDrawable();
+
+                if (drawable == null) {
+                    return false; // No image set in the ImageView
+                }
+
+                // Convert the URI to a bitmap for comparison
+                Context context = imageView.getContext();
+                Bitmap expectedBitmap = getBitmapFromUri(context, imageUri);
+
+                if (expectedBitmap == null) {
+                    return false; // Could not load the bitmap from the URI
+                }
+
+                // Convert the drawable in the ImageView to a bitmap
+                Bitmap actualBitmap = getBitmapFromDrawable(drawable);
+
+                // Compare the bitmaps
+                return actualBitmap.sameAs(expectedBitmap);
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("with image URI: " + imageUri);
+            }
+
+            private Bitmap getBitmapFromUri(Context context, Uri uri) {
+                try (InputStream inputStream = context.getContentResolver().openInputStream(uri)) {
+                    return BitmapFactory.decodeStream(inputStream);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            private Bitmap getBitmapFromDrawable(Drawable drawable) {
+                if (drawable instanceof BitmapDrawable) {
+                    return ((BitmapDrawable) drawable).getBitmap();
+                }
+
+                Bitmap bitmap = Bitmap.createBitmap(
+                        drawable.getIntrinsicWidth(),
+                        drawable.getIntrinsicHeight(),
+                        Bitmap.Config.ARGB_8888
+                );
+
+                Canvas canvas = new Canvas(bitmap);
+                drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                drawable.draw(canvas);
+
+                return bitmap;
+            }
+        };
+    }
+
+    private Matcher<? super View> withDrawable(int testImage) {
+        return new BoundedMatcher<View, ImageView>(ImageView.class) {
+            @Override
+            protected boolean matchesSafely(ImageView imageView) {
+                // Get the drawable from the ImageView
+                Drawable drawable = imageView.getDrawable();
+
+                // Check if the drawable is not null and if it matches the expected drawable
+                if (drawable != null) {
+                    Drawable expectedDrawable = ContextCompat.getDrawable(imageView.getContext(), testImage);  // Using ContextCompat to load drawable
+                    return drawable.getConstantState().equals(expectedDrawable.getConstantState());  // Compare the constant state
+                }
+
+                return false;
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("with drawable resource ID: " + testImage);
+            }
+        };
     }
 
     /**
@@ -508,8 +669,25 @@ public class EntrantTests {
      * @throws InterruptedException
      */
     @Test
-    public void testProfilePictureRemoval(){
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void testProfilePictureRemoval() throws InterruptedException, UiObjectNotFoundException {
+        // Step 1: Navigate to the profile screen
+        onView(withId(R.id.nav_profile)).perform(click());
+        Thread.sleep(1000); // Optional: Wait for the profile screen to load
+        // Step 2: Set the profile picture
+        onView(withId(R.id.generatePictureButton)).perform(click());
+        Thread.sleep(3000);
+
+        onView(withId(R.id.profileImageView))
+                .check(matches(not(withDrawable(R.drawable.default_profile_picture))));
+
+        // Step 3: Remove the profile picture
+        onView(withId(R.id.removePictureButton)).perform(click())
+
+
+
+        // Step 4: Verify that the profile picture is removed
+        onView(withId(R.id.profileImageView))
+                .check(matches(withDrawable(R.drawable.default_profile_picture)));
     }
 
     /**
