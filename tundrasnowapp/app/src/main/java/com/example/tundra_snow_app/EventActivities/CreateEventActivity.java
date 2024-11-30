@@ -315,7 +315,8 @@ public class CreateEventActivity extends AppCompatActivity{
      * Creates an event in the Firestore database.
      */
     private void createEvent() {
-        if (!validateInputs()) {
+        
+        if (validateInputs()) {
             return;
         }
 
@@ -471,7 +472,7 @@ public class CreateEventActivity extends AppCompatActivity{
         }
 
         // Validate dates if any are provided
-        if (!validateDates()) {
+        if (validateDates()) {
             return;
         }
 
@@ -538,7 +539,7 @@ public class CreateEventActivity extends AppCompatActivity{
 
     /**
      * Validates the dates and times for the event.
-     * @return True if all dates and times are valid, false otherwise.
+     * @return True if a field is invalid, otherwise false.
      */
     private boolean validateDates() {
         // Parse start and end dates
@@ -556,11 +557,11 @@ public class CreateEventActivity extends AppCompatActivity{
         // Ensure dates and times are provided
         if (startDate == null || endDate == null || regStartDate == null || regEndDate == null) {
             showError("All dates must be selected");
-            return false;
+            return true;
         }
         if (startTime == null || endTime == null || regStartTime == null || regEndTime == null) {
             showError("All times must be selected");
-            return false;
+            return true;
         }
 
         // Combine dates and times into Calendar objects
@@ -575,51 +576,51 @@ public class CreateEventActivity extends AppCompatActivity{
         // Validate future dates
         if (startDateTime.before(currentDateTime)) {
             showError("Event start date and time must be in the future");
-            return false;
+            return true;
         }
         if (endDateTime.before(currentDateTime)) {
             showError("Event end date and time must be in the future");
-            return false;
+            return true;
         }
         if (regStartDateTime.before(currentDateTime)) {
             showError("Registration start date and time must be in the future");
-            return false;
+            return true;
         }
         if (regEndDateTime.before(currentDateTime)) {
             showError("Registration end date and time must be in the future");
-            return false;
+            return true;
         }
 
         // Validate logical relationships
         if (endDateTime.before(startDateTime)) {
             showError("Event end date and time must be after start date and time");
-            return false;
+            return true;
         }
         if (regEndDateTime.before(regStartDateTime)) {
             showError("Registration end date and time must be after start date and time");
-            return false;
+            return true;
         }
         if (regStartDateTime.after(startDateTime)) {
             showError("Registration must start before the event starts");
-            return false;
+            return true;
         }
         if (regEndDateTime.after(startDateTime)) {
             showError("Registration must end before the event starts");
-            return false;
+            return true;
         }
 
         // Additional validations
         if (startDateTime.getTimeInMillis() - regStartDateTime.getTimeInMillis() < 60 * 60 * 1000) {
             showError("Registration must start at least 1 hour before the event");
-            return false;
+            return true;
         }
         if (endDateTime.getTimeInMillis() - startDateTime.getTimeInMillis() < 30 * 60 * 1000) {
             showError("Event duration must be at least 30 minutes");
-            return false;
+            return true;
         }
         if (regEndDateTime.getTimeInMillis() - regStartDateTime.getTimeInMillis() < 60 * 60 * 1000) {
             showError("Registration duration must be at least 1 hour");
-            return false;
+            return true;
         }
 
         // Validate event not too far in the future (e.g., 2 years)
@@ -627,31 +628,31 @@ public class CreateEventActivity extends AppCompatActivity{
         twoYearsFromNow.add(Calendar.YEAR, 2);
         if (startDateTime.after(twoYearsFromNow)) {
             showError("Event cannot be scheduled more than 2 years in advance");
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     /**
      * Validates the input fields for creating an event.
-     * @return True if all required fields are valid, false otherwise.
+     * @return True if a field is invalid, otherwise false.
      */
     private boolean validateInputs() {
         // Check for empty required fields
         if (eventTitleEditText.getText().toString().trim().isEmpty()) {
             showError("Event title is required");
-            return false;
+            return true;
         }
 
         if (eventDescriptionEditText.getText().toString().trim().isEmpty()) {
             showError("Event description is required");
-            return false;
+            return true;
         }
 
         if (eventLocationEditText.getText().toString().trim().isEmpty()) {
             showError("Event location is required");
-            return false;
+            return true;
         }
 
         // Check capacity
@@ -661,33 +662,33 @@ public class CreateEventActivity extends AppCompatActivity{
                 int capacity = Integer.parseInt(capacityStr);
                 if (capacity <= 0) {
                     showError("Capacity must be greater than 0");
-                    return false;
+                    return true;
                 }
             } catch (NumberFormatException e) {
                 showError("Please enter a valid number for capacity");
-                return false;
+                return true;
             }
         }
 
         // For a published event, all dates must be provided
         if (eventStartDatePicker.getText().toString().isEmpty()) {
             showError("Start date is required");
-            return false;
+            return true;
         }
 
         if (eventEndDatePicker.getText().toString().isEmpty()) {
             showError("End date is required");
-            return false;
+            return true;
         }
 
         if (eventRegistrationStartDatePicker.getText().toString().isEmpty()) {
             showError("Registration start date is required");
-            return false;
+            return true;
         }
 
         if (eventRegistrationEndDatePicker.getText().toString().isEmpty()) {
             showError("Registration end date is required");
-            return false;
+            return true;
         }
 
         // Validate the dates
@@ -759,7 +760,7 @@ public class CreateEventActivity extends AppCompatActivity{
     }
 
     private void generateHashAndQRCode() {
-        if (!validateInputs()) {
+        if (validateInputs()) {
             return;
         }
 
