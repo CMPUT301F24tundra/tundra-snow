@@ -52,10 +52,12 @@ public class EntrantSignupActivity extends AppCompatActivity{
     private String deviceID, userLocation;
     private Button createAccountButton, backButton;
     private EditText firstNameEditText, lastNameEditText, emailEditText, passwordEditText, dateOfBirthEditText, phoneNumberEditText;
-    private ToggleButton notificationToggleButton, geolocationToggleButton;
+//    private ToggleButton notificationToggleButton, geolocationToggleButton;
 
     // Organizer Fields
     private CheckBox organizerCheckbox;
+
+    private CheckBox notificationCheckBox, geolocationCheckBox;
     private LinearLayout facilityLayout;
     private EditText facilityEditText;
 
@@ -94,24 +96,40 @@ public class EntrantSignupActivity extends AppCompatActivity{
         dateOfBirthEditText = findViewById(R.id.editTextDateOfBirth);
         phoneNumberEditText = findViewById(R.id.editTextPhoneNumber);
         passwordEditText = findViewById(R.id.editTextPassword);
-        notificationToggleButton = findViewById(R.id.toggleButtonNotification);
-        geolocationToggleButton = findViewById(R.id.toggleButtonGeolocation);
+//        notificationToggleButton = findViewById(R.id.toggleButtonNotification);
+//        geolocationToggleButton = findViewById(R.id.toggleButtonGeolocation);
+        notificationCheckBox = findViewById(R.id.checkBoxNotifications);
+        geolocationCheckBox = findViewById(R.id.checkBoxGeolocation);
         organizerCheckbox = findViewById(R.id.checkBoxOrganizer);
         facilityLayout = findViewById(R.id.facilityLayout);
         facilityEditText = findViewById(R.id.editTextFacility);
 
+//        // Check geolocation settings if toggle is checked
+//        geolocationToggleButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+//            if (isChecked) {
+//                boolean isGeolocationEnabled = DeviceUtils.ensureGeolocationEnabled(this);
+//                if (isGeolocationEnabled) {
+//                    fetchUserLocation();
+//                } else {
+//                    geolocationToggleButton.setChecked(false);
+//                    userLocation = null;
+//                }
+//            }
+//        });
+
         // Check geolocation settings if toggle is checked
-        geolocationToggleButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        geolocationCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 boolean isGeolocationEnabled = DeviceUtils.ensureGeolocationEnabled(this);
                 if (isGeolocationEnabled) {
                     fetchUserLocation();
                 } else {
-                    geolocationToggleButton.setChecked(false);
+                    geolocationCheckBox.setChecked(false);
                     userLocation = null;
                 }
             }
         });
+
 
         // Toggling visibility of facility input based on organizer selection
         organizerCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -186,8 +204,10 @@ public class EntrantSignupActivity extends AppCompatActivity{
         String password = passwordEditText.getText().toString();
         String dateOfBirth = dateOfBirthEditText.getText().toString();
         String phoneNumber = phoneNumberEditText.getText().toString();
-        boolean notificationsEnabled = notificationToggleButton.isChecked();
-        boolean geolocationEnabled = geolocationToggleButton.isChecked();
+//        boolean notificationsEnabled = notificationToggleButton.isChecked();
+//        boolean geolocationEnabled = geolocationToggleButton.isChecked();
+        boolean notificationsEnabled = notificationCheckBox.isChecked();
+        boolean geolocationEnabled = geolocationCheckBox.isChecked();
 
         // Roles and permissions setup
         List<String> roles = new ArrayList<>();
