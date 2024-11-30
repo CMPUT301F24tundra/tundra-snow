@@ -38,6 +38,94 @@
                     android:maxLines="2"
                     android:ellipsize="end"
                     android:textColor="#FFFFFF" />
+            </LinearLayout>
+
+            <!-- Status Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/detailEventStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:backgroundTint="#1E1E1E"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Event is now full! If you've been rejected, you will be notified if a seat has been opened.."
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:padding="16dp"
+                    android:maxLines="6"
+                    android:textColor="#C80000" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- Geolocation Notice -->
+            <TextView
+                android:id="@+id/geoLocationNotification"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Notice: Event Signup Requires Geolocation!"
+                android:background="#332200"
+                android:padding="16dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="16dp"
+                android:textColor="#FF9800"
+                android:visibility="visible"
+                android:textStyle="bold"/>
+
+            <!-- Image Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/eventImageCardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:backgroundTint="#1E1E1E">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="POSTER IMAGE"
+                    android:textColor="#9E9E9E"
+                    android:layout_margin="8dp"/>
+
+                <ImageView
+                    android:id="@+id/eventImageView"
+                    android:layout_width="350dp"
+                    android:layout_margin="5dp"
+                    android:layout_height="400dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Selected Event Image"
+                    android:scaleType="centerCrop" />
+
+            </androidx.cardview.widget.CardView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#1E1E1E"
+                android:elevation="4dp"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EVENT DESCRIPTION"
+                    android:textSize="12sp"
+                    android:textColor="#9E9E9E" />
+
+                <TextView
+                    android:id="@+id/detailEventDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/event_description"
+                    android:textSize="16sp"
+                    android:padding="16dp"
+                    android:maxLines="6"
+                    android:ellipsize="end"
+                    android:textColor="#E0E0E0" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -45,12 +133,84 @@
                     android:orientation="vertical"
                     android:layout_marginTop="16dp">
 
+                    <!-- Location Section -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="LOCATION"
+                            android:textSize="12sp"
+                            android:textColor="#9E9E9E" />
+
+                        <TextView
+                            android:id="@+id/detailEventLocation"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Event Location"
+                            android:textSize="16sp"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:textColor="#E0E0E0" />
+                    </LinearLayout>
+
                     <!-- Dates Section -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:layout_marginTop="16dp">
+
+                        <!-- Registration Start Date -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="REGISTRATION OPEN DATE"
+                                android:textSize="12sp"
+                                android:textColor="#9E9E9E" />
+
+                            <TextView
+                                android:id="@+id/detailRegStartDate"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Not Set"
+                                android:textSize="16sp"
+                                android:textColor="#E0E0E0" />
+                        </LinearLayout>
+
+                        <!-- Registration End Date -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="REGISTRATION DEADLINE"
+                                android:textSize="12sp"
+                                android:textColor="#9E9E9E" />
+
+                            <TextView
+                                android:id="@+id/detailRegEndDate"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Not Set"
+                                android:textSize="16sp"
+                                android:textColor="#E0E0E0" />
+                        </LinearLayout>
 
                         <!-- Start Date -->
                         <LinearLayout
@@ -62,7 +222,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Start Date"
+                                android:text="EVENT START DATE"
                                 android:textSize="12sp"
                                 android:textColor="#9E9E9E" />
 
@@ -85,7 +245,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="End Date"
+                                android:text="EVENT END DATE"
                                 android:textSize="12sp"
                                 android:textColor="#9E9E9E" />
 
@@ -97,183 +257,9 @@
                                 android:textSize="16sp"
                                 android:textColor="#E0E0E0" />
                         </LinearLayout>
-
-                        <!-- Registration Start Date -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_marginBottom="8dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Registration Start Date"
-                                android:textSize="12sp"
-                                android:textColor="#9E9E9E" />
-
-                            <TextView
-                                android:id="@+id/detailRegStartDate"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Not Set"
-                                android:textSize="16sp"
-                                android:textColor="#E0E0E0" />
-                        </LinearLayout>
-
-                        <!-- Registration End Date -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Registration End Date"
-                                android:textSize="12sp"
-                                android:textColor="#9E9E9E" />
-
-                            <TextView
-                                android:id="@+id/detailRegEndDate"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Not Set"
-                                android:textSize="16sp"
-                                android:textColor="#E0E0E0" />
-                        </LinearLayout>
                     </LinearLayout>
-
-                    <!-- Location Section -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginTop="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="LOCATION"
-                            android:textSize="12sp"
-                            android:textColor="#9E9E9E" />
-
-                        <TextView
-                            android:id="@+id/detailEventLocation"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Event Location"
-                            android:textSize="16sp"
-                            android:maxLines="1"
-                            android:ellipsize="end"
-                            android:textColor="#E0E0E0" />
-                    </LinearLayout>
-
                 </LinearLayout>
             </LinearLayout>
-
-            <!-- Description Card -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/detailEventStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:backgroundTint="#1E1E1E"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Event is now full! If you've been rejected, you will be notified if a seat has been opened.."
-                    android:textSize="16sp"
-                    android:gravity="center"
-                    android:padding="16dp"
-                    android:maxLines="6"
-                    android:textColor="#C80000" />
-            </androidx.cardview.widget.CardView>
-
-            <!-- Description Card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:backgroundTint="#1E1E1E">
-
-                <TextView
-                    android:id="@+id/detailEventDescription"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/event_description"
-                    android:textSize="16sp"
-                    android:padding="16dp"
-                    android:maxLines="6"
-                    android:ellipsize="end"
-                    android:textColor="#E0E0E0" />
-            </androidx.cardview.widget.CardView>
-
-            <!-- Image Card -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/eventImageCardView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:backgroundTint="#1E1E1E">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="POSTER IMAGE"
-                    android:textColor="#9E9E9E"
-                    android:layout_margin="8dp"/>
-
-                <ImageView
-                    android:id="@+id/eventImageView"
-                    android:layout_width="300dp"
-                    android:layout_margin="5dp"
-                    android:layout_height="400dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="Selected Event Image"
-                    android:scaleType="centerCrop" />
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- Map Card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="16dp"
-                android:backgroundTint="#1E1E1E">
-
-                <FrameLayout
-                    android:id="@+id/mapContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="Map Coming Soon"
-                        android:textColor="#9E9E9E"
-                        android:textSize="16sp"/>
-                </FrameLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Geolocation Notice -->
-            <TextView
-                android:id="@+id/geoLocationNotification"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Notice: Event Signup Requires Geolocation!"
-                android:background="#332200"
-                android:padding="16dp"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="16dp"
-                android:textColor="#FF9800"
-                android:visibility="gone"
-                android:textStyle="bold"/>
         </LinearLayout>
     </ScrollView>
 

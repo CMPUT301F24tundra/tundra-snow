@@ -17,13 +17,16 @@ import com.example.tundra_snow_app.Models.Events;
 
 import com.example.tundra_snow_app.Models.Notifications;
 import com.example.tundra_snow_app.R;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.Query;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Activity class for the event detail view. This class is responsible for displaying
@@ -111,25 +114,35 @@ public class MyEventDetailActivity extends AppCompatActivity {
                                         .into(eventImageView);
                             }
 
-                            if (((List<String>) documentSnapshot.get("entrantList")).contains(currentUserID)) {
+                            List<String> entrantList = (List<String>) documentSnapshot.get("entrantList");
+                            List<String> cancelledList = (List<String>) documentSnapshot.get("cancelledList");
+                            List<String> chosenList = (List<String>) documentSnapshot.get("chosenList");
+                            List<String> confirmedList = (List<String>) documentSnapshot.get("confirmedList");
+                            List<String> declinedList = (List<String>) documentSnapshot.get("declinedList");
+
+                            if (entrantList != null && entrantList.contains(currentUserID) && !declinedList.contains(currentUserID)) {
                                 userStatus = "entrant";
                                 statusMessage.setText("You have successfully signed up! Organizer has not yet sent you an invite.");
                                 configureChosenButtons();
-                            } else if (((List<String>) documentSnapshot.get("chosenList")).contains(currentUserID)) {
+                            } else if (chosenList != null && chosenList.contains(currentUserID)) {
                                 userStatus = "chosen";
                                 statusMessage.setText("You have been invited!");
                                 configureChosenButtons();
-                            } else if (((List<String>) documentSnapshot.get("cancelledList")).contains(currentUserID)) {
+                            } else if (cancelledList != null && cancelledList.contains(currentUserID)) {
                                 userStatus = "cancelled";
                                 statusMessage.setText("Event has been cancelled!");
                                 configureChosenButtons();
-                            } else if (((List<String>) documentSnapshot.get("confirmedList")).contains(currentUserID)) {
+                            } else if (confirmedList != null && confirmedList.contains(currentUserID)) {
                                 userStatus = "confirmed";
                                 statusMessage.setText("You have confirmed your attendance!");
                                 configureChosenButtons();
-                            } else if (((List<String>) documentSnapshot.get("declinedList")).contains(currentUserID)) {
+                            } else if (declinedList != null && entrantList != null && entrantList.contains(currentUserID) && declinedList.contains(currentUserID)) {
                                 userStatus = "declined";
-                                statusMessage.setText("You were not chosen for this event!");
+                                statusMessage.setText("You were not chosen for this event! If you are rechosen, you will be notified");
+                                configureChosenButtons();
+                            } else if (declinedList != null && declinedList.contains(currentUserID)) {
+                                userStatus = "declined";
+                                statusMessage.setText("You have not been chosen from this event! Good luck next time.");
                                 configureChosenButtons();
                             }
                         }
@@ -183,7 +196,7 @@ public class MyEventDetailActivity extends AppCompatActivity {
             middleButton.setOnClickListener(v -> {
                 db.collection("events").document(eventID)
                         .update("chosenList", FieldValue.arrayRemove(currentUserID),
-                                "declinedList", FieldValue.arrayUnion(currentUserID))
+                                "cancelledList", FieldValue.arrayUnion(currentUserID))
                         .addOnSuccessListener(aVoid -> {
                             Toast.makeText(this, "You have declined your participation.", Toast.LENGTH_SHORT).show();
                             sendCancelNotification();
@@ -199,7 +212,8 @@ public class MyEventDetailActivity extends AppCompatActivity {
                         .update("chosenList", FieldValue.arrayRemove(currentUserID),
                                 "confirmedList", FieldValue.arrayUnion(currentUserID))
                         .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(this, "You have cancelled your participation.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "You have successfully confirmed your participation!", Toast.LENGTH_SHORT).show();
+                            sendAcceptNotification();
                             finishWithResult();
                         })
                         .addOnFailureListener(e -> Toast.makeText(this, "Failed to cancel.", Toast.LENGTH_SHORT).show());
@@ -252,6 +266,30 @@ public class MyEventDetailActivity extends AppCompatActivity {
     }
 
     /**
+     * Sends a accept notification to the user.
+     */
+    private void sendAcceptNotification() {
+        db.collection("events").document(eventID).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                String eventName = documentSnapshot.getString("title");
+                if (eventName != null) {
+                    createNotification(
+                            "accept",
+                            List.of(currentUserID), // Single user being notified
+                            eventID,
+                            eventName,
+                            "You have successfully confirmed your participation in the event!"
+                    );
+                } else {
+                    Log.e("Notifications", "Event name is null, accept notification not sent.");
+                }
+            } else {
+                Log.e("Notifications", "Event document does not exist, accept notification not sent.");
+            }
+        }).addOnFailureListener(e -> Log.e("Notifications", "Error fetching event details for accept notification: ", e));
+    }
+
+    /**
      * Finishes the activity with a result.
      */
     private void finishWithResult() {
@@ -289,8 +327,17 @@ public class MyEventDetailActivity extends AppCompatActivity {
                 type
         );
 
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("notificationID", notification.getNotificationID());
+        notificationData.put("userIDs", notification.getUserIDs());
+        notificationData.put("eventID", notification.getEventID());
+        notificationData.put("eventName", notification.getEventName());
+        notificationData.put("text", notification.getText());
+        notificationData.put("notificationType", notification.getNotificationType());
+        notificationData.put("timestamp", System.currentTimeMillis());
+
         db.collection("notifications").document(notificationID)
-                .set(notification)
+                .set(notificationData)
                 .addOnSuccessListener(aVoid -> Log.d("Notifications", "Notification (" + type + ") created successfully."))
                 .addOnFailureListener(e -> Log.e("Notifications", "Failed to create notification (" + type + "): ", e));
     }

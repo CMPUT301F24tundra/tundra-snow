@@ -143,4 +143,8 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
             removeEventButton = itemView.findViewById(R.id.removeEventButton);
         }
     }
+
+    public List<Events> getEventList() {
+        return eventList;
+    }
 }
