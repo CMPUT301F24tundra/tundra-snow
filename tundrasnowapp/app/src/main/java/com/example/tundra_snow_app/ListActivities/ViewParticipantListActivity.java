@@ -112,7 +112,8 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                         return;
                     }
 
-                    if (entrantList != null && cancelledList != null && chosenList != null && chosenList.size() < capacity) {
+                    if ((entrantList != null && cancelledList != null && chosenList != null) &&
+                        !cancelledList.isEmpty() && chosenList.size() < capacity) {
                         Toast.makeText(this, "There have been cancellations. Please select a replacement sample.", Toast.LENGTH_LONG).show();
                         regSampleLayout.setVisibility(View.GONE);
                         regReplaceLayout.setVisibility(View.VISIBLE);
@@ -123,6 +124,7 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                 } else {
                     maxParticipantEdit.setText("N/A");
                     regSampleLayout.setVisibility(View.VISIBLE);
+                    regReplaceLayout.setVisibility(View.GONE);
                 }
             }
         });
@@ -218,9 +220,6 @@ public class ViewParticipantListActivity extends AppCompatActivity {
 
                 if (entrantList.size() <= capacity) {
                     Toast.makeText(this, "All participants have been selected.", Toast.LENGTH_SHORT).show();
-                } else {
-                    updates.put("declinedList", FieldValue.arrayUnion(remainingEntrants.toArray()));
-                    Toast.makeText(this, "Capacity reached! Remaining entrants moved to declined list.", Toast.LENGTH_SHORT).show();
                 }
 
                 db.collection("events").document(eventID)
