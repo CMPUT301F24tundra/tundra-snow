@@ -243,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void startMainContent() {
         Intent intent = new Intent(MainActivity.this, EventViewActivity.class); // Regular user view
+        intent.putExtra("source", "MainActivity");
         startActivity(intent);
     }
 }
