@@ -37,7 +37,7 @@
 
     <!-- Right Button to delete -->
     <Button
-        android:id="@+id/removeEventButton"
+        android:id="@+id/removeFacilityButton"
         android:layout_width="82dp"
         android:layout_height="45dp"
         android:text="Delete"

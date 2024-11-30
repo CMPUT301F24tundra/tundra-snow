@@ -8,21 +8,27 @@ import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
+import static androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withHint;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
+import static org.hamcrest.CoreMatchers.allOf;
+
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.PerformException;
 import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.espresso.intent.Intents;
-import androidx.test.espresso.matcher.ViewMatchers;
+import androidx.test.espresso.util.HumanReadables;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
@@ -44,6 +50,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -58,8 +65,8 @@ public class OrganizerTests {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    String permanentEvent = "Important Testing Event";
-    String permanentEventID = "ada10f4e-014f-4ee6-a76d-5d5b36a096c6";
+    String permanentEvent = "Important Test Event";
+    String permanentEventID = "ef375549-e7b5-4078-8d22-959be14937f0";
     String permanentEntrant = "Main Organizer";
     String permanentEntrantID = "ef375549-e7b5-4078-8d22-959be14937f0";
 
@@ -73,7 +80,7 @@ public class OrganizerTests {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // log in with admin credentials
+        // This account is an Entrant/Organizer
         onView(withId(R.id.usernameEditText)).perform(replaceText("333@gmail.com"));
         onView(withId(R.id.passwordEditText)).perform(replaceText("333"));
         onView(withId(R.id.loginButton)).perform(click());
@@ -108,33 +115,42 @@ public class OrganizerTests {
         }
     }
 
-    private void toggleToOrganizerModeIfNeeded() {
-        // Try to get the text on the toggle button and click it only if it reads "Toggle Mode: User"
-        ViewInteraction toggleButton = onView(withId(R.id.modeToggle));
+    private void toggleToOrganizerMode() {
+        ViewInteraction menuButton = onView(withId(R.id.menuButton));
 
         try {
-            toggleButton.perform(new ViewAction() {
-                @Override
-                public Matcher<View> getConstraints() {
-                    return ViewMatchers.isDisplayed(); // Ensures the view is displayed before performing the action
-                }
+            menuButton.perform(click());
 
-                @Override
-                public String getDescription() {
-                    return "Toggle to organizer mode if currently in user mode";
-                }
+            SystemClock.sleep(500);
 
-                @Override
-                public void perform(UiController uiController, View view) {
-                    // Check the current text on the button
-                    String currentText = ((android.widget.ToggleButton) view).getText().toString();
-                    if (currentText.equals("Toggle Mode: User")) {
-                        view.performClick(); // Click only if the text is "Toggle Mode: User"
-                    }
-                }
-            });
+            onView(withText("Organizer")).perform(click());
+
         } catch (NoMatchingViewException | PerformException e) {
-            // Do nothing if the toggle button is not found or click can't be performed
+            // Log the error for debugging purposes
+            Log.e("MenuInteraction", "Failed to interact with menu", e);
+        }
+    }
+
+    private void toggleToUserMode() {
+        // First, find and click the menu button to open the menu
+        ViewInteraction menuButton = onView(withId(R.id.menuButton));
+
+        try {
+            // Click the menu button to open the menu
+            menuButton.perform(click());
+
+            // After opening the menu, we need to wait briefly for the menu items to be displayed
+            // This helps ensure menu animations are complete and items are clickable
+            SystemClock.sleep(500);
+
+            // Now find and click the organizer option in the opened menu
+            // Note: You'll need to replace "Organizer" with the exact text that appears in your menu
+            onView(withText("User")).perform(click());
+
+        } catch (NoMatchingViewException | PerformException e) {
+            // Log the error for debugging purposes
+            Log.e("MenuInteraction", "Failed to interact with menu", e);
+            // Optionally handle the error case based on your app's needs
         }
     }
 
@@ -145,6 +161,86 @@ public class OrganizerTests {
                 .addOnSuccessListener(aVoid -> Log.d("Firestore", "Entrant added to waiting list"))
                 .addOnFailureListener(e -> Log.w("Firestore", "Error adding entrant to waiting list", e));
 
+    }
+
+    public static ViewAction scrollToItemWithText(final String text) {
+        return new ViewAction() {
+            @Override
+            public Matcher<View> getConstraints() {
+                // The view must be a RecyclerView and be displayed
+                return allOf(isDisplayed(), isAssignableFrom(RecyclerView.class));
+            }
+
+            @Override
+            public String getDescription() {
+                return "Scroll RecyclerView to find item with text: " + text;
+            }
+
+            @Override
+            public void perform(UiController uiController, View view) {
+                RecyclerView recyclerView = (RecyclerView) view;
+                RecyclerView.Adapter adapter = recyclerView.getAdapter();
+
+                if (adapter == null) {
+                    throw new PerformException.Builder()
+                            .withActionDescription(getDescription())
+                            .withViewDescription(HumanReadables.describe(view))
+                            .withCause(new RuntimeException("Adapter is null"))
+                            .build();
+                }
+
+                // Iterate through all items in the RecyclerView
+                for (int position = 0; position < adapter.getItemCount(); position++) {
+                    // Scroll to the position
+                    recyclerView.scrollToPosition(position);
+                    uiController.loopMainThreadUntilIdle();
+
+                    // Get the view holder at this position
+                    RecyclerView.ViewHolder holder =
+                            recyclerView.findViewHolderForAdapterPosition(position);
+
+                    if (holder != null) {
+                        // Find the title TextView within the item view using the ID from your adapter
+                        TextView titleView = holder.itemView.findViewById(R.id.eventName);
+
+                        if (titleView != null && titleView.getText().toString().equals(text)) {
+                            // We found the item, smooth scroll to it
+                            recyclerView.smoothScrollToPosition(position);
+                            uiController.loopMainThreadUntilIdle();
+                            return;
+                        }
+                    }
+                }
+
+                // If we get here, we didn't find the item
+                throw new PerformException.Builder()
+                        .withActionDescription(getDescription())
+                        .withViewDescription(HumanReadables.describe(view))
+                        .withCause(new RuntimeException("Could not find item with text: " + text))
+                        .build();
+            }
+        };
+    }
+
+    /**
+     * TODO US 02.01.01 As an organizer I want to create a new event and
+     *  generate a unique promotional QR code that links to the event description
+     *  and event poster in the app
+     * @throws InterruptedException
+     */
+    @Test
+    public void testHashGeneration(){
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * TODO US 02.01.02 As an organizer I want to store the generated QR code
+     *  in my database
+     * @throws InterruptedException
+     */
+    @Test
+    public void testHashGenerationStored(){
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
@@ -158,8 +254,7 @@ public class OrganizerTests {
         onView(withId(R.id.nav_profile)).perform(click());
         Thread.sleep(1000);
 
-        // Toggle to organizer mode if needed
-        toggleToOrganizerModeIfNeeded();
+        toggleToOrganizerMode();
         Thread.sleep(1000);
 
         // Click on the "Add Facility" button
@@ -212,24 +307,18 @@ public class OrganizerTests {
     }
 
     /**
-     * Testing US 02.06.04
-     * As an organizer I want to cancel entrants that did not sign up for the event
+     * Testing US 02.02.01.
+     * As an organizer I want to view the list of entrants who joined my event waiting list
      * @throws InterruptedException
      */
     @Test
-    public void testDeletingEntrantFromWaitlist() throws InterruptedException {
+    public void testViewWaitingList() throws InterruptedException {
 
-        addEntrantToWaitingList();
-
-        toggleToOrganizerModeIfNeeded();
+        toggleToOrganizerMode();
 
         Thread.sleep(1000);
 
-        onView(withId(R.id.nav_events)).perform(click());
-
-        Thread.sleep(1000);
-
-        onView(withText(permanentEvent)).check(matches(isDisplayed()));
+        onView(withId(R.id.nav_my_events)).perform(click());
 
         Thread.sleep(1000);
 
@@ -240,17 +329,11 @@ public class OrganizerTests {
 
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
-        onView(withId(R.id.viewWaitingList)).perform(click());
+        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
 
         Thread.sleep(1000);
 
-        onView(withId(R.id.rejectUser)).perform(click());
-
-        // Verify rejection
-        Thread.sleep(1000);
-
-        // check that the entrant was removed
-        onView(withText(permanentEntrant)).check(doesNotExist());
+        intended(hasComponent(ViewParticipantListActivity.class.getName()));
     }
 
     /**
@@ -259,55 +342,98 @@ public class OrganizerTests {
      * @throws InterruptedException
      */
     @Test
-    public void testCreateEvent() throws InterruptedException {
-
+    public void testCreateEventGeolocation() throws InterruptedException {
+        // Generate a random event title to ensure uniqueness
         int randomNumber = new Random().nextInt(1000);
         testEventTitle = "Organizer Test Event " + randomNumber;
-
         generatedTitles.add(testEventTitle);
 
-        // Click on the add event button to open CreateEventActivity
-        onView(withId(R.id.addEventButton)).perform(click());
+        // Switch to organizer mode before creating event
+        toggleToOrganizerMode();
 
+        // Navigate to event creation screen
+        onView(withId(R.id.addEventButton)).perform(click());
         Thread.sleep(1000); // Allow time for the Create Event screen to load
 
-        // Fill out the event form
+        // Fill out basic event information
         onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
-        onView(withId(R.id.editTextEventDescription)).perform(replaceText("This is a description for the test event."));
+        onView(withId(R.id.editTextEventDescription))
+                .perform(replaceText("This is a description for the test event."));
         onView(withId(R.id.editTextLocation)).perform(replaceText("Test Location"));
-        onView(withId(R.id.editTextStartDate)).perform(click()); // Open date picker for Start Date
-        onView(withText("OK")).perform(click()); // Confirm the default date (or set a specific date if needed)
-        onView(withId(R.id.editTextEndDate)).perform(click()); // Open date picker for End Date
-        onView(withText("OK")).perform(click()); // Confirm the default date
 
-        // Enter registration dates if applicable
-        onView(withId(R.id.editRegistrationStartDate)).perform(click());
-        onView(withText("OK")).perform(click()); // Confirm start registration date
-        onView(withId(R.id.editRegistrationEndDate)).perform(click());
-        onView(withText("OK")).perform(click()); // Confirm end registration date
+        // Calculate dates that ensure everything is in the future with proper spacing
+        LocalDate today = LocalDate.now();
+
+        // Registration starts tomorrow morning
+        LocalDate registrationStart = today.plusDays(1);
+        String registrationStartFormatted = String.format("%02d/%02d/%d",
+                registrationStart.getDayOfMonth(),
+                registrationStart.getMonthValue(),
+                registrationStart.getYear());
+
+        // Registration ends the next day in the afternoon
+        LocalDate registrationEnd = today.plusDays(2);
+        String registrationEndFormatted = String.format("%02d/%02d/%d",
+                registrationEnd.getDayOfMonth(),
+                registrationEnd.getMonthValue(),
+                registrationEnd.getYear());
+
+        // Event starts the day after registration ends
+        LocalDate eventStart = today.plusDays(3);
+        String eventStartFormatted = String.format("%02d/%02d/%d",
+                eventStart.getDayOfMonth(),
+                eventStart.getMonthValue(),
+                eventStart.getYear());
+
+        // Event ends the next day
+        LocalDate eventEnd = today.plusDays(4);
+        String eventEndFormatted = String.format("%02d/%02d/%d",
+                eventEnd.getDayOfMonth(),
+                eventEnd.getMonthValue(),
+                eventEnd.getYear());
+
+        // Set registration period
+        // Registration starts tomorrow at 9:00 AM
+        onView(withId(R.id.editRegistrationStartDate)).perform(scrollTo(), replaceText(registrationStartFormatted));
+        onView(withId(R.id.editRegistrationStartTime)).perform(scrollTo(), replaceText("09:00"));
+
+        // Registration ends the next day at 5:00 PM
+        onView(withId(R.id.editRegistrationEndDate)).perform(scrollTo(), replaceText(registrationEndFormatted));
+        onView(withId(R.id.editRegistrationEndTime)).perform(scrollTo(), replaceText("17:00"));
+
+        // Set event dates and times
+        // Event starts the day after registration ends at 10:00 AM
+        onView(withId(R.id.editTextStartDate)).perform(scrollTo(), replaceText(eventStartFormatted));
+        onView(withId(R.id.editTextStartTime)).perform(scrollTo(), replaceText("10:00"));
+
+        // Event ends the next day at 4:00 PM
+        onView(withId(R.id.editTextEndDate)).perform(scrollTo(), replaceText(eventEndFormatted));
+        onView(withId(R.id.editTextEndTime)).perform(scrollTo(), replaceText("16:00"));
 
         // Set event capacity
-        onView(withId(R.id.editTextCapacity)).perform(replaceText("50"));
+        onView(withId(R.id.editTextCapacity)).perform(scrollTo(), replaceText("50"));
 
-        // Enable geolocation requirement
-        onView(withId(R.id.toggleGeolocationRequirement)).perform(click());
+        // Toggle geolocation requirement (default is Enabled, clicking makes it Disabled)
+        onView(withId(R.id.toggleGeolocationRequirement)).perform(scrollTo(), click());
 
-        // Submit the event creation form
-        onView(withId(R.id.buttonCreateEvent)).perform(scrollTo(), click());
+        // Create the event
+        onView(withId(R.id.buttonCreateEvent)).perform(click());
+        Thread.sleep(2000); // Allow time for event creation and database update
 
-        Thread.sleep(1000); // Wait for submission to complete
+        // Switch back to attendee mode to verify event is visible
+        toggleToUserMode();
+        Thread.sleep(1000);
 
-        // Switch back to user mode to view published events
-        onView(withId(R.id.modeToggle)).perform(click());
+        // Verify the event appears in the list
+        // Find and scroll to our event in the RecyclerView
+        onView(withId(R.id.eventsRecyclerView))
+                .perform(scrollToItemWithText(testEventTitle));
 
-        Thread.sleep(1000); // Wait for mode change
-
-        // Check that the event title is displayed in the events list
+        // Verify the event is visible
         onView(withText(testEventTitle)).check(matches(isDisplayed()));
     }
 
     /**
-     * CURRENTLY FAILING
      * Testing US 02.03.01
      * As an organizer I want to OPTIONALLY limit the number of entrants who
      * can join my waiting list
@@ -316,80 +442,141 @@ public class OrganizerTests {
     @Test
     public void testCreateEventNoCapacity() throws InterruptedException {
 
+        // Generate a random event title to ensure uniqueness
         int randomNumber = new Random().nextInt(1000);
         testEventTitle = "Organizer Test Event " + randomNumber;
-
         generatedTitles.add(testEventTitle);
 
-        // Click on the add event button to open CreateEventActivity
-        onView(withId(R.id.addEventButton)).perform(click());
+        // Switch to organizer mode before creating event
+        toggleToOrganizerMode();
 
+        // Navigate to event creation screen
+        onView(withId(R.id.addEventButton)).perform(click());
         Thread.sleep(1000); // Allow time for the Create Event screen to load
 
-        // Fill out the event form
+        // Fill out basic event information
         onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
-        onView(withId(R.id.editTextEventDescription)).perform(replaceText("This is a description for the test event."));
+        onView(withId(R.id.editTextEventDescription))
+                .perform(replaceText("This is a description for the test event."));
         onView(withId(R.id.editTextLocation)).perform(replaceText("Test Location"));
-        onView(withId(R.id.editTextStartDate)).perform(click()); // Open date picker for Start Date
-        onView(withText("OK")).perform(click()); // Confirm the default date (or set a specific date if needed)
-        onView(withId(R.id.editTextEndDate)).perform(click()); // Open date picker for End Date
-        onView(withText("OK")).perform(click()); // Confirm the default date
 
-        // Enter registration dates if applicable
-        onView(withId(R.id.editRegistrationStartDate)).perform(click());
-        onView(withText("OK")).perform(click()); // Confirm start registration date
-        onView(withId(R.id.editRegistrationEndDate)).perform(click());
-        onView(withText("OK")).perform(click()); // Confirm end registration date
+        // Calculate dates that ensure everything is in the future with proper spacing
+        LocalDate today = LocalDate.now();
 
-        // Toggle geolocation requirement
-        onView(withId(R.id.toggleGeolocationRequirement)).perform(click());
+        // Registration starts tomorrow morning
+        LocalDate registrationStart = today.plusDays(1);
+        String registrationStartFormatted = String.format("%02d/%02d/%d",
+                registrationStart.getDayOfMonth(),
+                registrationStart.getMonthValue(),
+                registrationStart.getYear());
 
-        // Submit the event creation form
-        onView(withId(R.id.buttonCreateEvent)).perform(scrollTo(), click());
+        // Registration ends the next day in the afternoon
+        LocalDate registrationEnd = today.plusDays(2);
+        String registrationEndFormatted = String.format("%02d/%02d/%d",
+                registrationEnd.getDayOfMonth(),
+                registrationEnd.getMonthValue(),
+                registrationEnd.getYear());
 
-        Thread.sleep(1000); // Wait for submission to complete
+        // Event starts the day after registration ends
+        LocalDate eventStart = today.plusDays(3);
+        String eventStartFormatted = String.format("%02d/%02d/%d",
+                eventStart.getDayOfMonth(),
+                eventStart.getMonthValue(),
+                eventStart.getYear());
 
-        // Switch back to user mode to view published events
-        onView(withId(R.id.modeToggle)).perform(click());
+        // Event ends the next day
+        LocalDate eventEnd = today.plusDays(4);
+        String eventEndFormatted = String.format("%02d/%02d/%d",
+                eventEnd.getDayOfMonth(),
+                eventEnd.getMonthValue(),
+                eventEnd.getYear());
 
-        Thread.sleep(1000); // Wait for mode change
+        // Set registration period
+        // Registration starts tomorrow at 9:00 AM
+        onView(withId(R.id.editRegistrationStartDate)).perform(scrollTo(), replaceText(registrationStartFormatted));
+        onView(withId(R.id.editRegistrationStartTime)).perform(scrollTo(), replaceText("09:00"));
 
-        // Check that the event title is displayed in the events list
+        // Registration ends the next day at 5:00 PM
+        onView(withId(R.id.editRegistrationEndDate)).perform(scrollTo(), replaceText(registrationEndFormatted));
+        onView(withId(R.id.editRegistrationEndTime)).perform(scrollTo(), replaceText("17:00"));
+
+        // Set event dates and times
+        // Event starts the day after registration ends at 10:00 AM
+        onView(withId(R.id.editTextStartDate)).perform(scrollTo(), replaceText(eventStartFormatted));
+        onView(withId(R.id.editTextStartTime)).perform(scrollTo(), replaceText("10:00"));
+
+        // Event ends the next day at 4:00 PM
+        onView(withId(R.id.editTextEndDate)).perform(scrollTo(), replaceText(eventEndFormatted));
+        onView(withId(R.id.editTextEndTime)).perform(scrollTo(), replaceText("16:00"));
+
+        // Toggle geolocation requirement (default is Enabled, clicking makes it Disabled)
+        onView(withId(R.id.toggleGeolocationRequirement)).perform(scrollTo(), click());
+
+        // Create the event
+        onView(withId(R.id.buttonCreateEvent)).perform(click());
+        Thread.sleep(2000); // Allow time for event creation and database update
+
+        // Switch back to attendee mode to verify event is visible
+        toggleToUserMode();
+        Thread.sleep(1000);
+
+        // Verify the event appears in the list
+        // Find and scroll to our event in the RecyclerView
+        onView(withId(R.id.eventsRecyclerView))
+                .perform(scrollToItemWithText(testEventTitle));
+
+        // Verify the event is visible
         onView(withText(testEventTitle)).check(matches(isDisplayed()));
     }
 
     /**
-     * Testing US 02.02.01.
-     * As an organizer I want to view the list of entrants who joined my event waiting list
+     * TODO US 02.04.01 As an organizer I want to upload an event poster to provide
+     *  visual information to entrants
      * @throws InterruptedException
      */
     @Test
-    public void testViewWaitingList() throws InterruptedException {
+    public void testEventPosterUpload(){
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
-        toggleToOrganizerModeIfNeeded();
+    /**
+     * TODO US 02.04.02 As an organizer I want to update an event poster to provide
+     *  visual information to entrants
+     * @throws InterruptedException
+     */
+    @Test
+    public void testEventPosterUpdate(){
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
-        Thread.sleep(1000);
+    /**
+     * TODO US 02.05.01 As an organizer I want to send a notification to chosen entrants
+     *  to sign up for events.
+     * @throws InterruptedException
+     */
+    @Test
+    public void testNotifisToChosen(){
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
-        onView(withId(R.id.nav_events)).perform(click());
+    /**
+     * TODO US 02.05.02 As an organizer I want to set the system to sample a specified number
+     *  of attendees to register for the event
+     * @throws InterruptedException
+     */
+    @Test
+    public void testRegistrationSample(){
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
-        Thread.sleep(1000);
-
-        onView(withText(permanentEvent)).check(matches(isDisplayed()));
-
-        Thread.sleep(1000);
-
-        // Scroll to the item with the specific title and click it
-        onView(withText(permanentEvent)).perform(scrollTo(), click());
-
-        Thread.sleep(1000);
-
-        intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
-
-        onView(withId(R.id.viewWaitingList)).perform(click());
-
-        Thread.sleep(1000);
-
-        intended(hasComponent(ViewParticipantListActivity.class.getName()));
+    /**
+     * TODO US 02.05.03 As an organizer I want to be able to draw a replacement applicant from
+     *  the pooling system when a previously selected applicant cancels or rejects the invitation
+     * @throws InterruptedException
+     */
+    @Test
+    public void testDrawingReplacement(){
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
@@ -401,16 +588,11 @@ public class OrganizerTests {
     @Test
     public void testViewChosenList() throws InterruptedException {
 
-        toggleToOrganizerModeIfNeeded();
+        toggleToOrganizerMode();
 
         Thread.sleep(1000);
 
-        onView(withId(R.id.nav_events)).perform(click());
-
-        Thread.sleep(1000);
-
-        // Wait for data to load by checking if the permanentEvent title is displayed
-        onView(withText(permanentEvent)).check(matches(isDisplayed()));
+        onView(withId(R.id.nav_my_events)).perform(click());
 
         Thread.sleep(1000);
 
@@ -421,7 +603,7 @@ public class OrganizerTests {
 
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
-        onView(withId(R.id.viewChosenList)).perform(click());
+        onView(withId(R.id.viewChosenList)).perform(scrollTo(), click());
 
         Thread.sleep(1000);
 
@@ -437,16 +619,11 @@ public class OrganizerTests {
     @Test
     public void testViewCancelledList() throws InterruptedException {
 
-        toggleToOrganizerModeIfNeeded();
+        toggleToOrganizerMode();
 
         Thread.sleep(1000);
 
-        onView(withId(R.id.nav_events)).perform(click());
-
-        Thread.sleep(1000);
-
-        // Wait for data to load by checking if the permanentEvent title is displayed
-        onView(withText(permanentEvent)).check(matches(isDisplayed()));
+        onView(withId(R.id.nav_my_events)).perform(click());
 
         Thread.sleep(1000);
 
@@ -457,7 +634,7 @@ public class OrganizerTests {
 
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
-        onView(withId(R.id.viewCancelledList)).perform(click());
+        onView(withId(R.id.viewCancelledList)).perform(scrollTo(), click());
 
         Thread.sleep(1000);
 
@@ -474,15 +651,11 @@ public class OrganizerTests {
     @Test
     public void testViewFinalEntrantList() throws InterruptedException {
 
-        toggleToOrganizerModeIfNeeded();
+        toggleToOrganizerMode();
 
         Thread.sleep(1000);
 
-        onView(withId(R.id.nav_events)).perform(click());
-
-        Thread.sleep(1000);
-
-        onView(withText(permanentEvent)).check(matches(isDisplayed()));
+        onView(withId(R.id.nav_my_events)).perform(click());
 
         Thread.sleep(1000);
 
@@ -493,11 +666,61 @@ public class OrganizerTests {
 
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
-        onView(withId(R.id.viewEnrolledList)).perform(click());
+        onView(withId(R.id.viewEnrolledList)).perform(scrollTo(), click());
 
         Thread.sleep(1000);
 
         intended(hasComponent(ViewConfirmedParticipantListActivity.class.getName()));
 
+    }
+
+    /**
+     * TODO Testing US 02.06.04 As an organizer I want to cancel entrants that
+     *  did not sign up for the event
+     * @throws InterruptedException
+     */
+    @Test
+    public void testDeletingEntrantFromWaitlist() throws InterruptedException {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * TODO US 02.06.04 As an organizer I want to cancel entrants that did not
+     *  sign up for the event
+     * @throws InterruptedException
+     */
+    @Test
+    public void testCancellingEntrants() throws InterruptedException {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * TODO US 02.07.01 As an organizer I want to send notifications to all entrants
+     *  on the waiting list
+     * @throws InterruptedException
+     */
+    @Test
+    public void testSendingNotifsToWaitlist() throws InterruptedException {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * TODO US 02.07.02 As an organizer I want to send notifications to all
+     *  selected entrants
+     * @throws InterruptedException
+     */
+    @Test
+    public void testSendingNotifsToSelected() throws InterruptedException {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * TODO US 02.07.03 As an organizer I want to send a notification to all
+     *  cancelled entrants
+     * @throws InterruptedException
+     */
+    @Test
+    public void testSendingNotifsToCancelled() throws InterruptedException {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 }
