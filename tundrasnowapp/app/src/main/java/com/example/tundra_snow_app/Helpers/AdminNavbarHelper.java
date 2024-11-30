@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import com.example.tundra_snow_app.AdminActivities.AdminEventViewActivity;
 import com.example.tundra_snow_app.AdminActivities.AdminFacilityViewActivity;
 import com.example.tundra_snow_app.AdminActivities.AdminImagesViewActivity;
+import com.example.tundra_snow_app.AdminActivities.AdminQRViewActivity;
 import com.example.tundra_snow_app.AdminActivities.AdminUsersViewActivity;
 import com.example.tundra_snow_app.Activities.QrScanActivity;
 
@@ -57,8 +58,8 @@ public class AdminNavbarHelper {
             return true;
 
         } else if (item.getItemId() == R.id.admin_nav_qr) {
-            if (!(activity instanceof QrScanActivity)) {
-                intent = new Intent(activity, QrScanActivity.class);
+            if (!(activity instanceof AdminQRViewActivity)) {
+                intent = new Intent(activity, AdminQRViewActivity.class);
                 startActivityWithTransition(activity, intent);
             }
             return true;
@@ -100,11 +101,11 @@ public class AdminNavbarHelper {
             bottomNavigationView.setSelectedItemId(R.id.admin_nav_events);
         } else if (activity instanceof AdminFacilityViewActivity) {
             bottomNavigationView.setSelectedItemId(R.id.admin_nav_facilities);
-        } else if (activity instanceof QrScanActivity) {
+        } else if (activity instanceof AdminQRViewActivity) {
             bottomNavigationView.setSelectedItemId(R.id.admin_nav_qr);
         } else if (activity instanceof AdminUsersViewActivity) {
             bottomNavigationView.setSelectedItemId(R.id.admin_nav_profiles);
-        } else if (activity instanceof SettingsViewActivity) {
+        } else if (activity instanceof AdminImagesViewActivity) {
             bottomNavigationView.setSelectedItemId(R.id.admin_nav_images);
         }
     }

@@ -161,16 +161,16 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
                             status = "Pending...";
                         } else if (confirmedList.contains(currentUserID)) {
                             Log.d("MyEventsAdapter", "User in confirmed list");
-                            status = "Accepted";
+                            status = "Accepted!";
                         } else if (cancelledList.contains(currentUserID)) {
                             Log.d("MyEventsAdapter", "User in cancelled List");
-                            status = "Cancelled";
+                            status = "Cancelled.";
                         } else if (declinedList.contains(currentUserID)) {
                             Log.d("MyEventsAdapter", "User in declined list");
-                            status = "Declined";
+                            status = "Declined.";
                         } else if (chosenList.contains(currentUserID)) {
                             Log.d("MyEventsAdapter", "User in chosen list");
-                            status = "Chosen, awaiting response..";
+                            status = "Invited!";
                         } else {
                             status = "";  // No status if not found in any list
                         }

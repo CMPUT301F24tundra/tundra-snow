@@ -87,18 +87,28 @@ public class EventViewActivity extends AppCompatActivity {
 
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
+        // Check the source of the Intent
+        Intent intent = getIntent();
+        String source = intent.getStringExtra("source");
+        boolean isFromMainActivity = "MainActivity".equals(source);
+
+        if (isFromMainActivity) {
+            Log.d("EventViewActivity", "Activity started from MainActivity. Setting mode to 'user'.");
+            preferences.edit().putString(MODE_KEY, "user").apply(); // Force "user" mode
+        }
+
         // Setting listener for addEventButton
         addEventButton.setOnClickListener(view -> {
-            Intent intent = new Intent(EventViewActivity.this, CreateEventActivity.class);
-            startActivity(intent);
+            Intent createEventIntent = new Intent(EventViewActivity.this, CreateEventActivity.class);
+            startActivity(createEventIntent);
         });
 
         // Setting listener for notification button
         notificationButton.setOnClickListener(view -> {
             Log.d("EventViewActivity", "Notification button clicked. Starting NotificationsActivity...");
 
-            Intent intent = new Intent(EventViewActivity.this, NotificationsActivity.class);
-            startActivity(intent);
+            Intent notificationIntent = new Intent(EventViewActivity.this, NotificationsActivity.class);
+            startActivity(notificationIntent);
         });
 
         try {

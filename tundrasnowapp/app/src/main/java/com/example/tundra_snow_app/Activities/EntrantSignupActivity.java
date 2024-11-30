@@ -117,7 +117,7 @@ public class EntrantSignupActivity extends AppCompatActivity{
 //            }
 //        });
 
-                // Check geolocation settings if toggle is checked
+        // Check geolocation settings if toggle is checked
         geolocationCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 boolean isGeolocationEnabled = DeviceUtils.ensureGeolocationEnabled(this);
