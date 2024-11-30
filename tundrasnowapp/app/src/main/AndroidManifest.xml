@@ -53,6 +53,7 @@
         <activity android:name=".ListActivities.ViewCancelledParticipantListActivity" />
         <activity android:name=".Activities.QrScanActivity"/>
         <activity android:name=".AdminActivities.AdminImagesViewActivity"/>
+        <activity android:name=".AdminActivities.AdminQRViewActivity"/>
         <activity android:name=".Activities.NotificationsActivity"/>
 
     </application>
