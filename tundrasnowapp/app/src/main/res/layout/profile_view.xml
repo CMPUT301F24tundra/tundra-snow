@@ -15,6 +15,17 @@
         android:background="@drawable/header_underline"
         android:paddingTop="13dp">
 
+        <ImageView
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:contentDescription="Mode Menu"
+            android:paddingTop="11dp"
+            android:paddingLeft="17dp"
+            android:visibility="gone"
+            android:src="@drawable/back_30" />
+
         <TextView
             android:id="@+id/header_title"
             android:layout_width="match_parent"
@@ -34,6 +45,7 @@
             android:contentDescription="Mode Menu"
             android:paddingTop="11dp"
             android:paddingRight="17dp"
+            android:visibility="visible"
             android:src="@drawable/menu_30" />
     </FrameLayout>
 
@@ -68,16 +80,20 @@
         </FrameLayout>
 
         <TextView
+            android:id="@+id/profilePicOptions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="10dp"
+            android:visibility="visible"
             android:text="Profile Picture Options:"
             android:textColor="#AAAAAA">
         </TextView>
 
         <LinearLayout
+            android:id="@+id/profilePicButtons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:visibility="visible"
             android:orientation="horizontal"
             android:gravity="center"
             android:layout_marginTop="16dp">

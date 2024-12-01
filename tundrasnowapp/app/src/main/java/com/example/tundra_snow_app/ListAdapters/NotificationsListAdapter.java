@@ -14,73 +14,78 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.tundra_snow_app.EventActivities.MyEventDetailActivity;
 import com.example.tundra_snow_app.Models.Notifications;
 import com.example.tundra_snow_app.R;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.List;
 
 public class NotificationsListAdapter extends RecyclerView.Adapter<NotificationsListAdapter.NotificationsViewHolder> {
     private final List<Notifications> notificationsList;
     private final Context context;
+    private final String currentUserID;
 
-    /**
-     * Constructor for the NotificationsListAdapter class.
-     * @param context The context of the activity
-     * @param notificationsList The list of notifications
-     */
-    public NotificationsListAdapter(Context context, List<Notifications> notificationsList) {
+    public NotificationsListAdapter(Context context, List<Notifications> notificationsList, String currentUserID) {
         this.context = context;
         this.notificationsList = notificationsList;
+        this.currentUserID = currentUserID;
     }
 
-    /**
-     * Creates a new ViewHolder instance.
-     * @param parent The parent view group
-     * @param viewType The view type
-     * @return A new NotificationsViewHolder instance
-     */
     @NonNull
     @Override
-    public NotificationsListAdapter.NotificationsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public NotificationsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.my_notifications_item, parent, false);
-        return new NotificationsListAdapter.NotificationsViewHolder(view);
+        return new NotificationsViewHolder(view);
     }
 
-    /**
-     * Binds the data to the views in the RecyclerView.
-     * @param holder The NotificationsViewHolder instance
-     * @param position The position of the item in the RecyclerView
-     */
     @Override
-    public void onBindViewHolder(@NonNull NotificationsListAdapter.NotificationsViewHolder holder, int position) {
-        // Get the current event
+    public void onBindViewHolder(@NonNull NotificationsViewHolder holder, int position) {
         Notifications notification = notificationsList.get(position);
 
-        // Bind data to my_notification_item.xml views
         holder.titleTextView.setText(notification.getEventName());
         holder.notificationTextView.setText(notification.getText());
 
-        Log.d("NotificationsAdapter", "Binding notification: " + notification.getNotificationID());
+        // Check if the notification is new for the current user
+        Boolean isNewForUser = notification.getUserStatus().get(currentUserID);
 
+        // Debug log to confirm the status
+        Log.d("NotificationsAdapter", "Notification ID: " + notification.getNotificationID() +
+                ", isNewForUser: " + isNewForUser);
+
+        // Apply highlight if the notification is new for the user
+        if (isNewForUser != null && isNewForUser) {
+            Log.d("NotificationsAdapter", "Applying highlight for notification: " + notification.getNotificationID());
+            holder.itemView.setBackgroundResource(R.drawable.notification_highlight);
+        } else {
+            Log.d("NotificationsAdapter", "Removing highlight for notification: " + notification.getNotificationID());
+            holder.itemView.setBackgroundResource(android.R.color.transparent);
+        }
+
+        // Handle click listener
         holder.itemView.setOnClickListener(v -> {
-            Intent intent;
-            intent = new Intent(context, MyEventDetailActivity.class);
-
-            // Pass event ID to either activity
+            Intent intent = new Intent(context, MyEventDetailActivity.class);
             intent.putExtra("eventID", notification.getEventID());
             context.startActivity(intent);
+
+            // Mark the notification as viewed for the current user
+            if (isNewForUser != null && isNewForUser) {
+                markNotificationAsViewed(notification);
+            }
         });
     }
 
-    /**
-     * Returns the number of items in the RecyclerView.
-     * @return The number of items in the notifications list
-     */
+    private void markNotificationAsViewed(Notifications notification) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("notifications")
+                .document(notification.getNotificationID())
+                .update("userStatus." + currentUserID, false)
+                .addOnSuccessListener(aVoid -> Log.d("NotificationsAdapter", "Marked as viewed"))
+                .addOnFailureListener(e -> Log.e("NotificationsAdapter", "Failed to mark as viewed", e));
+    }
+
     @Override
     public int getItemCount() {
         return notificationsList.size();
     }
 
-    /**
-     * ViewHolder class for the event list items.
-     */
     public static class NotificationsViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView, notificationTextView;
 
