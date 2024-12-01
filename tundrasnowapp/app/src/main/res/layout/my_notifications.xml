@@ -90,4 +90,36 @@
             android:layout_marginTop="4dp" />
     </LinearLayout>
 
+    <!-- Notification turned off -->
+    <LinearLayout
+        android:id="@+id/notificationAccess"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/error_white" /> <!-- Replace with your exclamation icon drawable -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="Notifications turned off for this account. To receive notifications, turn them on in the settings tab."
+            android:textSize="20sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="8dp" />
+
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
