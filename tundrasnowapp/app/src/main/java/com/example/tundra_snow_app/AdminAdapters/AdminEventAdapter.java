@@ -15,7 +15,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+
 import com.bumptech.glide.Glide;
+
 import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
 import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.R;
@@ -24,6 +26,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Adapter class for the RecyclerView in the AdminEventsActivity. This class
@@ -95,6 +98,7 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
                     });
         });
 
+
         holder.itemView.setOnClickListener(v -> {
             // Pass event ID to either activity
             Intent intent = new Intent(context, EventDetailActivity.class);
@@ -132,6 +136,7 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
                     Log.e("EventAdapter", "Failed to fetch image URL for eventID: " + eventID, e);
                     imageView.setImageResource(R.drawable.event_error); // Fallback on failure
                 });
+
     }
 
     /**
