@@ -1,56 +1,77 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="10dp"
-    android:background="#B4B4B4"
-    android:gravity="center_vertical">
+    android:orientation="vertical"
+    android:background="#B4B4B4">
 
-    <!-- Left Section with Icon -->
-    <ImageView
-        android:id="@+id/userProfilePicture"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginEnd="10dp" />
-
-    <!-- Center Section with Event Details -->
+    <!-- Main Content Section -->
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:gravity="center_vertical">
 
-        <!-- Event Name -->
-        <TextView
-            android:id="@+id/fullName"
-            android:layout_width="wrap_content"
+        <FrameLayout
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_gravity="center"
+            android:background="@drawable/circular_mask">
+
+            <!-- Left Section with Icon -->
+            <ImageView
+                android:id="@+id/userIcon"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:background="@drawable/circular_outline"
+                android:contentDescription="Profile Picture"
+                android:layout_marginEnd="10dp"
+                android:clipToOutline="true" />
+        </FrameLayout>
+
+        <!-- Center Section with Details -->
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="15dp"
+            android:orientation="vertical">
+
+            <!-- Full Name -->
+            <TextView
+                android:id="@+id/fullName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:text="John Doe" />
+
+            <!-- Email -->
+            <TextView
+                android:id="@+id/userEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000000"
+                android:textSize="10sp"
+                android:text="johndoe@gmail.com" />
+        </LinearLayout>
+
+        <!-- Right Section with Button -->
+        <Button
+            android:id="@+id/removeUserButtonUserButton"
+            android:layout_width="wrap_content"
+            android:layout_height="37dp"
+            android:text="Cancel"
             android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:text="John Doe" />
-
-        <!-- Event Location -->
-        <TextView
-            android:id="@+id/userEmail"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#000000"
             android:textSize="10sp"
-            android:text="johndoe@gmail.com" />
+            android:backgroundTint="#000000"
+            android:gravity="center" />
     </LinearLayout>
 
-    <!-- Right Section with Status -->
-    <Button
-        android:id="@+id/removeUserButtonUserButton"
-        android:layout_width="wrap_content"
-        android:layout_height="37dp"
-        android:text="Remove"
-        android:textColor="#FFFFFF"
-        android:textSize="10sp"
-        android:backgroundTint="#000000"
-        android:gravity="center" />
-
-
+    <!-- Bottom Separator -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0" /> <!-- Set the color for the separator -->
 </LinearLayout>
