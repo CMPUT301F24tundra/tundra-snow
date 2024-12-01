@@ -4,6 +4,7 @@ import com.google.firebase.Timestamp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Notifications {
     // Notification properties
@@ -13,6 +14,7 @@ public class Notifications {
     private String eventName;
     private String text;
     private String notificationType;
+    private Map<String, Boolean> userStatus;
 
     /**
      * No-argument constructor (required by Firestore).
@@ -27,6 +29,7 @@ public class Notifications {
      * @param eventName Name of event notification is from
      * @param text Notification text
      * @param notificationType Type of notification
+     * @param userStatus Whether notification sent is new or not for all users in userIDs
      */
     public Notifications(
             String notificationID,
@@ -34,7 +37,8 @@ public class Notifications {
             String eventID,
             String eventName,
             String text,
-            String notificationType
+            String notificationType,
+            Map<String, Boolean> userStatus
     ) {
         this.notificationID = notificationID;
         this.userIDs = userIDs;
@@ -42,6 +46,15 @@ public class Notifications {
         this.eventName = eventName;
         this.text = text;
         this.notificationType = notificationType;
+        this.userStatus = userStatus;
+    }
+
+    public Map<String, Boolean> getUserStatus() {
+        return userStatus;
+    }
+
+    public void setUserStatus(Map<String, Boolean> userStatus) {
+        this.userStatus = userStatus;
     }
 
     public String getNotificationID() {

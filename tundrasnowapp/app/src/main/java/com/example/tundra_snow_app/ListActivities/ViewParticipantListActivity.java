@@ -455,13 +455,20 @@ public class ViewParticipantListActivity extends AppCompatActivity {
         Log.d("Notifications", "User IDs: " + userIDs.toString());
         Log.d("Notifications", "Notification Text: " + notificationText);
 
+        // Create a map to track individual user statuses
+        Map<String, Boolean> userStatus = new HashMap<>();
+        for (String userID : userIDs) {
+            userStatus.put(userID, true);
+        }
+
         Notifications notification = new Notifications(
                 notificationID,
                 userIDs,
                 eventID,
                 eventName,
                 notificationText,
-                type
+                type,
+                userStatus
         );
 
         Map<String, Object> notificationData = new HashMap<>();
@@ -472,6 +479,7 @@ public class ViewParticipantListActivity extends AppCompatActivity {
         notificationData.put("text", notification.getText());
         notificationData.put("notificationType", notification.getNotificationType());
         notificationData.put("timestamp", System.currentTimeMillis());
+        notificationData.put("userStatus", notification.getUserStatus());
 
         db.collection("notifications").document(notificationID)
                 .set(notificationData)
