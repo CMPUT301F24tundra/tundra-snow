@@ -2,18 +2,22 @@ package com.example.tundra_snow_app.AdminAdapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.Image;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.tundra_snow_app.EventActivities.CreateEventActivity;
+
+import com.bumptech.glide.Glide;
+
 import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
 import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.R;
@@ -76,6 +80,8 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
         holder.eventLocation.setText(event.getLocation());
         holder.eventDateTime.setText(event.getStartDate() != null ? dateFormat.format(event.getStartDate()) : "Date TBD");
 
+        loadImageIntoView(event.getEventID(), holder.eventIcon);
+
         // Delete event when "Delete" button is clicked
         holder.removeEventButton.setOnClickListener(v -> {
             db.collection("events").document(event.getEventID())
@@ -91,21 +97,46 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
                         Log.e("AdminEventAdapter", "Error deleting event", e);
                     });
         });
+
+
         holder.itemView.setOnClickListener(v -> {
-
-            Intent intent;
-
-            // If the event is a draft, go the Create Event page
-            if(Objects.equals(event.getPublished(), "no")){
-                intent = new Intent(context, CreateEventActivity.class);
-            } else {
-                intent = new Intent(context, EventDetailActivity.class);
-            }
-
             // Pass event ID to either activity
+            Intent intent = new Intent(context, EventDetailActivity.class);
             intent.putExtra("eventID", event.getEventID());
             context.startActivity(intent);
         });
+    }
+
+    /**
+     * Loads the event image from Firestore and binds it to the specified ImageView.
+     * @param eventID The ID of the event whose image is to be loaded
+     * @param imageView The ImageView to bind the image to
+     */
+    private void loadImageIntoView(String eventID, ImageView imageView) {
+        db.collection("events").document(eventID).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String imageUrl = documentSnapshot.getString("imageUrl");
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            Glide.with(context)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.event_placeholder) // Optional placeholder
+                                    .error(R.drawable.event_error) // Optional error image
+                                    .into(imageView);
+                        } else {
+                            Log.e("EventAdapter", "Image URL is null or empty for eventID: " + eventID);
+                            imageView.setImageResource(R.drawable.event_placeholder); // Fallback
+                        }
+                    } else {
+                        Log.e("EventAdapter", "Document does not exist for eventID: " + eventID);
+                        imageView.setImageResource(R.drawable.event_placeholder); // Fallback
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventAdapter", "Failed to fetch image URL for eventID: " + eventID, e);
+                    imageView.setImageResource(R.drawable.event_error); // Fallback on failure
+                });
+
     }
 
     /**
@@ -130,6 +161,7 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
     public static class EventViewHolder extends RecyclerView.ViewHolder {
         TextView eventDateTime, eventName, eventLocation;
         Button removeEventButton;
+        ImageView eventIcon;
         
         /**
          * Constructor for the EventViewHolder class. Initializes the views in the ViewHolder.
@@ -141,6 +173,7 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
             eventName = itemView.findViewById(R.id.eventName);
             eventLocation = itemView.findViewById(R.id.eventLocation);
             removeEventButton = itemView.findViewById(R.id.removeEventButton);
+            eventIcon = itemView.findViewById(R.id.eventIcon);
         }
     }
 

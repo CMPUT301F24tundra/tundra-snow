@@ -5,14 +5,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.media.Image;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.bumptech.glide.Glide;
 import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.EventActivities.MyEventDetailActivity;
 import com.example.tundra_snow_app.EventActivities.OrganizerEventDetailActivity;
@@ -93,6 +96,8 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
             holder.dateTextView.setText("Date TBD");
         }
 
+        loadImageIntoView(event.getEventID(), holder.eventIcon);
+
         // Fetch and display the user’s status only if in "User" mode
         if (!isOrganizerMode) {
             fetchUserStatus(event.getEventID(), holder.statusTextView);
@@ -115,6 +120,37 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
             intent.putExtra("eventID", event.getEventID());  // Pass event ID to the detail activity
             ((Activity) context).startActivityForResult(intent, requestCode);
         });
+    }
+
+    /**
+     * Loads the event image from Firestore and binds it to the specified ImageView.
+     * @param eventID The ID of the event whose image is to be loaded
+     * @param imageView The ImageView to bind the image to
+     */
+    private void loadImageIntoView(String eventID, ImageView imageView) {
+        db.collection("events").document(eventID).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String imageUrl = documentSnapshot.getString("imageUrl");
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            Glide.with(context)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.event_placeholder) // Optional placeholder
+                                    .error(R.drawable.event_error) // Optional error image
+                                    .into(imageView);
+                        } else {
+                            Log.e("EventAdapter", "Image URL is null or empty for eventID: " + eventID);
+                            imageView.setImageResource(R.drawable.event_placeholder); // Fallback
+                        }
+                    } else {
+                        Log.e("EventAdapter", "Document does not exist for eventID: " + eventID);
+                        imageView.setImageResource(R.drawable.event_placeholder); // Fallback
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventAdapter", "Failed to fetch image URL for eventID: " + eventID, e);
+                    imageView.setImageResource(R.drawable.event_error); // Fallback on failure
+                });
     }
 
     private void fetchUserStatus(String eventID, TextView statusTextView) {
@@ -197,6 +233,7 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
 
     public static class EventViewHolder extends RecyclerView.ViewHolder {
         TextView dateTextView, titleTextView, locationTextView, statusTextView;
+        ImageView eventIcon;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -204,6 +241,7 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
             titleTextView = itemView.findViewById(R.id.eventName);
             locationTextView = itemView.findViewById(R.id.eventLocation);
             statusTextView = itemView.findViewById(R.id.eventStatus);
+            eventIcon = itemView.findViewById(R.id.eventIcon);
         }
     }
 }
