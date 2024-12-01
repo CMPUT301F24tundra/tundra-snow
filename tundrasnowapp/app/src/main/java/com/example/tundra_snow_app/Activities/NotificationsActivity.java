@@ -26,8 +26,9 @@ import java.util.List;
 
 public class NotificationsActivity extends AppCompatActivity {
     private RecyclerView recyclerViewNotifications;
-    private LinearLayout noNotificationsLayout;
+    private LinearLayout noNotificationsLayout, notificationAccess;
     private String currentUserID;
+    private boolean notiAccess;
     private ImageView backButton;
     private List<Notifications> notificationList;
 
@@ -41,6 +42,7 @@ public class NotificationsActivity extends AppCompatActivity {
 
         recyclerViewNotifications = findViewById(R.id.myNotificationsRecyclerView);
         noNotificationsLayout = findViewById(R.id.noNotificationsLayout);
+        notificationAccess = findViewById(R.id.notificationAccess);
         backButton = findViewById(R.id.backButton);
 
         db = FirebaseFirestore.getInstance();
@@ -81,6 +83,9 @@ public class NotificationsActivity extends AppCompatActivity {
                         if (notificationList.isEmpty()) {
                             noNotificationsLayout.setVisibility(View.VISIBLE);
                             recyclerViewNotifications.setVisibility(View.GONE);
+                        } else if (!notiAccess) {
+                            notificationAccess.setVisibility(View.VISIBLE);
+                            recyclerViewNotifications.setVisibility(View.GONE);
                         } else {
                             noNotificationsLayout.setVisibility(View.GONE);
                             recyclerViewNotifications.setVisibility(View.VISIBLE);
@@ -110,6 +115,7 @@ public class NotificationsActivity extends AppCompatActivity {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         DocumentSnapshot latestSession = task.getResult().getDocuments().get(0);
                         currentUserID = latestSession.getString("userId");
+                        notiAccess = Boolean.TRUE.equals(latestSession.getBoolean("notificationsEnabled"));
 
                         if (currentUserID != null) {
                             onComplete.run();
