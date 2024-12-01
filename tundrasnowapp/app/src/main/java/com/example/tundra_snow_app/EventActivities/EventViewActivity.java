@@ -55,6 +55,7 @@ public class EventViewActivity extends AppCompatActivity {
     private List<String> userRoles = new ArrayList<>();
     private ImageView menuButton, notificationButton;
     private boolean isOrganizerMode;
+    private boolean notiAccess;
 
     /**
      * onCreate method for the activity. Initializes the views and loads the list of events.
@@ -377,6 +378,7 @@ public class EventViewActivity extends AppCompatActivity {
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
                             userRoles = (List<String>) documentSnapshot.get("roles");
+                            notiAccess = Boolean.TRUE.equals(documentSnapshot.getBoolean("notificationsEnabled"));
 
                             // Check roles and adjust menu button visibility
                             if (userRoles == null || userRoles.isEmpty() || userRoles.size() == 1 && userRoles.contains("user")) {
@@ -411,6 +413,14 @@ public class EventViewActivity extends AppCompatActivity {
 
         if (currentUserID == null || currentUserID.isEmpty()) {
             Log.e("NotificationBadge", "currentUserID is null or empty. Cannot update badge.");
+            return;
+        }
+
+        if (!notiAccess) {
+            Log.e("NotificationBadge", "currentUserID has notifications disabled.");
+
+            TextView badge = findViewById(R.id.notificationBadge);
+            badge.setVisibility(View.GONE);
             return;
         }
 
