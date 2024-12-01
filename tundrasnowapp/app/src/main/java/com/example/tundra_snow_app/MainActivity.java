@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private Button loginButton, signInWithDeviceButton;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
+    private String currentUserID;
 
     /**
      * This method is called when the activity is first created.
@@ -130,10 +131,12 @@ public class MainActivity extends AppCompatActivity {
 
                             if (storedPassword != null && storedPassword.equals(password)) {
                                 // Password matches
+                                String userID = document.getString("userID");
                                 Toast.makeText(MainActivity.this, "Login successful!", Toast.LENGTH_LONG).show();
 
                                 // Log current user in a session
                                 logUserSession(document.getId());
+                                currentUserID = userID;
                                 startMainContent();
                                 return;
                             } else {
@@ -244,6 +247,7 @@ public class MainActivity extends AppCompatActivity {
     private void startMainContent() {
         Intent intent = new Intent(MainActivity.this, EventViewActivity.class); // Regular user view
         intent.putExtra("source", "MainActivity");
+        intent.putExtra("userID", currentUserID);
         startActivity(intent);
     }
 }
