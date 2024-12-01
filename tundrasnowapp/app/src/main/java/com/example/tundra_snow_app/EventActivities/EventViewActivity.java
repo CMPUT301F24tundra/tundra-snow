@@ -33,6 +33,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Activity class for the event view. This class is responsible for displaying
@@ -87,18 +88,31 @@ public class EventViewActivity extends AppCompatActivity {
 
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
+        // Check the source of the Intent
+        Intent intent = getIntent();
+        String source = intent.getStringExtra("source");
+        boolean isFromMainActivity = "MainActivity".equals(source);
+
+        if (isFromMainActivity) {
+            Log.d("EventViewActivity", "Activity started from MainActivity. Setting mode to 'user'.");
+            preferences.edit().putString(MODE_KEY, "user").apply(); // Force "user" mode
+        }
+
         // Setting listener for addEventButton
         addEventButton.setOnClickListener(view -> {
-            Intent intent = new Intent(EventViewActivity.this, CreateEventActivity.class);
-            startActivity(intent);
+            Intent createEventIntent = new Intent(EventViewActivity.this, CreateEventActivity.class);
+            startActivity(createEventIntent);
         });
 
         // Setting listener for notification button
         notificationButton.setOnClickListener(view -> {
             Log.d("EventViewActivity", "Notification button clicked. Starting NotificationsActivity...");
+            // Clear badge
+            TextView badge = findViewById(R.id.notificationBadge);
+            badge.setVisibility(View.GONE);
 
-            Intent intent = new Intent(EventViewActivity.this, NotificationsActivity.class);
-            startActivity(intent);
+            Intent notificationIntent = new Intent(EventViewActivity.this, NotificationsActivity.class);
+            startActivity(notificationIntent);
         });
 
         try {
@@ -166,6 +180,14 @@ public class EventViewActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d("EventViewActivity", "onResume called");
+
+        if (currentUserID == null) {
+            fetchSessionUserId(() -> updateNotificationBadge());
+        } else {
+            updateNotificationBadge();
+        }
+
         if (isOrganizerMode()) {
             loadOrganizerEventsFromFirestore();
         } else {
@@ -190,21 +212,33 @@ public class EventViewActivity extends AppCompatActivity {
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         preferences.edit().putString(MODE_KEY, mode).apply();
 
+        TextView badge = findViewById(R.id.notificationBadge);
+
+        // Handle badge visibility based on mode
+        if ("organizer".equals(mode) || "admin".equals(mode)) {
+            badge.setVisibility(View.GONE); // Hide the badge for non-user modes
+        } else if ("user".equals(mode)) {
+            updateNotificationBadge(); // Update the badge immediately for user mode
+        }
+
         switch (mode) {
             case "organizer":
                 loadOrganizerEventsFromFirestore();
                 eventTitle.setText("Draft Events View");
                 addEventButton.setVisibility(View.VISIBLE);
-                notificationButton.setVisibility(View.GONE);
+                notificationButton.setVisibility(View.GONE); // Hide notifications button
                 break;
+
             case "admin":
-                Intent intent = new Intent(EventViewActivity.this, AdminEventViewActivity.class); // Regular user view
+                Intent intent = new Intent(EventViewActivity.this, AdminEventViewActivity.class);
                 startActivity(intent);
-            default:
+                break;
+
+            default: // "user" mode
                 loadUserEventFromFirestore();
                 eventTitle.setText("Events View");
                 addEventButton.setVisibility(View.GONE);
-                notificationButton.setVisibility(View.VISIBLE);
+                notificationButton.setVisibility(View.VISIBLE); // Show notifications button
                 break;
         }
     }
@@ -226,10 +260,12 @@ public class EventViewActivity extends AppCompatActivity {
                                 List<String> entrantList = (List<String>) document.get("entrantList");
                                 List<String> chosenList = (List<String>) document.get("chosenList");
                                 List<String> declinedList = (List<String>) document.get("declinedList");
+                                List<String> confirmedList = (List<String>) document.get("confirmedList");
 
                                 if ((entrantList == null || !entrantList.contains(currentUserID)) &&
                                         (chosenList == null || !chosenList.contains(currentUserID)) &&
-                                        (declinedList == null || !declinedList.contains(currentUserID))) {
+                                        (declinedList == null || !declinedList.contains(currentUserID)) &&
+                                        (confirmedList == null || !confirmedList.contains(currentUserID))) {
                                     eventList.add(event); // Add the event if user is not in the lists
                                 } else {
                                     Log.d("EventFilter", "User is already in entrant list for event: " + event.getTitle());
@@ -361,4 +397,52 @@ public class EventViewActivity extends AppCompatActivity {
                         Toast.makeText(this, "Failed to fetch user roles.", Toast.LENGTH_SHORT).show();
                     });
         }
+
+    private void updateNotificationBadge() {
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String currentMode = preferences.getString(MODE_KEY, "user");
+
+        // Only show badge in "user" mode
+        if (!"user".equals(currentMode)) {
+            TextView badge = findViewById(R.id.notificationBadge);
+            badge.setVisibility(View.GONE); // Ensure badge is hidden in other modes
+            return;
+        }
+
+        if (currentUserID == null || currentUserID.isEmpty()) {
+            Log.e("NotificationBadge", "currentUserID is null or empty. Cannot update badge.");
+            return;
+        }
+
+        // Fetch notifications for the current user
+        db.collection("notifications")
+                .whereArrayContains("userIDs", currentUserID) // Check userIDs array
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        int newCount = 0;
+
+                        for (DocumentSnapshot document : task.getResult()) {
+                            // Check the isNew map for the current user's ID
+                            Map<String, Boolean> userStatus = (Map<String, Boolean>) document.get("userStatus");
+                            if (userStatus != null && Boolean.TRUE.equals(userStatus.get(currentUserID))) {
+                                newCount++;
+                            }
+                        }
+
+                        Log.d("NotificationBadge", "New notifications count for user: " + newCount);
+
+                        TextView badge = findViewById(R.id.notificationBadge);
+                        if (newCount > 0) {
+                            badge.setText(String.valueOf(newCount));
+                            badge.setVisibility(View.VISIBLE); // Show the badge with the count
+                        } else {
+                            badge.setVisibility(View.GONE); // Hide the badge if no new notifications
+                        }
+                    } else {
+                        Log.e("NotificationBadge", "Error fetching notifications: ", task.getException());
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("NotificationBadge", "Failed to fetch notifications", e));
+    }
 }

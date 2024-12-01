@@ -1,16 +1,19 @@
 package com.example.tundra_snow_app.ListAdapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.tundra_snow_app.R;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -53,6 +56,13 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
         return new UserViewHolder(view);
     }
 
+    // Add this method to allow dynamic updates
+    public void updateData(List<String> newUserList) {
+        this.entrantList.clear();
+        this.entrantList.addAll(newUserList);
+        notifyDataSetChanged(); // Notify the adapter of changes
+    }
+
     /**
      * Binds the data to the ViewHolder.
      * @param holder The ViewHolder
@@ -73,8 +83,41 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
                 String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
                 holder.fullNameTextView.setText(fullName.trim().isEmpty() ? "Unknown" : fullName.trim());
                 holder.emailTextView.setText(email != null ? email : "No email available");
+
+                loadImageIntoView(userId, holder.userIcon);
             }
         });
+    }
+
+    /**
+     * Loads the user image from Firestore and binds it to the specified ImageView.
+     * @param userID The ID of the event whose image is to be loaded
+     * @param imageView The ImageView to bind the image to
+     */
+    private void loadImageIntoView(String userID, ImageView imageView) {
+        db.collection("users").document(userID).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String imageUrl = documentSnapshot.getString("profilePictureUrl");
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            Glide.with(context)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.default_profile_picture) // Optional placeholder
+                                    .error(R.drawable.event_error) // Optional error image
+                                    .into(imageView);
+                        } else {
+                            Log.e("EventAdapter", "Image URL is null or empty for userID: " + userID);
+                            imageView.setImageResource(R.drawable.default_profile_picture); // Fallback
+                        }
+                    } else {
+                        Log.e("EventAdapter", "Document does not exist for userID: " + userID);
+                        imageView.setImageResource(R.drawable.default_profile_picture); // Fallback
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventAdapter", "Failed to fetch image URL for userID: " + userID, e);
+                    imageView.setImageResource(R.drawable.event_error); // Fallback on failure
+                });
     }
 
     /**
@@ -91,12 +134,13 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
      */
     public static class UserViewHolder extends RecyclerView.ViewHolder {
         TextView fullNameTextView, emailTextView;
-        Button selectUserButton, rejectUserButton;
+        ImageView userIcon;
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
             fullNameTextView = itemView.findViewById(R.id.fullName);
             emailTextView = itemView.findViewById(R.id.userEmail);
+            userIcon = itemView.findViewById(R.id.userIcon);
         }
     }
 }

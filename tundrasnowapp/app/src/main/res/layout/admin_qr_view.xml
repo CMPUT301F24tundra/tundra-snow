@@ -5,25 +5,27 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <FrameLayout
+    <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/header_underline"
-        android:paddingTop="13dp" >
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingTop="13dp">
 
         <TextView
             android:id="@+id/adminTitle"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Admin: QR Hash"
+            android:textSize="20sp"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
-            android:gravity="center"
-            android:text="Admin: Facility View"
             android:textColor="#FFFFFF"
-            android:textSize="25sp" />
-
-    </FrameLayout>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </LinearLayout>
 
 
 
@@ -41,7 +43,7 @@
         app:layout_constraintTop_toBottomOf="@+id/header">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/adminFacilitiesRecyclerView"
+            android:id="@+id/adminQRRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false" />
@@ -50,7 +52,7 @@
 
     <!-- "No Events to List" message -->
     <LinearLayout
-        android:id="@+id/noEventsLayout"
+        android:id="@+id/noQRLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -70,7 +72,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No Events to List"
+            android:text="No QR Hash to List"
             android:textSize="20sp"
             android:textColor="#FFFFFF"
             android:layout_marginTop="8dp" />
@@ -78,7 +80,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sorry! There are currently no events to list.."
+            android:text="Sorry! There are currently no QR Hash to list.."
             android:textSize="14sp"
             android:textColor="#AAAAAA"
             android:layout_marginTop="4dp" />

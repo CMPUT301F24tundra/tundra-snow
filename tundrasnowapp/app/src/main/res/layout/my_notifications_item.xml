@@ -1,46 +1,67 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="10dp"
-    android:background="#000000"
-    android:gravity="center_vertical">
+    android:background="@android:color/transparent"
+    android:padding="5dp"
+    android:layout_marginBottom="4dp">
 
-    <!-- Center Section with Event Details -->
+    <!-- Notification Item -->
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="#000000">
 
-        <!-- Event Name -->
-        <TextView
-            android:id="@+id/eventName"
-            android:layout_width="wrap_content"
+        <!-- Main Content Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#FFFFFF"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            android:text="Networking Conference" />
+            android:orientation="horizontal"
+            android:padding="10dp"
+            android:gravity="center_vertical">
 
-        <!-- Event Location -->
-        <TextView
-            android:id="@+id/notificationText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#D3D3D3"
-            android:textSize="13sp"
-            android:text="Winner! You have been chosen for this event.." />
+            <!-- Center Section with Event Details -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <!-- Event Name -->
+                <TextView
+                    android:id="@+id/eventName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:text="Networking Conference" />
+
+                <!-- Notification Text -->
+                <TextView
+                    android:id="@+id/notificationText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#D3D3D3"
+                    android:textSize="13sp"
+                    android:text="Winner! You have been chosen for this event.." />
+            </LinearLayout>
+
+            <!-- Right Section with Status -->
+            <TextView
+                android:id="@+id/eventStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=">"
+                android:textColor="#D3D3D3"
+                android:textSize="20sp"
+                android:gravity="center" />
+        </LinearLayout>
+
+        <!-- Bottom Separator -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#303030" /> <!-- Subtle dark gray for separation -->
     </LinearLayout>
-
-    <!-- Right Section with Status -->
-    <TextView
-        android:id="@+id/eventStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=">"
-        android:textColor="#D3D3D3"
-        android:textSize="20sp"
-        android:gravity="center" />
-</LinearLayout>
+</FrameLayout>

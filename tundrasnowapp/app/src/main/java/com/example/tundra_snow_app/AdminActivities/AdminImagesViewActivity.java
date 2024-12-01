@@ -12,17 +12,19 @@ import com.example.tundra_snow_app.AdminAdapters.AdminImageAdapter;
 import com.example.tundra_snow_app.Helpers.AdminNavbarHelper;
 import com.example.tundra_snow_app.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AdminImagesViewActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private AdminImageAdapter adapter;
     private List<String> imageUrls;
+    private Map<String, String> imageUrlToEventIdMap; // Map of image URLs to event IDs
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -36,25 +38,32 @@ public class AdminImagesViewActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
         imageUrls = new ArrayList<>();
-        adapter = new AdminImageAdapter(this, imageUrls);
+        imageUrlToEventIdMap = new HashMap<>();
+        adapter = new AdminImageAdapter(this, imageUrls, imageUrlToEventIdMap);
         recyclerView.setAdapter(adapter);
 
-        fetchImagesFromFirebase();
+        fetchImagesFromDatabase();
     }
 
-    private void fetchImagesFromFirebase() {
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference storageRef = storage.getReference().child("event_images");
+    private void fetchImagesFromDatabase() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("events") // Adjust to your collection name
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        queryDocumentSnapshots.forEach(document -> {
+                            String imageUrl = document.getString("imageUrl");
+                            String eventId = document.getId();
 
-        storageRef.listAll().addOnSuccessListener(listResult -> {
-            for (StorageReference item : listResult.getItems()) {
-                item.getDownloadUrl().addOnSuccessListener(uri -> {
-                    imageUrls.add(uri.toString());
-                    adapter.notifyDataSetChanged();
-                });
-            }
-        }).addOnFailureListener(e ->
-                Toast.makeText(this, "Failed to fetch images: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-        );
+                            if (imageUrl != null) {
+                                imageUrls.add(imageUrl);
+                                imageUrlToEventIdMap.put(imageUrl, eventId);
+                            }
+                        });
+                        adapter.notifyDataSetChanged();
+                    }
+                }).addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to fetch images: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
     }
 }

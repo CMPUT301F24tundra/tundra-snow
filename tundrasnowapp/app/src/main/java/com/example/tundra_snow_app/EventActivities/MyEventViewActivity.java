@@ -52,7 +52,6 @@ public class MyEventViewActivity extends AppCompatActivity {
     private TextView eventTitle;
     private String currentUserID;
     private List<String> userRoles = new ArrayList<>();
-    private ImageView menuButton;
     private boolean isOrganizerMode;
 
     /**
@@ -72,7 +71,6 @@ public class MyEventViewActivity extends AppCompatActivity {
 
         // Organizer UI components
         eventTitle = findViewById(R.id.myEventTitle);
-        menuButton = findViewById(R.id.menuButton);
 
         // Initialize Firebase and events list
         db = FirebaseFirestore.getInstance();
@@ -87,8 +85,6 @@ public class MyEventViewActivity extends AppCompatActivity {
             mode = preferences.getString(MODE_KEY, "user");  // Default to "user"
         }
         boolean isOrganizerMode = "organizer".equals(mode);
-
-        menuButton.setVisibility(View.GONE);
 
 
         fetchSessionUserId(() -> {
@@ -276,16 +272,6 @@ public class MyEventViewActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         userRoles = (List<String>) documentSnapshot.get("roles");
-
-                        // Check roles and adjust menu button visibility
-                        if (userRoles == null || userRoles.isEmpty() || userRoles.size() == 1 && userRoles.contains("user")) {
-                            // Only "user" role is present, hide the menu button
-                            menuButton.setVisibility(View.GONE);
-                        } else {
-                            // Show the menu button if additional roles are available
-                            menuButton.setVisibility(View.VISIBLE);
-                        }
-
                         onComplete.run();
                     } else {
                         Toast.makeText(this, "User not found.", Toast.LENGTH_SHORT).show();
