@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,45 +8,25 @@
         android:id="@+id/title_create_profile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="31dp"
+        android:layout_marginBottom="36dp"
         android:text="Register New Account"
         android:textColor="#FFFFFF"
         android:textSize="28sp"
         android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/scrollContent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/imageViewProfilePicture"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginTop="16dp"
-        android:contentDescription="Profile Picture"
-        android:scaleType="centerCrop"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title_create_profile" />
-
-    <Button
-        android:id="@+id/uploadImageButton"
-        android:layout_width="138dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="16dp"
-        android:text="Upload Image"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/imageViewProfilePicture" />
 
     <ScrollView
         android:id="@+id/scrollContent"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        android:paddingHorizontal="16dp"
-        app:layout_constraintBottom_toTopOf="@id/buttonBox"
-        app:layout_constraintTop_toBottomOf="@id/uploadImageButton">
+        app:layout_constraintBottom_toTopOf="@+id/buttonBox"
+        app:layout_constraintTop_toBottomOf="@id/title_create_profile"
+        tools:layout_editor_absoluteX="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -59,7 +37,6 @@
                 android:id="@+id/editTextFirstName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 android:background="@drawable/rounded_edittext"
                 android:hint="First Name"
                 android:minHeight="48dp"
@@ -72,7 +49,7 @@
                 android:id="@+id/editTextLastName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/rounded_edittext"
                 android:hint="Last Name"
                 android:minHeight="48dp"
@@ -85,7 +62,7 @@
                 android:id="@+id/editTextEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/rounded_edittext"
                 android:hint="Email"
                 android:minHeight="48dp"
@@ -93,6 +70,7 @@
                 android:textColor="@color/white"
                 android:textColorHint="@color/white"
                 android:textSize="14sp" />
+
 
             <EditText
                 android:id="@+id/editTextDateOfBirth"
@@ -107,6 +85,7 @@
                 android:textColorHint="@color/white"
                 android:textSize="14sp" />
 
+
             <EditText
                 android:id="@+id/editTextPhoneNumber"
                 android:layout_width="match_parent"
@@ -119,6 +98,66 @@
                 android:textColor="@color/white"
                 android:textColorHint="@color/white"
                 android:textSize="14sp" />
+
+
+            <EditText
+                android:id="@+id/editTextPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_edittext"
+                android:hint="Password"
+                android:minHeight="48dp"
+                android:padding="8dp"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white"
+                android:textSize="14sp" />
+
+            <CheckBox
+                android:id="@+id/checkBoxOrganizer"
+                android:layout_width="356dp"
+                android:layout_height="25dp"
+                android:layout_margin="16dp"
+                android:text="Register as Organizer"
+                android:textColor="@color/white" />
+
+            <LinearLayout
+                android:id="@+id/facilityLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/editTextFacility"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Facility Name"
+                    android:minHeight="48dp"
+                    android:padding="8dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white"
+                    android:textSize="14sp" />
+
+                <EditText
+                    android:id="@+id/editTextFacilityLocation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Facility Location"
+                    android:minHeight="48dp"
+                    android:padding="8dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/checkBoxGeolocation"
+                android:layout_width="356dp"
+                android:layout_height="25dp"
+                android:layout_margin="16dp"
+                android:text="Allow Geolocation"
+                android:textColor="@color/white" />
 
             <EditText
                 android:id="@+id/editTextPassword"
@@ -135,11 +174,11 @@
                 android:textSize="14sp" />
 
             <CheckBox
-                android:id="@+id/checkBoxGeolocation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Allow Geolocation"
+                android:id="@+id/checkBoxNotifications"
+                android:layout_width="356dp"
+                android:layout_height="25dp"
+                android:layout_margin="16dp"
+                android:text="Allow Notifications"
                 android:textColor="@color/white" />
 
             <CheckBox
@@ -195,6 +234,12 @@
         </LinearLayout>
     </ScrollView>
 
+
+
+        </LinearLayout>
+
+    </ScrollView>
+
     <LinearLayout
         android:id="@+id/buttonBox"
         android:layout_width="match_parent"
@@ -216,9 +261,8 @@
             android:id="@+id/signupButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="Sign Up" />
-
+            android:text="Sign Up"
+            android:layout_marginStart="16dp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
