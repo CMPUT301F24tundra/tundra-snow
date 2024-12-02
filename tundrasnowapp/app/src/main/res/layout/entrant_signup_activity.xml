@@ -27,6 +27,17 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.001" />
 
+    <Button
+        android:id="@+id/uploadImageButton"
+        android:layout_width="138dp"
+        android:layout_height="47dp"
+        android:layout_marginTop="24dp"
+        android:text="Upload Image"
+        app:layout_constraintBottom_toTopOf="@+id/scrollContent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageViewProfilePicture" />
+
     <ImageView
         android:id="@+id/imageViewProfilePicture"
         android:layout_width="120dp"
@@ -38,267 +49,244 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title_create_profile" />
 
-    <EditText
-        android:id="@+id/editTextLastName"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-
-        android:background="@drawable/rounded_edittext"
-        android:hint="Last Name"
-        android:minHeight="48dp"
-        android:padding="8dp"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editTextFirstName" />
-
-    <EditText
-        android:id="@+id/editTextFirstName"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="36dp"
-        android:background="@drawable/rounded_edittext"
-        android:hint="First Name"
-        android:minHeight="48dp"
-        android:padding="8dp"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/uploadImageButton" />
-
-    <EditText
-        android:id="@+id/editTextDateOfBirth"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-
-        android:background="@drawable/rounded_edittext"
-        android:hint="Date of Birth"
-        android:minHeight="48dp"
-        android:padding="8dp"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editTextEmail" />
-
-    <EditText
-        android:id="@+id/editTextPhoneNumber"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-
-        android:background="@drawable/rounded_edittext"
-        android:hint="Phone Number"
-        android:minHeight="48dp"
-        android:padding="8dp"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editTextDateOfBirth" />
-
-    <EditText
-        android:id="@+id/editTextPassword"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-
-        android:background="@drawable/rounded_edittext"
-        android:hint="Password"
-        android:minHeight="48dp"
-        android:padding="8dp"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editTextPhoneNumber" />
-
-    <CheckBox
-        android:id="@+id/checkBoxGeolocation"
-        android:layout_width="356dp"
-        android:layout_height="25dp"
-        android:layout_margin="16dp"
-        android:layout_marginTop="16dp"
-        android:text="Allow Geolocation"
-        android:textColor="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/checkBoxNotifications" />
-
-    <CheckBox
-        android:id="@+id/checkBoxNotifications"
-        android:layout_width="356dp"
-        android:layout_height="25dp"
-        android:layout_margin="16dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="61dp"
-        android:text="Allow Notifications"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toTopOf="@+id/checkBoxGeolocation"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/facilityLayout" />
-
-    <CheckBox
-        android:id="@+id/checkBoxOrganizer"
-        android:layout_width="356dp"
-        android:layout_height="25dp"
-        android:layout_margin="16dp"
-        android:layout_marginTop="24dp"
-        android:text="Register as Organizer"
-        android:textColor="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editTextPassword" />
-
-    <EditText
-        android:id="@+id/editTextEmail"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-
-        android:background="@drawable/rounded_edittext"
-        android:hint="Email"
-        android:minHeight="48dp"
-        android:padding="8dp"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editTextLastName" />
 
 
-    <!-- Organizer Role Selection -->
 
-    <!-- Facility Input - Hidden Initially -->
+    <ScrollView
+        android:id="@+id/scrollContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/uploadImageButton"
+        app:layout_constraintBottom_toTopOf="@id/buttonBox">
 
     <LinearLayout
-        android:id="@+id/facilityLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:orientation="vertical"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/checkBoxOrganizer">
+        android:orientation="vertical">
 
         <EditText
-            android:id="@+id/editTextFacility"
+            android:id="@+id/editTextFirstName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:textColorHint="@color/white"
-            android:backgroundTint="#FFFFFF"
-            android:hint="Facility Name"
+            android:layout_marginTop="36dp"
+            android:background="@drawable/rounded_edittext"
+            android:hint="First Name"
             android:minHeight="48dp"
             android:padding="8dp"
-            android:textSize="14sp" />
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- New EditText for Facility Location -->
+        <!-- Last Name -->
         <EditText
-            android:id="@+id/editTextFacilityLocation"
+            android:id="@+id/editTextLastName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:textColorHint="@color/white"
-            android:backgroundTint="#FFFFFF"
-            android:hint="Facility Location"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/rounded_edittext"
+            android:hint="Last Name"
             android:minHeight="48dp"
             android:padding="8dp"
-            android:textSize="14sp" />
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent" />
+
+
+        <EditText
+            android:id="@+id/editTextEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/rounded_edittext"
+            android:hint="Email"
+            android:minHeight="48dp"
+            android:padding="8dp"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Date of Birth -->
+        <EditText
+            android:id="@+id/editTextDateOfBirth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/rounded_edittext"
+            android:hint="Date of Birth"
+            android:minHeight="48dp"
+            android:padding="8dp"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Phone Number -->
+        <EditText
+            android:id="@+id/editTextPhoneNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/rounded_edittext"
+            android:hint="Phone Number"
+            android:minHeight="48dp"
+            android:padding="8dp"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Password -->
+        <EditText
+            android:id="@+id/editTextPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/rounded_edittext"
+            android:hint="Password"
+            android:minHeight="48dp"
+            android:padding="8dp"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Geolocation CheckBox -->
+        <CheckBox
+            android:id="@+id/checkBoxGeolocation"
+            android:layout_width="356dp"
+            android:layout_height="25dp"
+            android:layout_margin="16dp"
+            android:layout_marginTop="16dp"
+            android:text="Allow Geolocation"
+            android:textColor="@color/white" />
+
+        <!-- Notifications CheckBox -->
+        <CheckBox
+            android:id="@+id/checkBoxNotifications"
+            android:layout_width="356dp"
+            android:layout_height="25dp"
+            android:layout_margin="16dp"
+            android:layout_marginTop="24dp"
+            android:text="Allow Notifications"
+            android:textColor="@color/white" />
+
+        <!-- Organizer CheckBox -->
+        <CheckBox
+            android:id="@+id/checkBoxOrganizer"
+            android:layout_width="356dp"
+            android:layout_height="25dp"
+            android:layout_margin="16dp"
+            android:layout_marginTop="24dp"
+            android:text="Register as Organizer"
+            android:textColor="@color/white" />
+
+
+
+
+        <LinearLayout
+            android:id="@+id/facilityLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/checkBoxOrganizer">
+
+            <EditText
+                android:id="@+id/editTextFacility"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white"
+                android:backgroundTint="#FFFFFF"
+                android:hint="Facility Name"
+                android:minHeight="48dp"
+                android:padding="8dp"
+                android:textSize="14sp" />
+
+            <!-- New EditText for Facility Location -->
+            <EditText
+                android:id="@+id/editTextFacilityLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white"
+                android:backgroundTint="#FFFFFF"
+                android:hint="Facility Location"
+                android:minHeight="48dp"
+                android:padding="8dp"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+
+
+
+
+
+
+    <!-- Button Container - Fixed at bottom -->
+    <LinearLayout
+        android:id="@+id/buttonBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="#000000"
+        android:elevation="4dp"
+        android:gravity="end"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <Button
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Back"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.745"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/checkBoxGeolocation" />
+
+        <Button
+            android:id="@+id/signupButton"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Sign Up"
+            android:layout_marginStart="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.278"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/checkBoxGeolocation" />
+
     </LinearLayout>
 
-    <!--    <ToggleButton-->
-<!--        android:id="@+id/toggleButtonNotification"-->
-<!--        android:layout_width="200dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:textOff="Notifications Disabled"-->
-<!--        android:textOn="Notifications Enabled"-->
-<!--        android:layout_marginTop="16dp"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/facilityLayout" />-->
 
-<!--    <ToggleButton-->
-<!--        android:id="@+id/toggleButtonGeolocation"-->
-<!--        android:layout_width="200dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:textOff="Geolocation Disabled"-->
-<!--        android:textOn="Geolocation Enabled"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/toggleButtonNotification" />-->
-
-<!--    <Button-->
-<!--        android:id="@+id/signupButton"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="Sign Up"-->
-<!--        android:layout_marginTop="10dp"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintHorizontal_bias="0.745"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/toggleButtonGeolocation" />-->
-
-<!--    <Button-->
-<!--        android:id="@+id/backButton"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="Back"-->
-<!--        android:layout_marginTop="10dp"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintHorizontal_bias="0.278"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/toggleButtonGeolocation" />-->
-
-    <Button
-        android:id="@+id/signupButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Sign Up"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.745"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/checkBoxGeolocation" />
-
-    <Button
-        android:id="@+id/backButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Back"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.278"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/checkBoxGeolocation" />
-
-    <Button
-        android:id="@+id/uploadImageButton"
-        android:layout_width="138dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="24dp"
-        android:text="Upload Image"
-        app:layout_constraintBottom_toTopOf="@+id/editTextFirstName"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/imageViewProfilePicture" />/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
