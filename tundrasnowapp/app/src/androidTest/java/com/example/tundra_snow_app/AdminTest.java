@@ -145,21 +145,6 @@ public class AdminTest {
             Intents.release();
 
             // Delete test user
-            db.collection("users")
-                    .whereEqualTo("firstName", testUserFirst)
-                    .whereEqualTo("lastName", testUserLast)
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            for (DocumentSnapshot doc : task.getResult()) {
-                                doc.getReference().delete()
-                                        .addOnSuccessListener(aVoid -> Log.d("TearDown", "Test user deleted"))
-                                        .addOnFailureListener(e -> Log.e("TearDown", "Error deleting user", e));
-                            }
-                        }
-                    });
-
-            // Delete test user
             db.collection("facilities")
                     .whereEqualTo("facilityName", testFacilityTitle)
                     .get()
