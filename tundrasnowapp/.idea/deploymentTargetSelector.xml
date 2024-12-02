@@ -17,7 +17,7 @@
       <SelectionState runConfigName="testSendingNotifsToCancelled()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="AdminTest">
+      <SelectionState runConfigName="testProfilePictureUpload()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
