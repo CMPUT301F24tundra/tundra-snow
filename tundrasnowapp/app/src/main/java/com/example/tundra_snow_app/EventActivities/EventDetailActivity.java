@@ -54,6 +54,15 @@ public class EventDetailActivity extends AppCompatActivity {
     private boolean geolocationEnabled;
     private ImageView eventImageView;
 
+    /**
+     * Called when the activity is first created. This method initializes the views,
+     * retrieves the event ID from the intent, and sets up listeners for user interactions.
+     * It also fetches the current user session and loads the event details.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously
+     *                           being shut down, this Bundle contains the data it most
+     *                           recently supplied. Otherwise, it is null.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

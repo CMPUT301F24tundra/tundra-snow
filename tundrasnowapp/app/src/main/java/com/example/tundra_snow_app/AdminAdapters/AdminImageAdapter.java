@@ -20,17 +20,36 @@ import com.google.firebase.storage.StorageReference;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Adapter class for displaying and managing event images in an admin interface.
+ * This adapter is used in a RecyclerView to display images associated with events
+ * and provides functionality for removing images.
+ */
 public class AdminImageAdapter extends RecyclerView.Adapter<AdminImageAdapter.ViewHolder> {
     private final Context context;
     private final List<String> imageUrls;
     private final Map<String, String> imageUrlToEventIdMap;
 
+    /**
+     * Constructor for the AdminImageAdapter class.
+     *
+     * @param context The context of the calling activity.
+     * @param imageUrls The list of image URLs to display in the RecyclerView.
+     * @param imageUrlToEventIdMap A map linking image URLs to their corresponding event IDs.
+     */
     public AdminImageAdapter(Context context, List<String> imageUrls, Map<String, String> imageUrlToEventIdMap) {
         this.context = context;
         this.imageUrls = imageUrls;
         this.imageUrlToEventIdMap = imageUrlToEventIdMap;
     }
 
+    /**
+     * Creates a new ViewHolder object for the RecyclerView.
+     *
+     * @param parent The parent ViewGroup into which the new View will be added.
+     * @param viewType The view type of the new View.
+     * @return A new ViewHolder instance.
+     */
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -38,6 +57,13 @@ public class AdminImageAdapter extends RecyclerView.Adapter<AdminImageAdapter.Vi
         return new ViewHolder(view);
     }
 
+
+    /**
+     * Binds data to the ViewHolder, including the image to display and click listeners.
+     *
+     * @param holder The ViewHolder to bind data to.
+     * @param position The position of the item within the adapter's data set.
+     */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String imageUrl = imageUrls.get(position);
@@ -57,6 +83,11 @@ public class AdminImageAdapter extends RecyclerView.Adapter<AdminImageAdapter.Vi
         });
     }
 
+    /**
+     * Removes the image from Firebase Storage and updates the Firestore database.
+     *
+     * @param position The position of the image in the RecyclerView.
+     */
     private void removeImage(int position) {
         String imageUrl = imageUrls.get(position);
         String eventId = imageUrlToEventIdMap.get(imageUrl);
@@ -77,6 +108,11 @@ public class AdminImageAdapter extends RecyclerView.Adapter<AdminImageAdapter.Vi
         });
     }
 
+    /**
+     * Updates the Firestore database to set the imageUrl field to null for the associated event.
+     *
+     * @param eventId The ID of the event associated with the image.
+     */
     private void updateImageUrlInDatabase(String eventId) {
         if (eventId != null) {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -93,6 +129,11 @@ public class AdminImageAdapter extends RecyclerView.Adapter<AdminImageAdapter.Vi
         }
     }
 
+    /**
+     * Returns the number of items in the image list.
+     *
+     * @return The total number of images in the list.
+     */
     @Override
     public int getItemCount() {
         return imageUrls.size();

@@ -20,6 +20,19 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * AdminQRViewActivity displays and manages QR codes for events in a RecyclerView.
+ * Administrators can view QR hashes associated with events and remove them when necessary.
+ *
+ * Features:
+ * - Displays event titles and their associated QR hashes.
+ * - Allows administrators to delete QR hashes from events.
+ * - Integrates with Firebase Firestore for data management.
+ * - Includes navigation through the admin-specific bottom navigation bar.
+ *
+ * This class extends {@link AppCompatActivity}.
+ */
 public class AdminQRViewActivity extends AppCompatActivity {
 
     private RecyclerView qrRecyclerView;
@@ -30,6 +43,12 @@ public class AdminQRViewActivity extends AppCompatActivity {
     private List<String> eventIds; // Keeps track of corresponding event IDs
     private FirebaseFirestore db;
 
+    /**
+     * Called when the activity is created. Sets up the UI components, initializes Firestore,
+     * and loads events with QR hashes into the RecyclerView.
+     *
+     * @param savedInstanceState The saved instance state.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +76,10 @@ public class AdminQRViewActivity extends AppCompatActivity {
         loadEventsWithQRHashes();
     }
 
+    /**
+     * Loads events with QR hashes from Firestore and updates the RecyclerView.
+     * Events with null QR hashes are excluded from the list.
+     */
     private void loadEventsWithQRHashes() {
         db.collection("events").get()
                 .addOnCompleteListener(task -> {
@@ -84,6 +107,9 @@ public class AdminQRViewActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Toggles the visibility of the "no QR codes" layout based on the presence of QR hashes.
+     */
     private void toggleNoQRLayout() {
         if (eventTitles.isEmpty()) {
             noQRLayout.setVisibility(View.VISIBLE);
@@ -94,6 +120,12 @@ public class AdminQRViewActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Deletes the QR hash associated with a specific event from Firestore.
+     * Updates the RecyclerView to reflect the deletion.
+     *
+     * @param position The position of the event in the RecyclerView.
+     */
     private void deleteQRHash(int position) {
         String eventId = eventIds.get(position);
 

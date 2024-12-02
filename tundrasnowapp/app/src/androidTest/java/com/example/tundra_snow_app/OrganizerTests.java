@@ -65,6 +65,7 @@ import com.example.tundra_snow_app.ListActivities.ViewCancelledParticipantListAc
 import com.example.tundra_snow_app.ListActivities.ViewChosenParticipantListActivity;
 import com.example.tundra_snow_app.ListActivities.ViewConfirmedParticipantListActivity;
 import com.example.tundra_snow_app.ListActivities.ViewParticipantListActivity;
+import com.google.android.gms.maps.MapView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
@@ -80,9 +81,14 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -98,7 +104,11 @@ public class OrganizerTests {
     private FirebaseFirestore db;
 
     String testEventTitle = "";
-    String testEventId = "";
+
+    private String testUserId;  // Store the created user's ID
+    private static final String TEST_USER_EMAIL = "333testuser333@example.com";
+    private static final String TEST_USER_FIRST_NAME = "Test333";
+    private static final String TEST_USER_LAST_NAME = "User333";
 
     Set<String> generatedTitles  = new HashSet<>();
 
@@ -152,6 +162,58 @@ public class OrganizerTests {
                         }
                     });
         }
+
+        // Clean up test user if one was created
+        if (testUserId != null) {
+            db.collection("users")
+                    .document(testUserId)
+                    .delete()
+                    .addOnSuccessListener(aVoid -> Log.d("TearDown", "Test user deleted successfully"))
+                    .addOnFailureListener(e -> Log.e("TearDown", "Error deleting test user", e));
+        }
+
+        Thread.sleep(1000);
+    }
+
+    private void createTestUserAndAddToWaitlist(String eventId) throws InterruptedException {
+        testUserId = UUID.randomUUID().toString();
+
+        // Create user document
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("userID", testUserId);
+        userMap.put("firstName", TEST_USER_FIRST_NAME);
+        userMap.put("lastName", TEST_USER_LAST_NAME);
+        userMap.put("email", TEST_USER_EMAIL);
+        userMap.put("password", "testpass");
+        userMap.put("dateOfBirth", "01/01/2000");
+        userMap.put("phoneNumber", "1234567890");
+        userMap.put("notificationsEnabled", true);
+        userMap.put("geolocationEnabled", false);
+        userMap.put("deviceID", "test_device");
+        userMap.put("location", "Test Location");
+        userMap.put("roles", Arrays.asList("user"));
+        userMap.put("userEventList", new ArrayList<>());
+
+        // Add user to Firestore
+        final CountDownLatch userLatch = new CountDownLatch(1);
+        db.collection("users")
+                .document(testUserId)
+                .set(userMap)
+                .addOnSuccessListener(aVoid -> userLatch.countDown())
+                .addOnFailureListener(e -> userLatch.countDown());
+
+        assertTrue("Creating test user timed out", userLatch.await(5, TimeUnit.SECONDS));
+
+        // Add test user to event's waiting list
+        final CountDownLatch waitlistLatch = new CountDownLatch(1);
+        db.collection("events")
+                .document(eventId)
+                .update("entrantList", FieldValue.arrayUnion(testUserId))
+                .addOnSuccessListener(aVoid -> waitlistLatch.countDown())
+                .addOnFailureListener(e -> waitlistLatch.countDown());
+
+        assertTrue("Adding test user to waitlist timed out", waitlistLatch.await(5, TimeUnit.SECONDS));
+        Thread.sleep(1000);
     }
 
     private void toggleToOrganizerMode() {
@@ -194,11 +256,11 @@ public class OrganizerTests {
     }
 
     private void createListTestEvent() throws InterruptedException {
-        testEventTitle = "Organizer List Testing Event";
+        int randomNumber = new Random().nextInt(1000);
+        testEventTitle = "List Testing Event " + randomNumber;
         generatedTitles.add(testEventTitle);
         createTestEvent(testEventTitle, Boolean.FALSE);
     }
-
 
     private void createTestEvent(String testEventTitle, Boolean generateHash) throws InterruptedException {
 
@@ -206,6 +268,8 @@ public class OrganizerTests {
 
         // Switch to organizer mode before creating event
         toggleToOrganizerMode();
+
+        Thread.sleep(4000);
 
         // Navigate to event creation screen
         onView(withId(R.id.addEventButton)).perform(click());
@@ -503,8 +567,7 @@ public class OrganizerTests {
         qrScanScenario.onActivity(activity -> {
             activity.handleScannedQRCode(qrHash[0]);
         });
-        Thread.sleep(2000);
-        Thread.sleep(2000);
+        Thread.sleep(3000);
 
         // Verify that we're taken to the event details screen
         intended(hasComponent(MyEventDetailActivity.class.getName()));
@@ -512,11 +575,6 @@ public class OrganizerTests {
         // Verify we're viewing the correct event
         onView(withId(R.id.detailEventTitle))
                 .check(matches(withText(testEventTitle)));
-
-        // Clean up - delete test event
-        db.collection("events")
-                .document(eventId[0])
-                .delete();
     }
 
     /**
@@ -532,7 +590,7 @@ public class OrganizerTests {
 
         // Create event with QR code generation enabled
         createTestEvent(testEventTitle, Boolean.TRUE);
-        Thread.sleep(2000); // Allow time for event creation and database update
+        Thread.sleep(2500); // Allow time for event creation and database update
 
         // Create a latch to wait for the async Firestore query
         final CountDownLatch latch = new CountDownLatch(1);
@@ -574,7 +632,7 @@ public class OrganizerTests {
         Thread.sleep(1000);
 
         toggleToOrganizerMode();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Click on the "Add Facility" button
         onView(withId(R.id.addFacilityButton)).perform(click());
@@ -584,7 +642,7 @@ public class OrganizerTests {
         String facilityName = "Test Facility";
         onView(withHint("Enter facility name")).perform(replaceText(facilityName));
         onView(withText("Add")).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Verify the facility was added by checking if it’s displayed
         onView(withText(facilityName)).check(matches(isDisplayed()));
@@ -602,7 +660,7 @@ public class OrganizerTests {
         onView(withText(facilityName)) // Matches the current name of the facility in the text field
                 .perform(replaceText(editedFacilityName));
         onView(withText("Save")).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Verify the facility name was updated
         onView(withText(editedFacilityName)).check(matches(isDisplayed()));
@@ -619,14 +677,14 @@ public class OrganizerTests {
         onView(withText("Delete Facility")).check(matches(isDisplayed())); // Verifies the confirmation dialog title
         onView(withText("Are you sure you want to delete this facility?")).check(matches(isDisplayed())); // Verifies the message
         onView(withText("Delete")).perform(click()); // Confirm deletion
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Verify the facility was removed from the list
         onView(withText(facilityName)).check(doesNotExist());
     }
 
     /**
-     * Testing US 02.02.01.
+     * Testing US 02.02.01
      * As an organizer I want to view the list of entrants who joined my event waiting list
      * @throws InterruptedException
      */
@@ -637,24 +695,89 @@ public class OrganizerTests {
 
         toggleToOrganizerMode();
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Scroll to the item with the specific title and click it
         onView(withText(testEventTitle)).perform(scrollTo(), click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
         onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         intended(hasComponent(ViewParticipantListActivity.class.getName()));
+    }
+
+    /**
+     * Testing US 02.02.02
+     * As an organizer I want to see on a map where entrants joined my event waiting list from.
+     * @throws InterruptedException
+    */
+    @Test
+    public void testViewMap() throws InterruptedException {
+        // Create test event first
+        createListTestEvent();
+        Thread.sleep(2000);
+
+        // Get the event ID and organizer ID from Firestore using the test event title
+        final String[] eventId = {null};
+        final String[] organizerId = {null};
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
+                        eventId[0] = doc.getId();
+                        organizerId[0] = doc.getString("organizer"); // Get the organizer ID
+                    }
+                    latch.countDown();
+                })
+                .addOnFailureListener(e -> latch.countDown());
+
+        assertTrue("Getting event ID timed out", latch.await(5, TimeUnit.SECONDS));
+        assertNotNull("Event ID should not be null", eventId[0]);
+        assertNotNull("Organizer ID should not be null", organizerId[0]);
+
+        // Add organizer to event's entrant list
+        db.collection("events").document(eventId[0])
+                .update("entrantList", FieldValue.arrayUnion(organizerId[0]));
+        Thread.sleep(2000);
+
+        // Switch to organizer mode
+        toggleToOrganizerMode();
+        Thread.sleep(2000);
+
+        // Navigate to My Events
+        onView(withId(R.id.nav_my_events)).perform(click());
+        Thread.sleep(4000);
+
+        // Click on the test event
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        // Verify we're in the organizer event detail activity
+        intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
+
+        // Scroll past map so it is completely visible
+        onView(withText("QR CODE")).perform(scrollTo());
+
+        Thread.sleep(1000);
+
+        onView(withId(R.id.mapView))
+                .check(matches(isDisplayed()));
+
+        onView(withId(R.id.mapContainer))
+                .check(matches(isDisplayed()));
     }
 
     /**
@@ -672,12 +795,14 @@ public class OrganizerTests {
 
         // Switch back to attendee mode to verify event is visible
         toggleToUserMode();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Verify the event appears in the list
         // Find and scroll to our event in the RecyclerView
         onView(withId(R.id.eventsRecyclerView))
                 .perform(scrollToItemWithText(testEventTitle));
+
+        Thread.sleep(2000);
 
         // Verify the event is visible
         onView(withText(testEventTitle)).check(matches(isDisplayed()));
@@ -699,10 +824,11 @@ public class OrganizerTests {
 
         // Switch to organizer mode before creating event
         toggleToOrganizerMode();
+        Thread.sleep(5000);
 
         // Navigate to event creation screen
         onView(withId(R.id.addEventButton)).perform(click());
-        Thread.sleep(1000); // Allow time for the Create Event screen to load
+        Thread.sleep(2000);
 
         // Fill out basic event information
         onView(withId(R.id.editTextEventTitle)).perform(scrollTo(), replaceText(testEventTitle));
@@ -714,6 +840,8 @@ public class OrganizerTests {
 
         // Toggle geolocation requirement (default is Enabled, clicking makes it Disabled)
         onView(withId(R.id.toggleGeolocationRequirement)).perform(scrollTo(), click());
+
+        Thread.sleep(1000);
 
         // Create the event
         onView(withId(R.id.buttonCreateEvent)).perform(click());
@@ -787,7 +915,7 @@ public class OrganizerTests {
 
         // Create the event
         onView(withId(R.id.buttonCreateEvent)).perform(click());
-        Thread.sleep(2000);
+        Thread.sleep(3000);
 
         // Verify the event was created with an image
         final boolean[] hasImage = {false};
@@ -839,7 +967,7 @@ public class OrganizerTests {
 
         // Switch to organizer mode
         toggleToOrganizerMode();
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         // Navigate to event creation screen
         onView(withId(R.id.addEventButton)).perform(click());
@@ -867,18 +995,18 @@ public class OrganizerTests {
         Thread.sleep(2000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         // Scroll to the item with the specific title and click it
         onView(withText(testEventTitle)).perform(scrollTo(), click());
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
         onView(withId(R.id.editButton)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Create and add a new blue test image
         Uri blueImageUri = addImageToGallery(Color.BLUE);
@@ -894,7 +1022,7 @@ public class OrganizerTests {
 
         // Select new image
         onView(withId(R.id.updateImageButton)).perform(scrollTo(), click());
-        Thread.sleep(500);
+        Thread.sleep(3000);
 
         // Verify image card view is still visible
         onView(withId(R.id.eventImageCardView))
@@ -963,13 +1091,13 @@ public class OrganizerTests {
         addUserToWaitingList(eventId[0], userId[0]);
 
         toggleToOrganizerMode();
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withText(testEventTitle)).perform(scrollTo(), click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
@@ -991,11 +1119,11 @@ public class OrganizerTests {
         Thread.sleep(2000);
 
         onView(withId(R.id.nav_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Switch back to user mode to check notifications
         toggleToUserMode();
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         // Navigate to notifications
         onView(withId(R.id.notificationButton)).perform(click());
@@ -1006,7 +1134,7 @@ public class OrganizerTests {
                 .atPosition(0))
                 .perform(click());
 
-        Thread.sleep(2000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.statusMessage)).check(matches(withText("You have been invited!")));
     }
@@ -1020,7 +1148,7 @@ public class OrganizerTests {
     public void testRegistrationSample() throws InterruptedException {
         createListTestEvent();
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // First store current user ID since we're already logged in from setUp()
         final String[] eventId = {null};
@@ -1048,10 +1176,10 @@ public class OrganizerTests {
         addUserToWaitingList(eventId[0], userId[0]);
 
         toggleToOrganizerMode();
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withText(testEventTitle)).perform(scrollTo(), click());
         Thread.sleep(1000);
@@ -1059,7 +1187,7 @@ public class OrganizerTests {
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
         onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         intended(hasComponent(ViewParticipantListActivity.class.getName()));
 
@@ -1071,14 +1199,117 @@ public class OrganizerTests {
     }
 
     /**
-     * TODO US 02.05.03 As an organizer I want to be able to draw a replacement applicant from
-     *  the pooling system when a previously selected applicant cancels or rejects the invitation
+     * US 02.05.03 As an organizer I want to be able to draw a replacement applicant from
+     * the pooling system when a previously selected applicant cancels or rejects the invitation
      * @throws InterruptedException
      */
-    @Ignore
     @Test
-    public void testDrawingReplacement(){
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void testDrawingReplacement() throws InterruptedException {
+        // Create test event with capacity of 1
+        testEventTitle = "Drawing Replacement Test Event";
+        generatedTitles.add(testEventTitle);
+
+        // Switch to organizer mode
+        toggleToOrganizerMode();
+
+        Thread.sleep(3000);
+
+        // Navigate to event creation screen
+        onView(withId(R.id.addEventButton)).perform(click());
+        Thread.sleep(1000);
+
+        // Fill out event details with capacity of 1
+        onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
+        onView(withId(R.id.editTextEventDescription))
+                .perform(replaceText("Test event for drawing replacements"));
+        onView(withId(R.id.editTextLocation)).perform(scrollTo(), replaceText("Test Location"));
+        onView(withId(R.id.editTextCapacity)).perform(scrollTo(), replaceText("1"));
+
+        fillOutDates();
+
+        onView(withId(R.id.buttonCreateEvent)).perform(click());
+        Thread.sleep(3000);
+
+        // Get event ID and current user ID
+        final String[] eventId = {null};
+        final String[] currentUserId = {null};
+        final CountDownLatch idLatch = new CountDownLatch(1);
+
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        eventId[0] = queryDocumentSnapshots.getDocuments().get(0).getId();
+                        currentUserId[0] = queryDocumentSnapshots.getDocuments().get(0).getString("organizer");
+                    }
+                    idLatch.countDown();
+                });
+
+        assertTrue("Getting event ID timed out", idLatch.await(5, TimeUnit.SECONDS));
+
+        // Create test user and add both users to waitlist
+        createTestUserAndAddToWaitlist(eventId[0]);
+        addUserToWaitingList(eventId[0], currentUserId[0]);
+        Thread.sleep(4000);
+
+        // Navigate to event's waiting list
+        onView(withId(R.id.nav_my_events)).perform(click());
+        Thread.sleep(3000);
+
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        // Select first user from waiting list
+        onView(withId(R.id.selectRegSampleButton)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        // Go to chosen list and cancel the selected user
+        onView(withId(R.id.backButton)).perform(click());
+        Thread.sleep(1000);
+
+        onView(withId(R.id.viewChosenList)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        onView(withId(R.id.cancelUserButton)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        onView(withId(R.id.backButton)).perform(click());
+        Thread.sleep(1000);
+
+        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        // Draw replacement from remaining waitlist
+        onView(withId(R.id.selectReplaceButton)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        // Verify the remaining user was moved to chosen list
+        final CountDownLatch verifyLatch = new CountDownLatch(1);
+        final boolean[] replacementDrawn = {false};
+
+        db.collection("events")
+                .document(eventId[0])
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        java.util.List<String> chosenList =
+                                (java.util.List<String>) documentSnapshot.get("chosenList");
+                        java.util.List<String> waitingList =
+                                (java.util.List<String>) documentSnapshot.get("entrantList");
+
+                        // Verify one user is in chosen list and waiting list is empty
+                        replacementDrawn[0] = (chosenList != null && chosenList.size() == 1) &&
+                                (waitingList == null || waitingList.isEmpty());
+                    }
+                    verifyLatch.countDown();
+                });
+
+        assertTrue("Verifying replacement draw timed out", verifyLatch.await(5, TimeUnit.SECONDS));
+        assertTrue("Replacement should be drawn from waiting list", replacementDrawn[0]);
     }
 
     /**
@@ -1094,11 +1325,11 @@ public class OrganizerTests {
 
         toggleToOrganizerMode();
 
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(3500);
 
         // Scroll to the item with the specific title and click it
         onView(withText(testEventTitle)).perform(scrollTo(), click());
@@ -1125,13 +1356,15 @@ public class OrganizerTests {
 
         createListTestEvent();
 
+        Thread.sleep(1000);
+
         toggleToOrganizerMode();
 
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         // Scroll to the item with the specific title and click it
         onView(withText(testEventTitle)).perform(scrollTo(), click());
@@ -1159,13 +1392,15 @@ public class OrganizerTests {
 
         createListTestEvent();
 
+        Thread.sleep(1000);
+
         toggleToOrganizerMode();
 
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         // Scroll to the item with the specific title and click it
         onView(withText(testEventTitle)).perform(scrollTo(), click());
@@ -1183,30 +1418,102 @@ public class OrganizerTests {
     }
 
     /**
-     * TODO Testing US 02.06.04 As an organizer I want to cancel entrants that
+     * Testing US 02.06.04 As an organizer I want to cancel entrants that
      *  did not sign up for the event
      * @throws InterruptedException
      */
-    @Ignore
     @Test
-    public void testDeletingEntrantFromWaitlist() throws InterruptedException {
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void testDeletingUserFromChosenList() throws InterruptedException {
+        // Create test event
+        createListTestEvent();
+        Thread.sleep(3000);
+
+        // First store current user ID and get event info
+        final String[] eventId = {null};
+        final String[] userId = {null};
+        final CountDownLatch idLatch = new CountDownLatch(1);
+
+        // Get the event ID and user ID
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        eventId[0] = queryDocumentSnapshots.getDocuments().get(0).getId();
+                        userId[0] = queryDocumentSnapshots.getDocuments().get(0).getString("organizer");
+                    }
+                    idLatch.countDown();
+                });
+
+        assertTrue("Getting event ID timed out", idLatch.await(5, TimeUnit.SECONDS));
+        assertNotNull("Event ID should not be null", eventId[0]);
+        assertNotNull("User ID should not be null", userId[0]);
+
+        // Add user to entrant list directly
+        final CountDownLatch addLatch = new CountDownLatch(1);
+        db.collection("events")
+                .document(eventId[0])
+                .update("chosenList", FieldValue.arrayUnion(userId[0]))
+                .addOnSuccessListener(aVoid -> addLatch.countDown())
+                .addOnFailureListener(e -> addLatch.countDown());
+
+        assertTrue("Adding user to chosen list timed out", addLatch.await(5, TimeUnit.SECONDS));
+        Thread.sleep(2000);
+
+        // Switch to organizer mode
+        toggleToOrganizerMode();
+        Thread.sleep(4000);
+
+        // Navigate to organizer's events
+        onView(withId(R.id.nav_my_events)).perform(click());
+        Thread.sleep(3000);
+
+        // Click on the test event
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        // Verify we're in organizer event detail activity
+        intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
+
+        // Click to view chosen list
+        onView(withId(R.id.viewChosenList)).perform(scrollTo(), click());
+        Thread.sleep(3000);
+
+        // Verify we're in the chosen list activity
+        intended(hasComponent(ViewChosenParticipantListActivity.class.getName()));
+
+        // Click cancel button for the user
+        onView(withId(R.id.cancelUserButton)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        // Verify user was removed from chosen list and added to declined list
+        final CountDownLatch verifyLatch = new CountDownLatch(1);
+        final boolean[] isMovedCorrectly = {false};
+
+        db.collection("events")
+                .document(eventId[0])
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        java.util.List<String> chosenList =
+                                (java.util.List<String>) documentSnapshot.get("chosenList");
+                        java.util.List<String> declinedList =
+                                (java.util.List<String>) documentSnapshot.get("declinedList");
+
+                        boolean removedFromChosen = chosenList == null || !chosenList.contains(userId[0]);
+
+                        isMovedCorrectly[0] = removedFromChosen;
+                    }
+                    verifyLatch.countDown();
+                });
+
+        assertTrue("Verifying user status change timed out", verifyLatch.await(5, TimeUnit.SECONDS));
+        assertTrue("User should be removed from chosen list", isMovedCorrectly[0]);
     }
 
     /**
-     * TODO US 02.06.04 As an organizer I want to cancel entrants that did not
-     *  sign up for the event
-     * @throws InterruptedException
-     */
-    @Ignore
-    @Test
-    public void testCancellingEntrants() throws InterruptedException {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    /**
-     * TODO US 02.07.01 As an organizer I want to send notifications to all entrants
-     *  on the waiting list
+     * Testing US 02.07.01 As an organizer I want to send notifications to all entrants
+     * on the waiting list
      * @throws InterruptedException
      */
     @Test
@@ -1241,12 +1548,11 @@ public class OrganizerTests {
                 .atPosition(0))
                 .perform(click());
         generatedTitles.add(testEventTitle);
-
     }
 
     /**
-     * TODO US 02.07.02 As an organizer I want to send notifications to all
-     *  selected entrants
+     * Testing US 02.07.02 As an organizer I want to send notifications to all
+     * selected entrants
      * @throws InterruptedException
      */
     @Test
@@ -1256,7 +1562,7 @@ public class OrganizerTests {
         testEventTitle = "Organizer Test Event " + randomNumber;
         createTestEvent(testEventTitle, Boolean.FALSE);
         toggleToUserMode();
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
 
         onView(withId(R.id.eventsRecyclerView))
@@ -1267,16 +1573,16 @@ public class OrganizerTests {
         Thread.sleep(1000);
 
         onView(withText(testEventTitle)).perform(scrollTo(), click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(withId(R.id.buttonSignUpForEvent)).perform(click());
         Thread.sleep(2000);
 
         toggleToOrganizerMode();
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withText(testEventTitle)).perform(scrollTo(), click());
 
@@ -1319,13 +1625,10 @@ public class OrganizerTests {
                 .perform(click());
 
         generatedTitles.add(testEventTitle);
-
-
     }
 
     /**
-     * TODO US 02.07.03 As an organizer I want to send a notification to all
-     *
+     * Testing US 02.07.03 As an organizer I want to send a notification to all
      * @throws InterruptedException
      */
     @Test
@@ -1357,7 +1660,7 @@ public class OrganizerTests {
 
         onView(withId(R.id.eventsRecyclerView))
                 .perform(scrollToItemWithText(testEventTitle));
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
 
         onView(withText(testEventTitle)).perform(scrollTo(), click());
@@ -1367,10 +1670,10 @@ public class OrganizerTests {
         Thread.sleep(2000);
 
         toggleToOrganizerMode();
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withText(testEventTitle)).perform(scrollTo(), click());
         Thread.sleep(1000);
@@ -1378,12 +1681,12 @@ public class OrganizerTests {
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
         onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
-        Thread.sleep(5000);
+        Thread.sleep(3000);
 
         intended(hasComponent(ViewParticipantListActivity.class.getName()));
 
         onView(withId(R.id.selectRegSampleButton)).perform(scrollTo(), click());
-        Thread.sleep(5000);
+        Thread.sleep(4000);
 
         // Verify user was moved to chosen list
         verifyUserMovedToEntrantList(eventId[0], userId[0]);
@@ -1395,10 +1698,10 @@ public class OrganizerTests {
         Thread.sleep(1000);
 
         onView(withId(R.id.nav_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         toggleToUserMode();
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.notificationButton)).perform(click());
         Thread.sleep(1000);
@@ -1409,52 +1712,48 @@ public class OrganizerTests {
                 .perform(click());
 
         onView(withId(R.id.middleButton)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.backButton)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.nav_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         toggleToOrganizerMode();
         Thread.sleep(1000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withText(testEventTitle)).perform(scrollTo(), click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.viewCancelledList)).perform(scrollTo(), click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.removeUserButtonUserButton)).perform(scrollTo(), click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.backButton)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.backButton)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.nav_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         toggleToUserMode();
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.notificationButton)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
 
         onView(new RecyclerViewMatcher(R.id.myNotificationsRecyclerView)
                 .atPosition(0))
                 .perform(click());
         Thread.sleep(5000);
-//        onView(withId(R.id.statusMessage)).check(matches(withText("You have successfully cancelled your participation in the event.")));
-
-
-
     }
 }

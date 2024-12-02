@@ -24,6 +24,19 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * NotificationsActivity manages the display of user notifications.
+ * This activity fetches notifications from Firestore, checks user access permissions,
+ * and displays the notifications in a RecyclerView or a fallback view if there are no notifications.
+ *
+ * Features:
+ * - Displays a list of notifications in descending order of timestamp.
+ * - Handles user-specific access and displays fallback UI if notifications are unavailable.
+ * - Integrates with Firestore for fetching session data and notifications.
+ *
+ * This class extends {@link AppCompatActivity}.
+ */
 public class NotificationsActivity extends AppCompatActivity {
     private RecyclerView recyclerViewNotifications;
     private LinearLayout noNotificationsLayout, notificationAccess;
@@ -35,6 +48,14 @@ public class NotificationsActivity extends AppCompatActivity {
     private NotificationsListAdapter notificationsAdapter;
     private FirebaseFirestore db;
 
+
+    /**
+     * Called when the activity is created. Initializes UI components, sets up Firestore instance,
+     * and fetches the current session user ID to load notifications.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
+     *                           this Bundle contains the most recent data supplied. Otherwise, null.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +75,7 @@ public class NotificationsActivity extends AppCompatActivity {
     }
 
     /**
-     * Reload notifications when the activity is resumed.
+     * Called when the activity is resumed. Reloads notifications to ensure the latest updates are displayed.
      */
     @Override
     protected void onResume() {
@@ -63,6 +84,11 @@ public class NotificationsActivity extends AppCompatActivity {
         loadUserNotificationsFromFirestore();
     }
 
+
+    /**
+     * Fetches notifications from Firestore for the current user and displays them in a RecyclerView.
+     * Displays fallback UI if there are no notifications or the user lacks access.
+     */
     private void loadUserNotificationsFromFirestore() {
         db.collection("notifications")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -106,6 +132,13 @@ public class NotificationsActivity extends AppCompatActivity {
                 });
     }
 
+
+    /**
+     * Fetches the session user ID and notification access settings from Firestore.
+     * Calls the specified Runnable once the user ID is retrieved successfully.
+     *
+     * @param onComplete A {@link Runnable} to execute once the user ID is fetched successfully.
+     */
     private void fetchSessionUserId(@NonNull Runnable onComplete) {
         db.collection("sessions")
                 .orderBy("loginTimestamp", Query.Direction.DESCENDING)

@@ -32,8 +32,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Activity class for the admin event view. This class is responsible for displaying
- * the list of events in the RecyclerView.
+ * AdminEventViewActivity displays a list of events for administrators, allowing them
+ * to view and manage events using a RecyclerView. It also provides role-switching
+ * capabilities through a menu and integrates with Firestore for fetching and displaying
+ * events and user roles.
+ *
+ * Features:
+ * - Displays events in a RecyclerView for administrative purposes.
+ * - Allows role switching between "admin", "organizer", and "user".
+ * - Integrates with Firebase Firestore to fetch events and user data.
+ * - Supports UI updates based on user roles and permissions.
+ *
+ * This class extends {@link AppCompatActivity}.
  */
 public class AdminEventViewActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "ModePrefs";
@@ -135,6 +145,11 @@ public class AdminEventViewActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Sets the application mode based on the selected role and navigates to the corresponding activity.
+     *
+     * @param mode The selected mode ("admin", "organizer", or "user").
+     */
     private void setMode(String mode) {
         Intent intent;
         switch (mode) {

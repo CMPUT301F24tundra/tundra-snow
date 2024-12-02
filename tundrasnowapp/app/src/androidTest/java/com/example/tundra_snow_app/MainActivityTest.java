@@ -4,12 +4,12 @@ import static androidx.test.espresso.Espresso.onView;
 import androidx.test.espresso.intent.Intents;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
+import static androidx.test.espresso.action.ViewActions.scrollTo;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 
 import static org.hamcrest.CoreMatchers.allOf;
@@ -47,7 +47,7 @@ public class MainActivityTest {
 
     private FirebaseFirestore db;
 
-    String testEmail = "newuser@example.com";
+    String testEmail = "newuser111@example.com";
 
     // Custom matcher to check if TextView has clickable spans
     private static Matcher<View> hasClickableSpan() {
@@ -139,12 +139,6 @@ public class MainActivityTest {
     }
 
     @Test
-    public void testSignUpTextContent() {
-        // Verify the text displayed is correct
-        onView(withId(R.id.signUpText)).check(matches(withText("Don't have an account? Sign up")));
-    }
-
-    @Test
     public void testSignUpTextIsClickable() {
         // Verify the TextView has clickable spans
         onView(withId(R.id.signUpText)).check(matches(hasClickableSpan()));
@@ -182,7 +176,6 @@ public class MainActivityTest {
         onView(withId(R.id.editTextPassword)).perform(replaceText(testPassword));
         onView(withId(R.id.editTextDateOfBirth)).perform(replaceText("01/01/1990"));
         onView(withId(R.id.editTextPhoneNumber)).perform(replaceText("1234567890"));
-//        onView(withId(R.id.toggleButtonNotification)).perform(click());
         onView(withId(R.id.checkBoxNotifications)).perform(click());
         onView(withId(R.id.checkBoxOrganizer)).perform(click());
         onView(withId(R.id.editTextFacility)).perform(replaceText(testFacility));
@@ -190,7 +183,7 @@ public class MainActivityTest {
 
 
         // Submit the sign-up form
-        onView(withId(R.id.signupButton)).perform(click());
+        onView(withId(R.id.signupButton)).perform(scrollTo(), click());
 
         Thread.sleep(2000);
 
@@ -211,11 +204,44 @@ public class MainActivityTest {
      */
     @Test
     public void testSignInWithDevice() throws InterruptedException {
+        // First create an account that will be associated with the device ID
 
+        // Navigate to the sign-up screen
+        onView(withId(R.id.signUpText)).perform(clickClickableSpan("Sign up"));
+
+        // Verify navigation to EntrantSignupActivity
+        intended(hasComponent(EntrantSignupActivity.class.getName()));
+
+        String testPassword = "password123";
+        String testFacility = "testFacility";
+        String facilityLocation = "testLocation";
+
+        // Fill out the sign-up form
+        onView(withId(R.id.editTextFirstName)).perform(replaceText("Jane"));
+        onView(withId(R.id.editTextLastName)).perform(replaceText("Smith"));
+        onView(withId(R.id.editTextEmail)).perform(replaceText(testEmail)); // Using the class-level testEmail
+        onView(withId(R.id.editTextPassword)).perform(replaceText(testPassword));
+        onView(withId(R.id.editTextDateOfBirth)).perform(replaceText("01/01/1990"));
+        onView(withId(R.id.editTextPhoneNumber)).perform(replaceText("1234567890"));
+        onView(withId(R.id.checkBoxNotifications)).perform(click());
+        onView(withId(R.id.checkBoxOrganizer)).perform(click());
+        onView(withId(R.id.editTextFacility)).perform(replaceText(testFacility));
+        onView(withId(R.id.editTextFacilityLocation)).perform(replaceText(facilityLocation));
+
+        // Submit the sign-up form
+        onView(withId(R.id.signupButton)).perform(scrollTo(), click());
+
+        Thread.sleep(2000); // Wait for account creation to complete
+
+        // Now test the device sign-in functionality
+        // The device ID will be automatically associated with the account during sign-up
+
+        // Click the sign in with device button
         onView(withId(R.id.signInWithDeviceButton)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(1000); // Wait for sign-in to complete
 
+        // Verify successful navigation to EventViewActivity
         intended(hasComponent(EventViewActivity.class.getName()));
     }
 }

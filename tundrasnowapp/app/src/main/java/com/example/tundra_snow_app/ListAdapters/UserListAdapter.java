@@ -56,7 +56,11 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
         return new UserViewHolder(view);
     }
 
-    // Add this method to allow dynamic updates
+    /**
+     * Updates the data in the adapter with a new list of entrants and refreshes the view.
+     *
+     * @param newUserList The new list of entrants to display.
+     */
     public void updateData(List<String> newUserList) {
         this.entrantList.clear();
         this.entrantList.addAll(newUserList);

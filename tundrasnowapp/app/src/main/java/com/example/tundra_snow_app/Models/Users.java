@@ -145,7 +145,11 @@ public class Users {
         return new ArrayList<>(permissionsSet);
     }
 
-    // add other constructors for if users want to skip certain fields?
+    /**
+     * Constructor to create a user with minimal required details.
+     *
+     * @return userID Unique user ID
+     */
     public String getUserID() {
         return userID;
     }
@@ -311,8 +315,17 @@ public class Users {
     /**
      * Sets the email of the user.
      * @param email The email to set
+     * @throws IllegalArgumentException if the email format is invalid
      */
     public void setEmail(String email) {
+        // Regular expression for validating email format
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+
+        // Check if the email matches the regex pattern
+        if (email == null || !email.matches(emailRegex)) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
+
         this.email = email;
     }
 

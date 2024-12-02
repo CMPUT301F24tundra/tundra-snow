@@ -44,7 +44,17 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Activity for user registration (Entrant and Organizer).
+ * EntrantSignupActivity handles the user registration process for entrants and organizers.
+ * It includes features such as input validation, geolocation fetching, role-based registration,
+ * and integration with Firebase Firestore for storing user data and profile pictures.
+ *
+ * Features:
+ * - User registration with role-specific fields (entrant or organizer).
+ * - Location fetching with permission handling.
+ * - Profile picture upload to Firebase Storage.
+ * - Facility management for organizers.
+ *
+ * This class extends {@link AppCompatActivity}.
  */
 public class EntrantSignupActivity extends AppCompatActivity{
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
@@ -70,8 +80,11 @@ public class EntrantSignupActivity extends AppCompatActivity{
     private Uri profilePictureUri;
 
     /**
-     * OnCreate method for EntrantSignupActivity. Initializes UI elements and sets up event listeners.
-     * @param savedInstanceState
+     * Called when the activity is created. Initializes the UI components, Firebase instances,
+     * and sets up event listeners.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
+     *                           this Bundle contains the most recent data supplied. Otherwise, null.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,18 +117,6 @@ public class EntrantSignupActivity extends AppCompatActivity{
         facilityLayout = findViewById(R.id.facilityLayout);
         facilityEditText = findViewById(R.id.editTextFacility);
 
-//        // Check geolocation settings if toggle is checked
-//        geolocationToggleButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
-//            if (isChecked) {
-//                boolean isGeolocationEnabled = DeviceUtils.ensureGeolocationEnabled(this);
-//                if (isGeolocationEnabled) {
-//                    fetchUserLocation();
-//                } else {
-//                    geolocationToggleButton.setChecked(false);
-//                    userLocation = null;
-//                }
-//            }
-//        });
 
         // Check geolocation settings if toggle is checked
         geolocationCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -148,6 +149,14 @@ public class EntrantSignupActivity extends AppCompatActivity{
         backButton.setOnClickListener(v -> finish());
     }
 
+    /**
+     * Handles the result of permission requests. Specifically checks for location permissions
+     * and fetches the user's location if granted.
+     *
+     * @param requestCode The request code passed in {@link ActivityCompat#requestPermissions}.
+     * @param permissions The requested permissions.
+     * @param grantResults The grant results for the corresponding permissions.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -164,7 +173,8 @@ public class EntrantSignupActivity extends AppCompatActivity{
 
 
     /**
-     * Fetch users current location and set the userLocation field.
+     * Fetches the user's current location using {@link FusedLocationProviderClient}.
+     * If location permissions are not granted, requests the necessary permissions.
      */
     private void fetchUserLocation() {
         // Check if location permissions are granted
@@ -192,7 +202,8 @@ public class EntrantSignupActivity extends AppCompatActivity{
     }
 
     /**
-     * Method to register a new user. Collects user details, validates input fields, and uploads user data to Firestore.
+     * Registers a new user by collecting input details, validating them, and saving
+     * the user data to Firestore. Also handles profile picture uploads if provided.
      */
     public void registerUser() {
         Log.d("Debug", "registerUser called");
@@ -284,8 +295,9 @@ public class EntrantSignupActivity extends AppCompatActivity{
     }
 
     /**
-     * Method to save user data to Firestore.
-     * @param newUser The user object to save
+     * Saves the user object to Firestore.
+     *
+     * @param newUser The {@link Users} object containing user details.
      */
     private void saveUserToFirestore(Users newUser) {
         // Prepare user data for Fire-store
@@ -331,9 +343,11 @@ public class EntrantSignupActivity extends AppCompatActivity{
     }
 
     /**
-     * Method to check if a facility with the same name already exists in Firestore. If not, adds the facility.
-     * @param facilityID The facility ID
-     * @param facilityName The facility name
+     * Checks whether a facility with the given name already exists in Firestore.
+     * If no such facility exists, it adds the facility.
+     *
+     * @param facilityID The unique ID of the facility.
+     * @param facilityName The name of the facility.
      */
     private void checkAndAddFacility(String facilityID, String facilityName) {
         db.collection("facilities")
@@ -351,9 +365,10 @@ public class EntrantSignupActivity extends AppCompatActivity{
     }
 
     /**
-     * Method to save facility data to Firestore.
-     * @param facilityID The facility ID
-     * @param facilityName The facility name
+     * Saves a facility to Firestore.
+     *
+     * @param facilityID The unique ID of the facility.
+     * @param facilityName The name of the facility.
      */
     private void saveFacilityToFirestore(String facilityID, String facilityName) {
         // Create a map for facility data
