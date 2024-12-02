@@ -104,7 +104,7 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                     int capacity = capacityLong.intValue();
 
                     // Handle full capacity: Move all entrants to declinedList
-                    if (confirmedList.size() >= capacity) {
+                    if (confirmedList.size() >= capacity && capacity != -1) {
                         if (!entrantList.isEmpty()) {
                             updates.put("declinedList", FieldValue.arrayUnion(entrantList.toArray()));
                             updates.put("entrantList", FieldValue.arrayRemove(entrantList.toArray()));
@@ -117,9 +117,13 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                         }
 
                         Toast.makeText(this, "Event is at full capacity!", Toast.LENGTH_LONG).show();
-                        regSampleLayout.setVisibility(View.GONE);
-                        regReplaceLayout.setVisibility(View.GONE);
-                    } else if (chosenList.size() >= capacity) {
+                        if (capacity != -1) {
+                            regSampleLayout.setVisibility(View.GONE);
+                            regReplaceLayout.setVisibility(View.GONE);
+                        }else{
+                            regSampleLayout.setVisibility(View.VISIBLE);
+                        }
+                    } else if (chosenList.size() >= capacity && capacity != -1) {
                         if (!entrantList.isEmpty()) {
                             updates.put("declinedList", FieldValue.arrayUnion(entrantList.toArray()));
                         }
@@ -138,7 +142,7 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                         Toast.makeText(this, "There have been cancellations. Please select a replacement sample.", Toast.LENGTH_LONG).show();
                         regSampleLayout.setVisibility(View.GONE);
                         regReplaceLayout.setVisibility(View.VISIBLE);
-                    } else if (chosenList.size() < capacity) {
+                    } else if (capacity == -1 || chosenList.size() < capacity ) {
                         if (!entrantList.isEmpty()) {
                             updates.put("declinedList", FieldValue.arrayRemove(entrantList.toArray()));
                         } else if (!declinedList.isEmpty()) {
@@ -258,7 +262,7 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                                 maxParticipantsEdited = Integer.parseInt(maxParticipantsText);
 
                                 // Validate capacity with chosenList size
-                                while (maxParticipantsEdited < chosenListSize || maxParticipantsEdited < confirmedListSize) {
+                                while ((maxParticipantsEdited < chosenListSize || maxParticipantsEdited < confirmedListSize) && maxParticipantsEdited != -1) {
                                     Toast.makeText(this,
                                             "Invalid capacity. " + chosenListSize + " participants have already been chosen. Please enter a capacity larger than or equal to " + chosenListSize,
                                             Toast.LENGTH_LONG
@@ -316,11 +320,21 @@ public class ViewParticipantListActivity extends AppCompatActivity {
                     Toast.makeText(this, "Event capacity is not set, therefore sampling is set to 5 people by default..", Toast.LENGTH_SHORT).show();
                 }
 
+                // Initialize both lists outside the if statement
+                List<String> chosenSample;
+                List<String> remainingEntrants;
 
-                Collections.shuffle(entrantList);
-                int sampleSize = Math.min(entrantList.size(), capacity); // Up to 5 for random sample
-                List<String> chosenSample = new ArrayList<>(entrantList.subList(0, sampleSize));
-                List<String> remainingEntrants = new ArrayList<>(entrantList.subList(sampleSize, entrantList.size()));
+                if (capacity != -1) {
+                    Collections.shuffle(entrantList);
+                    int sampleSize = Math.min(entrantList.size(), capacity); // Up to capacity for random sample
+                    chosenSample = new ArrayList<>(entrantList.subList(0, sampleSize));
+                    remainingEntrants = new ArrayList<>(entrantList.subList(sampleSize, entrantList.size()));
+                } else {
+                    // If capacity is -1, all entrants go to remainingEntrants, and no one is chosen
+                    chosenSample = new ArrayList<>(); // Empty chosenSample
+                    remainingEntrants = new ArrayList<>(entrantList);
+                    Toast.makeText(this, "Special Capacity '-1': All Entrants will lose the lottery", Toast.LENGTH_LONG).show();
+                }
 
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("entrantList", FieldValue.arrayRemove(chosenSample.toArray()));

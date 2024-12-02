@@ -182,7 +182,7 @@ public class MainActivityTest {
         onView(withId(R.id.editTextPassword)).perform(replaceText(testPassword));
         onView(withId(R.id.editTextDateOfBirth)).perform(replaceText("01/01/1990"));
         onView(withId(R.id.editTextPhoneNumber)).perform(replaceText("1234567890"));
-        onView(withId(R.id.toggleButtonNotification)).perform(click());
+//        onView(withId(R.id.toggleButtonNotification)).perform(click());
         onView(withId(R.id.checkBoxOrganizer)).perform(click());
         onView(withId(R.id.editTextFacility)).perform(replaceText(testFacility));
         onView(withId(R.id.editTextFacilityLocation)).perform(replaceText(facilityLocation));

@@ -295,6 +295,7 @@ public class ProfileViewActivity extends AppCompatActivity {
                         storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
                             String downloadUrl = uri.toString();
                             saveProfilePictureUrlToDatabase(downloadUrl);
+                            profileImageView.setTag(imageUri.toString());
                             Glide.with(this).load(downloadUrl).into(profileImageView);
                         }))
                 .addOnFailureListener(e -> {
@@ -614,5 +615,11 @@ public class ProfileViewActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    public void simulateProfileUpload(Uri imageUri) throws InterruptedException {
+        fetchUserIdFromSession();
+        Thread.sleep(3000);
+        uploadProfilePictureToFirebase(imageUri);
     }
 }

@@ -314,5 +314,10 @@ public class QrScanActivity extends AppCompatActivity {
         }
         isProcessing = false; // Reset processing state for future scans
     }
+
+    public void simulateScan(String qrHash) {
+        // Simulate passing the scanned data to the handler
+        handleScannedQRCode(qrHash);
+    }
 }
 
