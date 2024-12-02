@@ -552,8 +552,7 @@ public class OrganizerTests {
         qrScanScenario.onActivity(activity -> {
             activity.handleScannedQRCode(qrHash[0]);
         });
-        Thread.sleep(2000);
-        Thread.sleep(2000);
+        Thread.sleep(3000);
 
         // Verify that we're taken to the event details screen
         intended(hasComponent(MyEventDetailActivity.class.getName()));
@@ -561,11 +560,6 @@ public class OrganizerTests {
         // Verify we're viewing the correct event
         onView(withId(R.id.detailEventTitle))
                 .check(matches(withText(testEventTitle)));
-
-        // Clean up - delete test event
-        db.collection("events")
-                .document(eventId[0])
-                .delete();
     }
 
     /**
@@ -581,7 +575,7 @@ public class OrganizerTests {
 
         // Create event with QR code generation enabled
         createTestEvent(testEventTitle, Boolean.TRUE);
-        Thread.sleep(2000); // Allow time for event creation and database update
+        Thread.sleep(2500); // Allow time for event creation and database update
 
         // Create a latch to wait for the async Firestore query
         final CountDownLatch latch = new CountDownLatch(1);
@@ -623,7 +617,7 @@ public class OrganizerTests {
         Thread.sleep(1000);
 
         toggleToOrganizerMode();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Click on the "Add Facility" button
         onView(withId(R.id.addFacilityButton)).perform(click());
@@ -633,7 +627,7 @@ public class OrganizerTests {
         String facilityName = "Test Facility";
         onView(withHint("Enter facility name")).perform(replaceText(facilityName));
         onView(withText("Add")).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Verify the facility was added by checking if it’s displayed
         onView(withText(facilityName)).check(matches(isDisplayed()));
@@ -651,7 +645,7 @@ public class OrganizerTests {
         onView(withText(facilityName)) // Matches the current name of the facility in the text field
                 .perform(replaceText(editedFacilityName));
         onView(withText("Save")).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Verify the facility name was updated
         onView(withText(editedFacilityName)).check(matches(isDisplayed()));
@@ -668,7 +662,7 @@ public class OrganizerTests {
         onView(withText("Delete Facility")).check(matches(isDisplayed())); // Verifies the confirmation dialog title
         onView(withText("Are you sure you want to delete this facility?")).check(matches(isDisplayed())); // Verifies the message
         onView(withText("Delete")).perform(click()); // Confirm deletion
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Verify the facility was removed from the list
         onView(withText(facilityName)).check(doesNotExist());
@@ -686,22 +680,22 @@ public class OrganizerTests {
 
         toggleToOrganizerMode();
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Scroll to the item with the specific title and click it
         onView(withText(testEventTitle)).perform(scrollTo(), click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
         onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         intended(hasComponent(ViewParticipantListActivity.class.getName()));
     }
@@ -721,12 +715,14 @@ public class OrganizerTests {
 
         // Switch back to attendee mode to verify event is visible
         toggleToUserMode();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Verify the event appears in the list
         // Find and scroll to our event in the RecyclerView
         onView(withId(R.id.eventsRecyclerView))
                 .perform(scrollToItemWithText(testEventTitle));
+
+        Thread.sleep(2000);
 
         // Verify the event is visible
         onView(withText(testEventTitle)).check(matches(isDisplayed()));
@@ -748,10 +744,11 @@ public class OrganizerTests {
 
         // Switch to organizer mode before creating event
         toggleToOrganizerMode();
+        Thread.sleep(3000);
 
         // Navigate to event creation screen
         onView(withId(R.id.addEventButton)).perform(click());
-        Thread.sleep(1000); // Allow time for the Create Event screen to load
+        Thread.sleep(2000);
 
         // Fill out basic event information
         onView(withId(R.id.editTextEventTitle)).perform(scrollTo(), replaceText(testEventTitle));
@@ -763,6 +760,8 @@ public class OrganizerTests {
 
         // Toggle geolocation requirement (default is Enabled, clicking makes it Disabled)
         onView(withId(R.id.toggleGeolocationRequirement)).perform(scrollTo(), click());
+
+        Thread.sleep(1000);
 
         // Create the event
         onView(withId(R.id.buttonCreateEvent)).perform(click());
@@ -836,7 +835,7 @@ public class OrganizerTests {
 
         // Create the event
         onView(withId(R.id.buttonCreateEvent)).perform(click());
-        Thread.sleep(2000);
+        Thread.sleep(3000);
 
         // Verify the event was created with an image
         final boolean[] hasImage = {false};
@@ -888,7 +887,7 @@ public class OrganizerTests {
 
         // Switch to organizer mode
         toggleToOrganizerMode();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Navigate to event creation screen
         onView(withId(R.id.addEventButton)).perform(click());
@@ -916,7 +915,7 @@ public class OrganizerTests {
         Thread.sleep(2000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         // Scroll to the item with the specific title and click it
         onView(withText(testEventTitle)).perform(scrollTo(), click());
@@ -943,7 +942,7 @@ public class OrganizerTests {
 
         // Select new image
         onView(withId(R.id.updateImageButton)).perform(scrollTo(), click());
-        Thread.sleep(500);
+        Thread.sleep(1000);
 
         // Verify image card view is still visible
         onView(withId(R.id.eventImageCardView))
@@ -1012,13 +1011,13 @@ public class OrganizerTests {
         addUserToWaitingList(eventId[0], userId[0]);
 
         toggleToOrganizerMode();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(withText(testEventTitle)).perform(scrollTo(), click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
@@ -1040,11 +1039,11 @@ public class OrganizerTests {
         Thread.sleep(2000);
 
         onView(withId(R.id.nav_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Switch back to user mode to check notifications
         toggleToUserMode();
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         // Navigate to notifications
         onView(withId(R.id.notificationButton)).perform(click());
@@ -1055,7 +1054,7 @@ public class OrganizerTests {
                 .atPosition(0))
                 .perform(click());
 
-        Thread.sleep(2000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.statusMessage)).check(matches(withText("You have been invited!")));
     }
@@ -1069,7 +1068,7 @@ public class OrganizerTests {
     public void testRegistrationSample() throws InterruptedException {
         createListTestEvent();
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // First store current user ID since we're already logged in from setUp()
         final String[] eventId = {null};
@@ -1097,10 +1096,10 @@ public class OrganizerTests {
         addUserToWaitingList(eventId[0], userId[0]);
 
         toggleToOrganizerMode();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(withText(testEventTitle)).perform(scrollTo(), click());
         Thread.sleep(1000);
@@ -1108,7 +1107,7 @@ public class OrganizerTests {
         intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
 
         onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         intended(hasComponent(ViewParticipantListActivity.class.getName()));
 
@@ -1133,6 +1132,8 @@ public class OrganizerTests {
         // Switch to organizer mode
         toggleToOrganizerMode();
 
+        Thread.sleep(2000);
+
         // Navigate to event creation screen
         onView(withId(R.id.addEventButton)).perform(click());
         Thread.sleep(1000);
@@ -1147,7 +1148,7 @@ public class OrganizerTests {
         fillOutDates();
 
         onView(withId(R.id.buttonCreateEvent)).perform(click());
-        Thread.sleep(2000);
+        Thread.sleep(3000);
 
         // Get event ID and current user ID
         final String[] eventId = {null};
@@ -1170,11 +1171,11 @@ public class OrganizerTests {
         // Create test user and add both users to waitlist
         createTestUserAndAddToWaitlist(eventId[0]);
         addUserToWaitingList(eventId[0], currentUserId[0]);
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Navigate to event's waiting list
         onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withText(testEventTitle)).perform(scrollTo(), click());
         Thread.sleep(1000);
@@ -1200,7 +1201,7 @@ public class OrganizerTests {
         Thread.sleep(1000);
 
         onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Draw replacement from remaining waitlist
         onView(withId(R.id.selectReplaceButton)).perform(scrollTo(), click());
@@ -1244,11 +1245,11 @@ public class OrganizerTests {
 
         toggleToOrganizerMode();
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         // Scroll to the item with the specific title and click it
         onView(withText(testEventTitle)).perform(scrollTo(), click());
@@ -1277,11 +1278,11 @@ public class OrganizerTests {
 
         toggleToOrganizerMode();
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         // Scroll to the item with the specific title and click it
         onView(withText(testEventTitle)).perform(scrollTo(), click());
@@ -1311,11 +1312,11 @@ public class OrganizerTests {
 
         toggleToOrganizerMode();
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         // Scroll to the item with the specific title and click it
         onView(withText(testEventTitle)).perform(scrollTo(), click());
