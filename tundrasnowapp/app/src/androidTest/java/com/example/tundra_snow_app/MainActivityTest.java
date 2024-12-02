@@ -47,7 +47,7 @@ public class MainActivityTest {
 
     private FirebaseFirestore db;
 
-    String testEmail = "newuser@example.com";
+    String testEmail = "newuser111@example.com";
 
     // Custom matcher to check if TextView has clickable spans
     private static Matcher<View> hasClickableSpan() {
@@ -204,11 +204,44 @@ public class MainActivityTest {
      */
     @Test
     public void testSignInWithDevice() throws InterruptedException {
+        // First create an account that will be associated with the device ID
 
+        // Navigate to the sign-up screen
+        onView(withId(R.id.signUpText)).perform(clickClickableSpan("Sign up"));
+
+        // Verify navigation to EntrantSignupActivity
+        intended(hasComponent(EntrantSignupActivity.class.getName()));
+
+        String testPassword = "password123";
+        String testFacility = "testFacility";
+        String facilityLocation = "testLocation";
+
+        // Fill out the sign-up form
+        onView(withId(R.id.editTextFirstName)).perform(replaceText("Jane"));
+        onView(withId(R.id.editTextLastName)).perform(replaceText("Smith"));
+        onView(withId(R.id.editTextEmail)).perform(replaceText(testEmail)); // Using the class-level testEmail
+        onView(withId(R.id.editTextPassword)).perform(replaceText(testPassword));
+        onView(withId(R.id.editTextDateOfBirth)).perform(replaceText("01/01/1990"));
+        onView(withId(R.id.editTextPhoneNumber)).perform(replaceText("1234567890"));
+        onView(withId(R.id.checkBoxNotifications)).perform(click());
+        onView(withId(R.id.checkBoxOrganizer)).perform(click());
+        onView(withId(R.id.editTextFacility)).perform(replaceText(testFacility));
+        onView(withId(R.id.editTextFacilityLocation)).perform(replaceText(facilityLocation));
+
+        // Submit the sign-up form
+        onView(withId(R.id.signupButton)).perform(scrollTo(), click());
+
+        Thread.sleep(2000); // Wait for account creation to complete
+
+        // Now test the device sign-in functionality
+        // The device ID will be automatically associated with the account during sign-up
+
+        // Click the sign in with device button
         onView(withId(R.id.signInWithDeviceButton)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(1000); // Wait for sign-in to complete
 
+        // Verify successful navigation to EventViewActivity
         intended(hasComponent(EventViewActivity.class.getName()));
     }
 }
