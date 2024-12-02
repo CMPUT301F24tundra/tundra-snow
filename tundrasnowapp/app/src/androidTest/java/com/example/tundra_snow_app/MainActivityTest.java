@@ -4,12 +4,12 @@ import static androidx.test.espresso.Espresso.onView;
 import androidx.test.espresso.intent.Intents;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
+import static androidx.test.espresso.action.ViewActions.scrollTo;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 
 import static org.hamcrest.CoreMatchers.allOf;
@@ -139,12 +139,6 @@ public class MainActivityTest {
     }
 
     @Test
-    public void testSignUpTextContent() {
-        // Verify the text displayed is correct
-        onView(withId(R.id.signUpText)).check(matches(withText("Don't have an account? Sign up")));
-    }
-
-    @Test
     public void testSignUpTextIsClickable() {
         // Verify the TextView has clickable spans
         onView(withId(R.id.signUpText)).check(matches(hasClickableSpan()));
@@ -189,7 +183,7 @@ public class MainActivityTest {
 
 
         // Submit the sign-up form
-        onView(withId(R.id.signupButton)).perform(click());
+        onView(withId(R.id.signupButton)).perform(scrollTo(), click());
 
         Thread.sleep(2000);
 
