@@ -67,9 +67,13 @@ public class AdminImageAdapter extends RecyclerView.Adapter<AdminImageAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String imageUrl = imageUrls.get(position);
+        String eventId = imageUrlToEventIdMap.get(imageUrl);
+        holder.imageView.setTag(eventId);
+
         Glide.with(context).load(imageUrl).into(holder.imageView);
 
         holder.imageView.setOnClickListener(v -> {
+            System.out.println(holder.imageView.getTag());
             new AlertDialog.Builder(context)
                     .setTitle("Delete Image")
                     .setMessage("Are you sure you want to delete this image?")

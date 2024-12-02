@@ -153,7 +153,7 @@ public class QrScanActivity extends AppCompatActivity {
      *
      * @param qrData The raw data extracted from the scanned QR code.
      */
-    private void handleScannedQRCode(String qrData) {
+    public void handleScannedQRCode(String qrData) {
         Log.d("QrScanActivity", "QR Code scanned: " + qrData);
 
         // Look for the event with the corresponding QR hash in Firestore
@@ -374,6 +374,11 @@ public class QrScanActivity extends AppCompatActivity {
             Log.e("QrScanActivity", "Error stopping camera pipeline", e);
         }
         isProcessing = false; // Reset processing state for future scans
+    }
+
+    public void simulateScan(String qrHash) {
+        // Simulate passing the scanned data to the handler
+        handleScannedQRCode(qrHash);
     }
 }
 

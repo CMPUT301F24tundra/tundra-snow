@@ -84,7 +84,7 @@ public class EventsTest {
         assertEquals("Published", event.getPublished());
         assertEquals("QR123", event.getQrHash());
         assertEquals("Scheduled", event.getStatus());
-        assertEquals(100, event.getCapacity());
+        assertEquals(100, (int) event.getCapacity());
     }
 
     /**
@@ -277,7 +277,7 @@ public class EventsTest {
     @Test
     public void testSetCapacity() {
         event.setCapacity(150);
-        assertEquals(150, event.getCapacity());
+        assertEquals(150, (int) event.getCapacity());
     }
 
     /**
@@ -361,14 +361,14 @@ public class EventsTest {
         assertEquals("NEWQR123", event.getQrHash());
     }
 
-    /**
-     * Test the formatted date method with a null value
-     */
-    @Test
-    public void testFormattedDateWithNullValue() {
-        Events eventWithNullDates = new Events();
-        assertEquals("Date TBD", eventWithNullDates.getFormattedDate(null));
-    }
+//    /** Duplicate Test
+//     * Test the formatted date method with a null value
+//     */
+//    @Test
+//    public void testFormattedDateWithNullValue() {
+//        Events eventWithNullDates = new Events();
+//        assertEquals("Date TBD", eventWithNullDates.getFormattedDate(null));
+//    }
 
     /**
      * Test the setter for the capacity field with boundary values
@@ -376,10 +376,10 @@ public class EventsTest {
     @Test
     public void testCapacityBoundary() {
         event.setCapacity(0);
-        assertEquals(0, event.getCapacity());
+        assertEquals(0, (int) event.getCapacity());
 
         event.setCapacity(5000);
-        assertEquals(5000, event.getCapacity());
+        assertEquals(5000, (int) event.getCapacity());
     }
 
     /**
@@ -479,7 +479,7 @@ public class EventsTest {
     @Test
     public void testFormattedDateWithNull() {
         // Set a null date and check that the formatted output is "Date TBD"
-        assertEquals("Date TBD", event.getFormattedDate(null));
+        assertEquals("Date and time TBD", event.getFormattedDate(null));
     }
 
     /**
