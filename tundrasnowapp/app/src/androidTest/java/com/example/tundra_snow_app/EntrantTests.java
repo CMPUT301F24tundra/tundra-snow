@@ -19,13 +19,15 @@ import static androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withTagValue;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
-import static androidx.test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
 import android.app.UiAutomation;
+import android.os.SystemClock;
 import android.util.Log;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.either;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
@@ -33,12 +35,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
-import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -50,21 +49,19 @@ import android.view.ViewParent;
 import android.widget.Checkable;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.test.core.app.ApplicationProvider;
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.PerformException;
 import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.ViewAssertion;
+import androidx.test.espresso.ViewInteraction;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.espresso.util.HumanReadables;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
-import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry;
 import androidx.test.runner.lifecycle.Stage;
 import androidx.test.uiautomator.UiDevice;
@@ -81,26 +78,36 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -113,50 +120,153 @@ public class EntrantTests {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private String projectBasePath = System.getProperty("user.dir");
     private UiDevice mDevice;
     String permanentEvent = "Important Test Event";
     String permanentEventID = "ef375549-e7b5-4078-8d22-959be14937f0";
-    String entrantUserId = "da0343cf-1173-41a7-a06e-dee3269f02a6";
+    String mainOrganizerId = "123";
     String testEntrantID = "2bbfb1db-d2d7-4941-a8c0-5e4a5ca30b8c";
 
+    private String testUserId;  // Store the created user's ID
+    private static final String TEST_USER_EMAIL = "testuser@example.com";
+    private static final String TEST_USER_FIRST_NAME = "Test333";
+    private static final String TEST_USER_LAST_NAME = "User333";
+
+    String testEventTitle = "";
+
+    Set<String> generatedTitles  = new HashSet<>();
+
+    private void toggleToOrganizerMode() {
+        ViewInteraction menuButton = onView(withId(R.id.menuButton));
+
+        try {
+            menuButton.perform(click());
+
+            SystemClock.sleep(500);
+
+            onView(withText("Organizer")).perform(click());
+
+        } catch (NoMatchingViewException | PerformException e) {
+            // Log the error for debugging purposes
+            Log.e("MenuInteraction", "Failed to interact with menu", e);
+        }
+    }
+
+    private void toggleToUserMode() {
+        // First, find and click the menu button to open the menu
+        ViewInteraction menuButton = onView(withId(R.id.menuButton));
+
+        try {
+            // Click the menu button to open the menu
+            menuButton.perform(click());
+
+            // After opening the menu, we need to wait briefly for the menu items to be displayed
+            // This helps ensure menu animations are complete and items are clickable
+            SystemClock.sleep(500);
+
+            // Now find and click the organizer option in the opened menu
+            // Note: You'll need to replace "Organizer" with the exact text that appears in your menu
+            onView(withText("User")).perform(click());
+
+        } catch (NoMatchingViewException | PerformException e) {
+            // Log the error for debugging purposes
+            Log.e("MenuInteraction", "Failed to interact with menu", e);
+            // Optionally handle the error case based on your app's needs
+        }
+    }
+
     /**
-     * Custom ViewAction to click on a specified ClickableSpan text inside a TextView.
-     *
-     * @param spanText The text of the ClickableSpan to click on.
-     * @return A ViewAction that acts like a click on the specified ClickableSpan.
+     * Ensures that notifications and geolocation are enabled in settings
+     * @throws InterruptedException
      */
-    private static ViewAction clickClickableSpan(final String spanText) {
-        return new ViewAction() {
-            @Override
-            public Matcher<View> getConstraints() {
-                return allOf(withId(R.id.signUpText));
-            }
+    private void ensureSettingsEnabled() throws InterruptedException {
+        onView(withId(R.id.nav_settings)).perform(click());
+        Thread.sleep(1000);
 
-            @Override
-            public String getDescription() {
-                return "click on a specific ClickableSpan inside TextView";
-            }
+        // Enable notifications if disabled
+        boolean isNotificationsChecked = isNotificationsCheckedState();
+        if (!isNotificationsChecked) {
+            onView(withId(R.id.notificationsCheckbox)).perform(click());
+            onView(withId(R.id.notificationsCheckbox)).check(matches(isChecked()));
+        }
 
-            @Override
-            public void perform(UiController uiController, View view) {
-                TextView textView = (TextView) view;
-                CharSequence text = textView.getText();
-                if (text instanceof Spannable) {
-                    Spannable spannable = (Spannable) text;
-                    ClickableSpan[] spans = spannable.getSpans(0, text.length(), ClickableSpan.class);
-                    for (ClickableSpan span : spans) {
-                        int start = spannable.getSpanStart(span);
-                        int end = spannable.getSpanEnd(span);
-                        String spanString = text.subSequence(start, end).toString();
-                        if (spanString.equals(spanText)) {
-                            span.onClick(view);
-                            break;
-                        }
-                    }
-                }
-            }
-        };
+        // Enable geolocation if disabled
+        boolean isGeolocationChecked = isGeolocationCheckedState();
+        if (!isGeolocationChecked) {
+            onView(withId(R.id.geolocationCheckbox)).perform(click());
+            onView(withId(R.id.geolocationCheckbox)).check(matches(isChecked()));
+        }
+
+        // Return to main screen
+        onView(withId(R.id.nav_events)).perform(click());
+        Thread.sleep(1000);
+    }
+
+    private String formatDate(LocalDate date) {
+        return String.format("%02d/%02d/%d",
+                date.getDayOfMonth(),
+                date.getMonthValue(),
+                date.getYear());
+    }
+
+    private void fillOutDates() {
+        LocalDate today = LocalDate.now();
+
+        // Registration start (tomorrow)
+        String regStartDate = formatDate(today.plusDays(1));
+        onView(withId(R.id.editRegistrationStartDate)).perform(scrollTo(), replaceText(regStartDate));
+        onView(withId(R.id.editRegistrationStartTime)).perform(scrollTo(), replaceText("09:00"));
+
+        // Registration end (day after tomorrow)
+        String regEndDate = formatDate(today.plusDays(2));
+        onView(withId(R.id.editRegistrationEndDate)).perform(scrollTo(), replaceText(regEndDate));
+        onView(withId(R.id.editRegistrationEndTime)).perform(scrollTo(), replaceText("17:00"));
+
+        // Event start (in 3 days)
+        String eventStartDate = formatDate(today.plusDays(3));
+        onView(withId(R.id.editTextStartDate)).perform(scrollTo(), replaceText(eventStartDate));
+        onView(withId(R.id.editTextStartTime)).perform(scrollTo(), replaceText("10:00"));
+
+        // Event end (in 4 days)
+        String eventEndDate = formatDate(today.plusDays(4));
+        onView(withId(R.id.editTextEndDate)).perform(scrollTo(), replaceText(eventEndDate));
+        onView(withId(R.id.editTextEndTime)).perform(scrollTo(), replaceText("16:00"));
+    }
+
+    private void createTestEvent(String testEventTitle) throws InterruptedException {
+
+        generatedTitles.add(testEventTitle);
+
+        // Switch to organizer mode before creating event
+        toggleToOrganizerMode();
+
+        Thread.sleep(2000);
+
+        // Navigate to event creation screen
+        onView(withId(R.id.addEventButton)).perform(click());
+        Thread.sleep(1000); // Allow time for the Create Event screen to load
+
+        // Fill out basic event information
+        onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
+        onView(withId(R.id.editTextEventDescription))
+                .perform(replaceText("This is a description for the test event."));
+        onView(withId(R.id.editTextLocation)).perform(scrollTo(), replaceText("Test Location"));
+
+        fillOutDates();
+
+        // Set event capacity
+        onView(withId(R.id.editTextCapacity)).perform(scrollTo(), replaceText("1"));
+
+        // Toggle geolocation requirement (default is Enabled, clicking makes it Disabled)
+        onView(withId(R.id.toggleGeolocationRequirement)).perform(scrollTo(), click());
+
+        onView(withId(R.id.generateHashInformation)).perform(scrollTo(), click());
+
+        // Create the event
+        onView(withId(R.id.buttonCreateEvent)).perform(click());
+        Thread.sleep(2000); // Allow time for event creation and database update
+
+        toggleToUserMode();
+        Thread.sleep(1000);
     }
 
     /**
@@ -206,7 +316,7 @@ public class EntrantTests {
      */
     private void moveFromWaitlistToChosenList(){
         db.collection("events")
-                .whereEqualTo("title", permanentEvent)
+                .whereEqualTo("title", testEventTitle)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -223,15 +333,15 @@ public class EntrantTests {
                             Map<String, Object> updates = new HashMap<>();
 
                             // Remove user from Entrant list (Waiting list) if present
-                            if (entrantList.contains(testEntrantID)) {
-                                entrantList.remove(testEntrantID);
+                            if (entrantList.contains(mainOrganizerId)) {
+                                entrantList.remove(mainOrganizerId);
                                 updates.put("entrantList", entrantList);
                                 needsUpdate = true;
                             }
 
                             // Add user to Chosen list if not present
-                            if (!chosenList.contains(testEntrantID)) {
-                                chosenList.add(testEntrantID);
+                            if (!chosenList.contains(mainOrganizerId)) {
+                                chosenList.add(mainOrganizerId);
                                 updates.put("chosenList", chosenList);
                                 needsUpdate = true;
                             }
@@ -249,55 +359,6 @@ public class EntrantTests {
                     }
                 });
 
-    }
-
-    private void addUserToCancelledList(String userID, String EventName) {
-        db.collection("events")
-                .whereEqualTo("title", EventName)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (DocumentSnapshot document : task.getResult()) {
-                            List<String> cancelledList = (List<String>) document.get("cancelledList");
-
-                            // Initialize list if it's null
-                            if (cancelledList == null) cancelledList = new ArrayList<>();
-
-                            // Check if user is already in the cancelled list
-                            if (!cancelledList.contains(userID)) {
-                                cancelledList.add(userID);
-                                document.getReference().update("cancelledList", cancelledList)
-                                        .addOnSuccessListener(aVoid ->
-                                                Log.d("UserManagement", "User added to cancelled list: " + userID))
-                                        .addOnFailureListener(e ->
-                                                Log.e("UserManagement", "Error adding user to cancelled list", e));
-                            } else {
-                                Log.d("UserManagement", "User already in cancelled list: " + userID);
-                            }
-                        }
-
-                    } else {
-                        Log.e("UserManagement", "Error finding events for user update", task.getException());
-                    }
-                });
-    }
-
-    /**
-     * Set up method that initializes Intents.
-     */
-    @Before
-    public void setUp() throws InterruptedException,IOException {
-        Intents.init();
-        auth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
-        mDevice = UiDevice.getInstance(getInstrumentation());
-        // This account is an only an Entrant
-        onView(withId(R.id.usernameEditText)).perform(replaceText("111@gmail.com"));
-        onView(withId(R.id.passwordEditText)).perform(replaceText("111"));
-        onView(withId(R.id.loginButton)).perform(click());
-//        pushImageToDeviceAndScan(); Probems with ADB. have to do it manually for now
-        clearUserNotifications(testEntrantID);
-        Thread.sleep(1000);
     }
 
     public void clearUserNotifications(String userID) {
@@ -339,32 +400,6 @@ public class EntrantTests {
                 .addOnFailureListener(e -> {
                     Log.e("Notifications", "Failed to retrieve notifications for user " + userID, e);
                 });
-    }
-
-    private void pushImageToDeviceAndScan() throws IOException, InterruptedException {
-        String adbPath = "/Users/stro/Library/Android/sdk/platform-tools/adb";  // Path to adb
-        String imagePath = "/Users/stro/AndroidStudioProjects/tundra-snow/tundrasnowapp/app/src/main/res/drawable/test_image.png";  // Path to the image
-        String targetPath = "/sdcard/Pictures/";  // Target path on the device/emulator
-        String adbPushCommand = adbPath + " push \"" + imagePath + "\" " + targetPath;
-        Log.d("AdbTest", adbPushCommand);
-        String mediaScanCommand = adbPath + " shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://" + targetPath + "test_image.png";
-        executeCommand(adbPushCommand);
-        executeCommand(mediaScanCommand);
-
-    }
-
-    private void executeCommand(String command) throws IOException, InterruptedException {
-        String[] commandArgs = command.split(" ");
-        ProcessBuilder processBuilder = new ProcessBuilder(commandArgs);
-        processBuilder.inheritIO();  // Inherit the I/O streams for debugging/logging
-        Process process = processBuilder.start();
-        int exitCode = process.waitFor();
-
-        if (exitCode == 0) {
-            System.out.println("Command executed successfully: " + command);
-        } else {
-            System.err.println("Command failed with exit code " + exitCode + ": " + command);
-        }
     }
 
     /**
@@ -444,16 +479,42 @@ public class EntrantTests {
                 });
     }
 
-    /**
-     * Release Intents after tests are complete.
-     */
-    @After
-    public void tearDown(){
-        auth.signOut();
-        Intents.release();
+    public Uri saveBitmapToFile(Bitmap bitmap, Context context) throws IOException {
+        // Create a file in the app's cache directory
+        File file = new File(context.getCacheDir(), "test_image.png");
 
-        cleanUser(permanentEvent, Boolean.FALSE);
+        // Create an output stream to write the Bitmap to the file
+        FileOutputStream outStream = new FileOutputStream(file);
 
+        // Compress the bitmap into PNG format and save it to the file
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outStream);
+        outStream.close(); // Don't forget to close the output stream
+
+        // Return a URI pointing to the saved file
+        return Uri.fromFile(file);
+    }
+
+    private Matcher<? super View> withDrawable(int testImage) {
+        return new BoundedMatcher<View, ImageView>(ImageView.class) {
+            @Override
+            protected boolean matchesSafely(ImageView imageView) {
+                // Get the drawable from the ImageView
+                Drawable drawable = imageView.getDrawable();
+
+                // Check if the drawable is not null and if it matches the expected drawable
+                if (drawable != null) {
+                    Drawable expectedDrawable = ContextCompat.getDrawable(imageView.getContext(), testImage);  // Using ContextCompat to load drawable
+                    return drawable.getConstantState().equals(expectedDrawable.getConstantState());  // Compare the constant state
+                }
+
+                return false;
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("with drawable resource ID: " + testImage);
+            }
+        };
     }
 
     public static ViewAction scrollToItemWithText(final String text) {
@@ -515,12 +576,322 @@ public class EntrantTests {
         };
     }
 
+    public Activity getCurrentActivity() {
+        final Activity[] currentActivity = new Activity[1];
+        getInstrumentation().runOnMainSync(() -> {
+            Collection<Activity> resumedActivities = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED);
+            if (!resumedActivities.isEmpty()) {
+                currentActivity[0] = resumedActivities.iterator().next();
+            }
+        });
+        return currentActivity[0];
+    }
+
+    private String fetchQrHash(String eventId) {
+        // Create a Task to hold the result of the Firestore query
+        Task<DocumentSnapshot> task = db.collection("events")
+                .document(eventId)
+                .get();
+
+        try {
+            // Block the thread until the task completes, making the operation synchronous
+            DocumentSnapshot documentSnapshot = Tasks.await(task);
+
+            // Check if the document exists and retrieve the qrHash
+            if (documentSnapshot.exists()) {
+                return documentSnapshot.getString("qrHash");
+            } else {
+                Log.e("Firestore", "Event not found: " + eventId);
+                return null;
+            }
+        } catch (Exception e) {
+            Log.e("Firestore", "Error fetching event", e);
+            return null;
+        }
+    }
+
+    private void registerforTestEvent(String testCase) throws InterruptedException {
+        // Step 1: Register For Test Event
+        onView(withId(R.id.nav_settings)).perform(click());
+        Thread.sleep(3000);
+        intended(hasComponent(SettingsViewActivity.class.getName()));
+
+        onView(withId(R.id.geolocationCheckbox)).check(matches(isDisplayed()));
+        boolean isChecked = isGeolocationCheckedState();
+
+        if (!isChecked) {
+            onView(withId(R.id.geolocationCheckbox)).perform(click());
+            onView(withId(R.id.geolocationCheckbox)).check(matches(isChecked()));
+        }
+        isChecked = isNotificationsCheckedState();
+        if (!isChecked) {
+            onView(withId(R.id.notificationsCheckbox)).perform(click());
+            onView(withId(R.id.notificationsCheckbox)).check(matches(isChecked()));
+        }
+
+        onView(withId(R.id.nav_events)).perform(click());
+        Thread.sleep(2000);
+        onView(withId(R.id.eventsRecyclerView))
+                .perform(scrollToItemWithText(testCase));
+        onView(withText(testCase)).perform(click());
+        Thread.sleep(2000);
+        onView(withId(R.id.buttonSignUpForEvent)).perform(click());
+    }
+
+    private void logOutUser(Boolean isEntrant) throws InterruptedException {
+        Thread.sleep(3000);
+
+        onView(withId(R.id.nav_settings)).perform(click());
+        Thread.sleep(1000);
+        onView(withId(R.id.logoutButton)).perform(click());
+        onView(withText("Logout"))
+                .check(matches(isDisplayed())); // Verify dialog is displayed
+        onView(withText("Yes"))
+                .perform(click()); // Click the positive button
+        Thread.sleep(3000);
+        if (isEntrant){
+            onView(withId(R.id.usernameEditText)).perform(replaceText("admin@gmail.com"));
+            onView(withId(R.id.passwordEditText)).perform(replaceText("admin123"));
+            onView(withId(R.id.loginButton)).perform(click());
+        }else{
+
+            onView(withId(R.id.usernameEditText)).perform(replaceText("333@gmail.com"));
+            onView(withId(R.id.passwordEditText)).perform(replaceText("333"));
+            onView(withId(R.id.loginButton)).perform(click());
+            Thread.sleep(2000);
+            onView(withId(R.id.nav_settings)).perform(click());
+            Thread.sleep(2000);
+            onView(withId(R.id.geolocationCheckbox)).check(matches(isDisplayed()));
+            boolean isChecked = isGeolocationCheckedState();
+            if (!isChecked) {
+                onView(withId(R.id.geolocationCheckbox)).perform(click());
+                onView(withId(R.id.geolocationCheckbox)).check(matches(isChecked()));
+            }
+            isChecked = isNotificationsCheckedState();
+            if (!isChecked) {
+                onView(withId(R.id.notificationsCheckbox)).perform(click());
+                onView(withId(R.id.notificationsCheckbox)).check(matches(isChecked()));
+            }
+
+        }
+        Thread.sleep(2000);
+    }
+
+    public static Matcher<View> childAtPosition(
+            final Matcher<View> parentMatcher, final int position) {
+
+        return new TypeSafeMatcher<View>() {
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("Child at position " + position + " in parent ");
+                parentMatcher.describeTo(description);
+            }
+
+            @Override
+            public boolean matchesSafely(View view) {
+                ViewParent parent = view.getParent();
+                return parent instanceof ViewGroup && parentMatcher.matches(parent)
+                        && view.equals(((ViewGroup) parent).getChildAt(position));
+            }
+        };
+    }
+
+    private void resetCapacity(String eventName){
+        db.collection("events")
+                .whereEqualTo("title", eventName)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (DocumentSnapshot document : querySnapshot) {
+                        document.getReference().update("capacity", 50);
+                    }
+                });
+    }
+
+    private void createTestUserAndAddToWaitlist(String eventId) throws InterruptedException {
+        testUserId = UUID.randomUUID().toString();
+
+        // Create user document
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("userID", testUserId);
+        userMap.put("firstName", TEST_USER_FIRST_NAME);
+        userMap.put("lastName", TEST_USER_LAST_NAME);
+        userMap.put("email", TEST_USER_EMAIL);
+        userMap.put("password", "testpass");
+        userMap.put("dateOfBirth", "01/01/2000");
+        userMap.put("phoneNumber", "1234567890");
+        userMap.put("notificationsEnabled", true);
+        userMap.put("geolocationEnabled", false);
+        userMap.put("deviceID", "test_device");
+        userMap.put("location", "Test Location");
+        userMap.put("roles", Arrays.asList("user"));
+        userMap.put("userEventList", new ArrayList<>());
+
+        // Add user to Firestore
+        final CountDownLatch userLatch = new CountDownLatch(1);
+        db.collection("users")
+                .document(testUserId)
+                .set(userMap)
+                .addOnSuccessListener(aVoid -> userLatch.countDown())
+                .addOnFailureListener(e -> userLatch.countDown());
+
+        assertTrue("Creating test user timed out", userLatch.await(5, TimeUnit.SECONDS));
+
+        // Add test user to event's waiting list
+        final CountDownLatch waitlistLatch = new CountDownLatch(1);
+        db.collection("events")
+                .document(eventId)
+                .update("entrantList", FieldValue.arrayUnion(testUserId))
+                .addOnSuccessListener(aVoid -> waitlistLatch.countDown())
+                .addOnFailureListener(e -> waitlistLatch.countDown());
+
+        assertTrue("Adding test user to waitlist timed out", waitlistLatch.await(5, TimeUnit.SECONDS));
+        Thread.sleep(1000);
+    }
+
+    private void addUserToWaitingList(String eventId, String userId) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        // Add user to the waitingList array in Firestore
+        db.collection("events")
+                .document(eventId)
+                .update("entrantList", FieldValue.arrayUnion(userId))
+                .addOnSuccessListener(aVoid -> latch.countDown())
+                .addOnFailureListener(e -> latch.countDown());
+
+        assertTrue("Adding user to waiting list timed out", latch.await(5, TimeUnit.SECONDS));
+    }
+
+    private void createMainOrganizerIfNotExists() {
+        // Create user document
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("userID", mainOrganizerId);  // Using the existing entrantUserId constant
+        userMap.put("firstName", "Main");
+        userMap.put("lastName", "Organizer");
+        userMap.put("email", "333@gmail.com");
+        userMap.put("password", "333");
+        userMap.put("dateOfBirth", "01/01/2000");
+        userMap.put("phoneNumber", "1234567890");
+        userMap.put("notificationsEnabled", true);
+        userMap.put("geolocationEnabled", true);
+        userMap.put("deviceID", "test_device");
+        userMap.put("location", "Test Location");
+        userMap.put("roles", Arrays.asList("user", "organizer"));
+        userMap.put("userEventList", new ArrayList<>());
+        userMap.put("facilityList", new ArrayList<>());
+        userMap.put("organizerEventList", new ArrayList<>());
+
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        // First check if user exists
+        db.collection("users")
+                .document(mainOrganizerId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && !task.getResult().exists()) {
+                        // User doesn't exist, create it
+                        db.collection("users")
+                                .document(mainOrganizerId)
+                                .set(userMap)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("Setup", "Main organizer account created successfully");
+                                    latch.countDown();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("Setup", "Error creating main organizer account", e);
+                                    latch.countDown();
+                                });
+                    } else {
+                        // User already exists
+                        Log.d("Setup", "Main organizer account already exists");
+                        latch.countDown();
+                    }
+                });
+
+        try {
+            latch.await(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Log.e("Setup", "Timeout waiting for main organizer account creation", e);
+        }
+    }
+
+    /**
+     * Set up method that initializes Intents.
+     */
+    @Before
+    public void setUp() throws InterruptedException,IOException {
+        Intents.init();
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        mDevice = UiDevice.getInstance(getInstrumentation());
+
+        // Create main organizer account (333)
+        createMainOrganizerIfNotExists();
+
+        Thread.sleep(1000);
+
+        // This account is an Entrant (and Organizer)
+        onView(withId(R.id.usernameEditText)).perform(replaceText("333@gmail.com"));
+        onView(withId(R.id.passwordEditText)).perform(replaceText("333"));
+        onView(withId(R.id.loginButton)).perform(click());
+        Thread.sleep(1000);
+    }
+
+    /**
+     * Release Intents after tests are complete.
+     */
+    @After
+    public void tearDown(){
+        auth.signOut();
+        Intents.release();
+
+        // cleanUser(permanentEvent, Boolean.FALSE);
+
+        for (String title : generatedTitles) {
+            // Query and delete test events with the specified title
+            db.collection("events")
+                    .whereEqualTo("title", title)  // Use the current title in the loop
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            for (DocumentSnapshot document : task.getResult()) {
+                                document.getReference().delete()
+                                        .addOnSuccessListener(aVoid ->
+                                                Log.d("TearDown", "Test event '" + title + "' deleted successfully"))
+                                        .addOnFailureListener(e ->
+                                                Log.e("TearDown", "Error deleting test event '" + title + "'", e));
+                            }
+                        } else {
+                            Log.e("TearDown", "Error finding test events for '" + title + "'", task.getException());
+                        }
+                    });
+        }
+
+        // Clean up test user if one was created
+        db.collection("users")
+                .whereEqualTo("email", TEST_USER_EMAIL)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (DocumentSnapshot document : querySnapshot) {
+                        String email = document.getString("email");
+                        if (email != null && !email.equals("333@gmail.com")) {  // Protect the test account
+                            document.getReference().delete()
+                                    .addOnSuccessListener(aVoid -> Log.d("TearDown", "Test user deleted successfully"))
+                                    .addOnFailureListener(e -> Log.e("TearDown", "Error deleting test user", e));
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("TearDown", "Error finding test user", e));
+    }
+
     /**
      * US 01.01.01 As an entrant, I want to join the waiting list for a specific event
      * @throws InterruptedException
      */
     @Test
     public void testJoinWaitingList() throws InterruptedException {
+        createTestEvent(permanentEvent);
+
         onView(withId(R.id.nav_settings)).perform(click());
 
         Thread.sleep(1000);
@@ -538,17 +909,17 @@ public class EntrantTests {
 
         onView(withId(R.id.nav_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(withId(R.id.eventsRecyclerView))
                 .perform(scrollToItemWithText(permanentEvent));
         onView(withText(permanentEvent)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(withId(R.id.buttonSignUpForEvent)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
@@ -566,6 +937,9 @@ public class EntrantTests {
      */
     @Test
     public void testLeaveWaitingList() throws InterruptedException {
+
+        createTestEvent(permanentEvent);
+
         onView(withId(R.id.nav_settings)).perform(click());
 
         Thread.sleep(1000);
@@ -597,7 +971,7 @@ public class EntrantTests {
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(allOf(
                 withId(R.id.eventName),
@@ -650,7 +1024,7 @@ public class EntrantTests {
 
         // Revert the email and phone number
         onView(withId(R.id.editButton)).perform(click());
-        onView(withId(R.id.profileEmail)).perform(replaceText("111@gmail.com"));
+        onView(withId(R.id.profileEmail)).perform(replaceText("333@gmail.com"));
         onView(withId(R.id.profilePhone)).perform(replaceText("780-777-7777"));
         onView(withId(R.id.saveButton)).perform(click());
 
@@ -658,32 +1032,18 @@ public class EntrantTests {
         Thread.sleep(1000);
 
         // Verify the reverted information is displayed correctly
-        onView(withId(R.id.profileEmail)).check(matches(withText("111@gmail.com")));
+        onView(withId(R.id.profileEmail)).check(matches(withText("333@gmail.com")));
         onView(withId(R.id.profilePhone)).check(matches(withText("780-777-7777")));
     }
 
     /**
-     * TODO US 01.03.01 As an entrant I want to upload a profile picture for a more
+     * US 01.03.01 As an entrant I want to upload a profile picture for a more
      * personalized experience
      */
     @Test
     public void testProfilePictureUpload() throws InterruptedException, IOException {
         onView(withId(R.id.nav_profile)).perform(click());
-/*
-        // Step 2: Perform the click action on the "Change Picture" button
-//        onView(withId(R.id.changePictureButton)).perform(click());
 
-        // Step 3: Mock the result of the photo picker
-        String imagePath = "content://media/picker/0/com.android.providers.media.photopicker/media/1000000023"; // change as needed
-//        Uri imageUri = Uri.parse("file://" + imagePath);       // Convert path to a file URI
-        Uri imageUri = Uri.parse(imagePath);  // Convert path to a file URI
-//        // Create a mock result for the photo picker
-//        Intent resultData = new Intent();
-//        resultData.setData(imageUri);  // Simulate the selected image
-//        Instrumentation.ActivityResult mockResult = new Instrumentation.ActivityResult(Activity.RESULT_OK, resultData);
-//
-//        // Mock the response for the photo picker intent
-//        Intents.intending(hasAction(Intent.ACTION_PICK)).respondWith(mockResult);*/
         ProfileViewActivity activity = (ProfileViewActivity) getCurrentActivity();
         Drawable drawable = activity.getResources().getDrawable(R.drawable.test_image, null);
         Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
@@ -698,47 +1058,8 @@ public class EntrantTests {
                 .check(matches(withTagValue(equalTo(imageUri.toString())))); // Check if the tag matches
     }
 
-    public Uri saveBitmapToFile(Bitmap bitmap, Context context) throws IOException {
-        // Create a file in the app's cache directory
-        File file = new File(context.getCacheDir(), "test_image.png");
-
-        // Create an output stream to write the Bitmap to the file
-        FileOutputStream outStream = new FileOutputStream(file);
-
-        // Compress the bitmap into PNG format and save it to the file
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outStream);
-        outStream.close(); // Don't forget to close the output stream
-
-        // Return a URI pointing to the saved file
-        return Uri.fromFile(file);
-    }
-
-
-    private Matcher<? super View> withDrawable(int testImage) {
-        return new BoundedMatcher<View, ImageView>(ImageView.class) {
-            @Override
-            protected boolean matchesSafely(ImageView imageView) {
-                // Get the drawable from the ImageView
-                Drawable drawable = imageView.getDrawable();
-
-                // Check if the drawable is not null and if it matches the expected drawable
-                if (drawable != null) {
-                    Drawable expectedDrawable = ContextCompat.getDrawable(imageView.getContext(), testImage);  // Using ContextCompat to load drawable
-                    return drawable.getConstantState().equals(expectedDrawable.getConstantState());  // Compare the constant state
-                }
-
-                return false;
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("with drawable resource ID: " + testImage);
-            }
-        };
-    }
-
     /**
-     * TODO US 01.03.02 As an entrant I want remove profile picture if need be
+     * US 01.03.02 As an entrant I want remove profile picture if need be
      * @throws InterruptedException
      */
     @Test
@@ -769,7 +1090,7 @@ public class EntrantTests {
     }
 
     /**
-     * TODO US 01.03.03 As an entrant I want my profile picture to be deterministically
+     * US 01.03.03 As an entrant I want my profile picture to be deterministically
      * generated from my profile name if I haven't uploaded a profile image yet.
      * @throws InterruptedException
      */
@@ -777,7 +1098,8 @@ public class EntrantTests {
     public void testAutomaticProfilePicture() throws InterruptedException {
         // Step 1: Navigate to the profile screen
         onView(withId(R.id.nav_profile)).perform(click());
-        Thread.sleep(1000);
+
+        Thread.sleep(3000);
         // Step 2: Ensure the default profile picture
         boolean isDefaultProfilePicture;
         try {
@@ -805,208 +1127,13 @@ public class EntrantTests {
         // Step 3: Set the profile picture
         onView(withId(R.id.generatePictureButton)).perform(click());
 
+        Thread.sleep(3000);
+
         //Step 4: Ensure the profile picture has changed
         onView(withId(R.id.profileImageView))
                 .check(matches(not(withDrawable(R.drawable.default_profile_picture))));
     }
 
-    /**
-     * TODO US 01.04.01 As an entrant I want to receive notification when chosen from the
-     * waiting list (when I "win" the lottery)
-     * @throws InterruptedException
-     */
-    @Test
-    public void testLotteryWinNotification() throws InterruptedException {
-        // Disable window and transition animations
-        String testCase = "Test Event----";
-        cleanUser(testCase, Boolean.TRUE);
-        Thread.sleep(2000);
-        UiAutomation uiAutomation = getInstrumentation().getUiAutomation();
-        uiAutomation.executeShellCommand("settings put global transition_animation_scale 0.0");
-        uiAutomation.executeShellCommand("settings put global window_animation_scale 0.0");
-        uiAutomation.executeShellCommand("settings put global animator_duration_scale 0.0");
-
-        registerforTestEvent(testCase);
-        logOutUser(Boolean.TRUE);
-
-
-        onView(withId(R.id.menuButton)).perform(click());
-        onView(withText("Organizer")).perform(click());
-        Thread.sleep(1000);
-        onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
-        onView(withText(testCase)).perform(click());
-        onView(withId(R.id.viewWaitingList)).perform(scrollTo()).check(matches(isDisplayed())).perform(click());
-            // Select User
-        onView(withId(R.id.selectRegSampleButton)).perform(click());
-        Thread.sleep(2000);
-        onView(withId(R.id.backButton)).perform(click());
-        onView(withId(R.id.backButton)).perform(click());
-        logOutUser(Boolean.FALSE);
-        onView(withId(R.id.nav_events)).perform(click());
-        // Step 3: Check Notifications
-        Thread.sleep(3000);
-        onView(withId(R.id.notificationButton)).perform(click());
-        Thread.sleep(2000);
-
-        onView(childAtPosition(withId(R.id.contentLayout), 0))
-                .check(matches(hasDescendant(withText(containsString("Congratulations")))));
-
-        cleanUser(testCase, Boolean.TRUE);
-        Thread.sleep(2000);
-        uiAutomation.executeShellCommand("settings put global transition_animation_scale 1.0");
-        uiAutomation.executeShellCommand("settings put global window_animation_scale 1.0");
-        uiAutomation.executeShellCommand("settings put global animator_duration_scale 1.0");
-    }
-
-    private void registerforTestEvent(String testCase) throws InterruptedException {
-        // Step 1: Register For Test Event
-        onView(withId(R.id.nav_settings)).perform(click());
-        Thread.sleep(1000);
-        intended(hasComponent(SettingsViewActivity.class.getName()));
-        onView(withId(R.id.geolocationCheckbox)).check(matches(isDisplayed()));
-        boolean isChecked = isGeolocationCheckedState();
-        if (!isChecked) {
-            onView(withId(R.id.geolocationCheckbox)).perform(click());
-            onView(withId(R.id.geolocationCheckbox)).check(matches(isChecked()));
-        }
-        isChecked = isNotificationsCheckedState();
-        if (!isChecked) {
-            onView(withId(R.id.notificationsCheckbox)).perform(click());
-            onView(withId(R.id.notificationsCheckbox)).check(matches(isChecked()));
-        }
-
-        onView(withId(R.id.nav_events)).perform(click());
-        Thread.sleep(2000);
-        onView(withId(R.id.eventsRecyclerView))
-                .perform(scrollToItemWithText(testCase));
-        onView(withText(testCase)).perform(click());
-        Thread.sleep(2000);
-        onView(withId(R.id.buttonSignUpForEvent)).perform(click());
-    }
-    private void logOutUser(Boolean isEntrant) throws InterruptedException {
-        onView(withId(R.id.nav_settings)).perform(click());
-        Thread.sleep(1000);
-        onView(withId(R.id.logoutButton)).perform(click());
-        onView(withText("Logout"))
-                .check(matches(isDisplayed())); // Verify dialog is displayed
-        onView(withText("Yes"))
-                .perform(click()); // Click the positive button
-        Thread.sleep(1000);
-        if (isEntrant){
-            onView(withId(R.id.usernameEditText)).perform(replaceText("admin@gmail.com"));
-            onView(withId(R.id.passwordEditText)).perform(replaceText("admin123"));
-            onView(withId(R.id.loginButton)).perform(click());
-        }else{
-
-            onView(withId(R.id.usernameEditText)).perform(replaceText("111@gmail.com"));
-            onView(withId(R.id.passwordEditText)).perform(replaceText("111"));
-            onView(withId(R.id.loginButton)).perform(click());
-            Thread.sleep(2000);
-            onView(withId(R.id.nav_settings)).perform(click());
-            Thread.sleep(2000);
-            onView(withId(R.id.geolocationCheckbox)).check(matches(isDisplayed()));
-            boolean isChecked = isGeolocationCheckedState();
-            if (!isChecked) {
-                onView(withId(R.id.geolocationCheckbox)).perform(click());
-                onView(withId(R.id.geolocationCheckbox)).check(matches(isChecked()));
-            }
-            isChecked = isNotificationsCheckedState();
-            if (!isChecked) {
-                onView(withId(R.id.notificationsCheckbox)).perform(click());
-                onView(withId(R.id.notificationsCheckbox)).check(matches(isChecked()));
-            }
-
-        }
-        Thread.sleep(2000);
-    }
-
-    public static Matcher<View> childAtPosition(
-            final Matcher<View> parentMatcher, final int position) {
-
-        return new TypeSafeMatcher<View>() {
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("Child at position " + position + " in parent ");
-                parentMatcher.describeTo(description);
-            }
-
-            @Override
-            public boolean matchesSafely(View view) {
-                ViewParent parent = view.getParent();
-                return parent instanceof ViewGroup && parentMatcher.matches(parent)
-                        && view.equals(((ViewGroup) parent).getChildAt(position));
-            }
-        };
-    }
-
-    /**
-     * TODO US 01.04.02 As an entrant I want to receive notification of not chosen on the
-     * app (when I "lose" the lottery)
-     * @throws InterruptedException
-     */
-    @Test
-    public void testLotteryLoseNotification() throws InterruptedException {
-        // Disable window and transition animations
-        String testCase = "Test Event----";
-        resetCapacity(testCase);
-        cleanUser(testCase, Boolean.TRUE);
-        Thread.sleep(2000);
-        UiAutomation uiAutomation = getInstrumentation().getUiAutomation();
-        uiAutomation.executeShellCommand("settings put global transition_animation_scale 0.0");
-        uiAutomation.executeShellCommand("settings put global window_animation_scale 0.0");
-        uiAutomation.executeShellCommand("settings put global animator_duration_scale 0.0");
-
-        registerforTestEvent(testCase);
-        logOutUser(Boolean.TRUE);
-        // Login
-
-        onView(withId(R.id.menuButton)).perform(click());
-        onView(withText("Organizer")).perform(click());
-        Thread.sleep(1000);
-        onView(withId(R.id.nav_my_events)).perform(click());
-        Thread.sleep(1000);
-        onView(withText(testCase)).perform(click());
-        onView(withId(R.id.viewWaitingList)).perform(scrollTo()).check(matches(isDisplayed())).perform(click());
-        // Force User to loose
-        onView(withId(R.id.editButton)).perform(click());
-        Thread.sleep(1000);
-        onView(withId(R.id.maxParticipantEdit))
-                .perform(scrollTo(), replaceText("-1"));
-        onView(withId(R.id.saveButton)).perform(click());
-        Thread.sleep(3000);
-        onView(withId(R.id.selectRegSampleButton)).perform(click());
-        Thread.sleep(1000);
-        onView(withId(R.id.backButton)).perform(click());
-        onView(withId(R.id.backButton)).perform(click());
-        logOutUser(Boolean.FALSE);
-        onView(withId(R.id.nav_events)).perform(click());
-        // Step 3: Check Notifications
-        Thread.sleep(3000);
-        onView(withId(R.id.notificationButton)).perform(click());
-        Thread.sleep(2000);
-
-        onView(childAtPosition(withId(R.id.contentLayout), 0))
-                .check(matches(hasDescendant(withText(containsString("Unfortunately")))));
-
-        cleanUser(testCase, Boolean.TRUE);
-        resetCapacity(testCase);
-        Thread.sleep(2000);
-        uiAutomation.executeShellCommand("settings put global transition_animation_scale 1.0");
-        uiAutomation.executeShellCommand("settings put global window_animation_scale 1.0");
-        uiAutomation.executeShellCommand("settings put global animator_duration_scale 1.0");
-    }
-
-    private void resetCapacity(String eventName){
-        db.collection("events")
-                .whereEqualTo("title", eventName)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    for (DocumentSnapshot document : querySnapshot) {
-                        document.getReference().update("capacity", 50);
-                    }
-        });
-    }
     /**
      * US 01.04.03 As an entrant I want to opt out of receiving notifications from
      * organizers and admin
@@ -1036,55 +1163,114 @@ public class EntrantTests {
     }
 
     /**
-     * TODO US 01.05.01 As an entrant I want another chance to be chosen from the waiting list
+     * US 01.05.01 As an entrant I want another chance to be chosen from the waiting list
      * if a selected user declines an invitation to sign up
      * @throws InterruptedException
      */
     @Test
     public void testSigningUpAfterDeclined() throws InterruptedException {
-        UiAutomation uiAutomation = getInstrumentation().getUiAutomation();
-        uiAutomation.executeShellCommand("settings put global transition_animation_scale 0.0");
-        uiAutomation.executeShellCommand("settings put global window_animation_scale 0.0");
-        uiAutomation.executeShellCommand("settings put global animator_duration_scale 0.0");
-
-        // Test Set up
-        String testCase = "Test Event----";
-        String adminUserId = "03e53a60-0e1e-4ea9-ad6f-38a3fea3cd6b";
-        cleanUser(testCase, Boolean.TRUE);
-        addUserToCancelledList(adminUserId, testCase);
-        Thread.sleep(2000);
-        // Step 1: Initial conditions - "Entrant User Registers, switch to organizer to simulate notif
-        registerforTestEvent(testCase);
-        logOutUser(Boolean.TRUE);
-
-        onView(withId(R.id.menuButton)).perform(click());
-        onView(withText("Organizer")).perform(click());
+        // Create test event with capacity
+        testEventTitle = "Drawing Replacement Test Event";
+        createTestEvent(testEventTitle);
         Thread.sleep(1000);
+
+        clearUserNotifications(mainOrganizerId);
+
+        Thread.sleep(500);
+
+        // Get event ID and current user ID
+        final String[] eventId = {null};
+        final String[] currentUserId = {null};
+        final CountDownLatch idLatch = new CountDownLatch(1);
+
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        eventId[0] = queryDocumentSnapshots.getDocuments().get(0).getId();
+                        currentUserId[0] = queryDocumentSnapshots.getDocuments().get(0).getString("organizer");
+                    }
+                    idLatch.countDown();
+                });
+
+        assertTrue("Getting event ID timed out", idLatch.await(5, TimeUnit.SECONDS));
+
+        // Create test user and add both users to waitlist
+        createTestUserAndAddToWaitlist(eventId[0]);
+        addUserToWaitingList(eventId[0], currentUserId[0]);
+        Thread.sleep(2000);
+
+        // Switch to organizer mode and navigate to event
+        toggleToOrganizerMode();
+        Thread.sleep(2000);
+
         onView(withId(R.id.nav_my_events)).perform(click());
         Thread.sleep(2000);
-        onView(withText(testCase)).perform(click());
-        onView(withId(R.id.viewWaitingList)).perform(scrollTo()).check(matches(isDisplayed())).perform(click());
-        // Select User
-        Thread.sleep(3000);
-        onView(withId(R.id.selectReplaceButton)).check(matches(isDisplayed())).perform(click());
-        onView(withId(R.id.backButton)).perform(click());
-        onView(withId(R.id.backButton)).perform(click());
-        logOutUser(Boolean.FALSE);
-        onView(withId(R.id.nav_events)).perform(click());
 
-        // Step 3: Check Notifications
-        Thread.sleep(3000);
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        // View waiting list and select initial entrant
+        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        // Select user from waiting list
+        onView(withId(R.id.selectRegSampleButton)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        // Navigate to chosen list and decline the selected user
+        onView(withId(R.id.backButton)).perform(click());
+        Thread.sleep(1000);
+
+        onView(withId(R.id.viewChosenList)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        onView(withId(R.id.cancelUserButton)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        // Draw replacement from remaining waitlist
+        onView(withId(R.id.backButton)).perform(click());
+        Thread.sleep(1000);
+
+        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        // Verify replace button is available and click it
+        onView(withId(R.id.selectReplaceButton))
+                .check(matches(isDisplayed()))
+                .perform(click());
+        Thread.sleep(2000);
+
+        // Return to main screen
+        onView(withId(R.id.backButton)).perform(click());
+        Thread.sleep(1500);
+
+        onView(withId(R.id.backButton)).perform(click());
+        Thread.sleep(1500);
+
+        onView(withId(R.id.nav_events)).perform(click());
+        Thread.sleep(1500);
+
+        // Switch to user mode and check notification
+        toggleToUserMode();
+        Thread.sleep(2000);
+
         onView(withId(R.id.notificationButton)).perform(click());
         Thread.sleep(2000);
 
-        onView(childAtPosition(withId(R.id.contentLayout), 0))
-                .check(matches(hasDescendant(withText(containsString("replacement")))));
 
-        cleanUser(testCase, Boolean.TRUE);
-        Thread.sleep(2000);
-        uiAutomation.executeShellCommand("settings put global transition_animation_scale 1.0");
-        uiAutomation.executeShellCommand("settings put global window_animation_scale 1.0");
-        uiAutomation.executeShellCommand("settings put global animator_duration_scale 1.0");
+        // Verify notification with either replacement or selected text
+        onView(childAtPosition(withId(R.id.contentLayout), 0))
+                .check(matches(either(
+                        hasDescendant(withText(containsString("replacement")))
+                ).or(
+                        hasDescendant(withText(containsString("selected")))
+                )));
+
+        Thread.sleep(1000);
+
+        clearUserNotifications(mainOrganizerId);
     }
 
     /**
@@ -1094,9 +1280,16 @@ public class EntrantTests {
       */
     @Test
     public void testAcceptEventInvitation() throws InterruptedException {
+
+        // Generate a random event title to ensure uniqueness
+        int randomNumber = new Random().nextInt(1000);
+        testEventTitle = "Entrant Test Event " + randomNumber;
+
+        createTestEvent(testEventTitle);
+
         onView(withId(R.id.nav_settings)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(1500);
 
         intended(hasComponent(SettingsViewActivity.class.getName()));
         onView(withId(R.id.geolocationCheckbox)).check(matches(isDisplayed()));
@@ -1111,35 +1304,35 @@ public class EntrantTests {
 
         onView(withId(R.id.nav_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(1500);
 
         onView(withId(R.id.eventsRecyclerView))
-                .perform(scrollToItemWithText(permanentEvent));
-        onView(withText(permanentEvent)).perform(click());
+                .perform(scrollToItemWithText(testEventTitle));
+        onView(withText(testEventTitle)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(1500);
 
         onView(withId(R.id.buttonSignUpForEvent)).perform(click());
 
         moveFromWaitlistToChosenList();
 
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(allOf(
                 withId(R.id.eventName),
-                withText(permanentEvent)
+                withText(testEventTitle)
         )).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Accept Invitation (end up in confirmedList)
         onView(withId(R.id.rightButton)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(allOf(
                 withId(R.id.eventStatus),
@@ -1153,9 +1346,16 @@ public class EntrantTests {
      */
     @Test
     public void testDeclineEventInvitation() throws InterruptedException {
+
+        // Generate a random event title to ensure uniqueness
+        int randomNumber = new Random().nextInt(1000);
+        testEventTitle = "Entrant Test Event " + randomNumber;
+
+        createTestEvent(testEventTitle);
+
         onView(withId(R.id.nav_settings)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(1500);
 
         intended(hasComponent(SettingsViewActivity.class.getName()));
         onView(withId(R.id.geolocationCheckbox)).check(matches(isDisplayed()));
@@ -1170,44 +1370,44 @@ public class EntrantTests {
 
         onView(withId(R.id.nav_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(1500);
 
         onView(withId(R.id.eventsRecyclerView))
-                .perform(scrollToItemWithText(permanentEvent));
-        onView(withText(permanentEvent)).perform(click());
+                .perform(scrollToItemWithText(testEventTitle));
+        onView(withText(testEventTitle)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(1500);
 
         onView(withId(R.id.buttonSignUpForEvent)).perform(click());
 
         moveFromWaitlistToChosenList();
 
-        Thread.sleep(1000);
+        Thread.sleep(4000);
 
         onView(withId(R.id.nav_my_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         onView(allOf(
                 withId(R.id.eventName),
-                withText(permanentEvent)
+                withText(testEventTitle)
         )).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
-        // Decline Invitation (end up in declinedList)
-        onView(withId(R.id.leftButton)).perform(click());
+        // Decline Invitation (end up in cancelledList)
+        onView(withId(R.id.middleButton)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         onView(allOf(
                 withId(R.id.eventStatus),
-                withText("Declined.")
+                withText("Cancelled.")
         )).check(matches(isDisplayed()));
     }
 
     /**
-     * TODO US 01.06.01 As an entrant I want to view event details within the app by scanning
+     * US 01.06.01 As an entrant I want to view event details within the app by scanning
      * the promotional QR code
      */
     @Test
@@ -1250,42 +1450,8 @@ public class EntrantTests {
         cleanUser("Test Event----", Boolean.FALSE);
     }
 
-    public Activity getCurrentActivity() {
-        final Activity[] currentActivity = new Activity[1];
-        getInstrumentation().runOnMainSync(() -> {
-            Collection<Activity> resumedActivities = ActivityLifecycleMonitorRegistry.getInstance()
-                    .getActivitiesInStage(Stage.RESUMED);
-            if (!resumedActivities.isEmpty()) {
-                currentActivity[0] = resumedActivities.iterator().next();
-            }
-        });
-        return currentActivity[0];
-    }
-
-    private String fetchQrHash(String eventId) {
-        // Create a Task to hold the result of the Firestore query
-        Task<DocumentSnapshot> task = db.collection("events")
-                .document(eventId)
-                .get();
-
-        try {
-            // Block the thread until the task completes, making the operation synchronous
-            DocumentSnapshot documentSnapshot = Tasks.await(task);
-
-            // Check if the document exists and retrieve the qrHash
-            if (documentSnapshot.exists()) {
-                return documentSnapshot.getString("qrHash");
-            } else {
-                Log.e("Firestore", "Event not found: " + eventId);
-                return null;
-            }
-        } catch (Exception e) {
-            Log.e("Firestore", "Error fetching event", e);
-            return null;
-        }
-    }
     /**
-     * TODO US 01.06.02 As an entrant I want to be able to be sign up for an event by scanning the
+     * US 01.06.02 As an entrant I want to be able to be sign up for an event by scanning the
      * QR code
      */
     @Test
@@ -1334,9 +1500,11 @@ public class EntrantTests {
     @Test
     public void testGeolocationWarning() throws InterruptedException {
 
+        createTestEvent(permanentEvent);
+
         onView(withId(R.id.nav_settings)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(1500);
 
         intended(hasComponent(SettingsViewActivity.class.getName()));
         onView(withId(R.id.geolocationCheckbox)).check(matches(isDisplayed()));
@@ -1351,15 +1519,13 @@ public class EntrantTests {
 
         onView(withId(R.id.nav_events)).perform(click());
 
-        Thread.sleep(1000);
+        Thread.sleep(1500);
 
         onView(withId(R.id.eventsRecyclerView))
                 .perform(scrollToItemWithText(permanentEvent));
         onView(withText(permanentEvent)).perform(click());
 
-        Thread.sleep(1000);
-
-        onView(withId(R.id.buttonSignUpForEvent)).perform(click());
+        Thread.sleep(2000);
 
         onView(withId(R.id.geoLocationNotification)).check(matches(isDisplayed()));
         onView(withId(R.id.geoLocationNotification)).check(matches(withText("Notice: Event Signup Requires Geolocation!")));

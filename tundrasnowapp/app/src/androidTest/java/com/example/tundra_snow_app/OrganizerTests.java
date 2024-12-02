@@ -181,8 +181,8 @@ public class OrganizerTests {
         // Create user document
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("userID", testUserId);
-        userMap.put("firstName", "Test");
-        userMap.put("lastName", "User");
+        userMap.put("firstName", TEST_USER_FIRST_NAME);
+        userMap.put("lastName", TEST_USER_LAST_NAME);
         userMap.put("email", TEST_USER_EMAIL);
         userMap.put("password", "testpass");
         userMap.put("dateOfBirth", "01/01/2000");
@@ -261,7 +261,6 @@ public class OrganizerTests {
         generatedTitles.add(testEventTitle);
         createTestEvent(testEventTitle, Boolean.FALSE);
     }
-
 
     private void createTestEvent(String testEventTitle, Boolean generateHash) throws InterruptedException {
 
