@@ -12,14 +12,13 @@ import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withHint;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.any;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -36,9 +35,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
@@ -57,7 +54,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 
 import com.example.tundra_snow_app.Activities.QrScanActivity;
-import com.example.tundra_snow_app.EventActivities.CreateEventActivity;
 import com.example.tundra_snow_app.EventActivities.MyEventDetailActivity;
 import com.example.tundra_snow_app.EventActivities.OrganizerEventDetailActivity;
 import com.example.tundra_snow_app.ListActivities.ViewCancelledParticipantListActivity;
@@ -96,9 +92,6 @@ public class OrganizerTests {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     String permanentEvent = "Important Test Event";
-    String permanentEventID = "ef375549-e7b5-4078-8d22-959be14937f0";
-    String permanentEntrant = "Main Organizer";
-    String permanentEntrantID = "ef375549-e7b5-4078-8d22-959be14937f0";
 
     String testEventTitle = "";
 
@@ -193,15 +186,6 @@ public class OrganizerTests {
             Log.e("MenuInteraction", "Failed to interact with menu", e);
             // Optionally handle the error case based on your app's needs
         }
-    }
-
-    private void addEntrantToWaitingList() {
-        db.collection("events")
-                .document(permanentEventID)
-                .update("entrantList", FieldValue.arrayUnion(permanentEntrantID))
-                .addOnSuccessListener(aVoid -> Log.d("Firestore", "Entrant added to waiting list"))
-                .addOnFailureListener(e -> Log.w("Firestore", "Error adding entrant to waiting list", e));
-
     }
 
     private void createTestEvent(String testEventTitle, Boolean generateHash) throws InterruptedException {
@@ -334,14 +318,14 @@ public class OrganizerTests {
     }
 
     // Helper method to add image to gallery
-    private Uri addImageToGallery() {
+    private Uri addImageToGallery(int color) {
         // Get the app's context
         Context context = ApplicationProvider.getApplicationContext();
 
         // Create a test image (a simple colored bitmap)
         Bitmap bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        canvas.drawColor(Color.RED);  // Create a red square image
+        canvas.drawColor(color);
 
         // Save bitmap to MediaStore (gallery)
         String imageFileName = "test_image_" + System.currentTimeMillis() + ".jpg";
@@ -454,7 +438,7 @@ public class OrganizerTests {
     public void testHashGenerationStored() throws InterruptedException {
         // Generate a random event title to ensure uniqueness
         int randomNumber = new Random().nextInt(1000);
-        String testEventTitle = "QR Storage Test Event " + randomNumber;
+        testEventTitle = "QR Storage Test Event " + randomNumber;
 
         // Create event with QR code generation enabled
         createTestEvent(testEventTitle, Boolean.TRUE);
@@ -665,7 +649,7 @@ public class OrganizerTests {
     @Test
     public void testEventPosterUpload() throws InterruptedException {
         // First add a test image to the emulator's gallery
-        Uri imageUri = addImageToGallery();
+        Uri imageUri = addImageToGallery(Color.RED);
 
         // Register the ActivityResult before launching the activity
         Instrumentation.ActivityResult result = new Instrumentation.ActivityResult(
@@ -679,7 +663,7 @@ public class OrganizerTests {
 
         // Generate a random event title to ensure uniqueness
         int randomNumber = new Random().nextInt(1000);
-        String testEventTitle = "Poster Test Event " + randomNumber;
+        testEventTitle = "Poster Test Event " + randomNumber;
         generatedTitles.add(testEventTitle);
 
         // Switch to organizer mode
@@ -704,7 +688,7 @@ public class OrganizerTests {
         // The photo picker will automatically return our registered result
         // So we don't need to interact with the system UI
 
-        Thread.sleep(2000);
+        Thread.sleep(500);
 
         // Verify image card view becomes visible
         onView(withId(R.id.eventImageCardView))
@@ -738,13 +722,119 @@ public class OrganizerTests {
     }
 
     /**
-     * TODO US 02.04.02 As an organizer I want to update an event poster to provide
-     *  visual information to entrants
+     * US 02.04.02 As an organizer I want to update an event poster to provide
+     * visual information to entrants
      * @throws InterruptedException
      */
     @Test
-    public void testEventPosterUpdate(){
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void testEventPosterUpdate() throws InterruptedException {
+        // First add a test image to the emulator's gallery
+        Uri imageUri = addImageToGallery(Color.RED);
+
+        // Register the ActivityResult before launching the activity
+        Instrumentation.ActivityResult result = new Instrumentation.ActivityResult(
+                Activity.RESULT_OK,
+                new Intent().setData(imageUri)
+        );
+
+        // Set up intent stub for photo picker
+        intending(hasAction(MediaStore.ACTION_PICK_IMAGES))
+                .respondWith(result);
+
+        // Generate a random event title to ensure uniqueness
+        int randomNumber = new Random().nextInt(1000);
+        testEventTitle = "Poster Test Event " + randomNumber;
+        generatedTitles.add(testEventTitle);
+
+        // Switch to organizer mode
+        toggleToOrganizerMode();
+        Thread.sleep(1000);
+
+        // Navigate to event creation screen
+        onView(withId(R.id.addEventButton)).perform(click());
+        Thread.sleep(1000);
+
+        // Fill out required event details first so we can scroll properly
+        onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
+        onView(withId(R.id.editTextEventDescription))
+                .perform(replaceText("Test event with poster"));
+        onView(withId(R.id.editTextLocation)).perform(scrollTo(), replaceText("Test Location"));
+
+        fillOutDates();
+
+        // Scroll back to top to access image selection and trigger the picker
+        onView(withId(R.id.selectImageButton)).perform(scrollTo(), click());
+
+        Thread.sleep(500);
+
+        // Verify image card view becomes visible
+        onView(withId(R.id.eventImageCardView))
+                .check(matches(isDisplayed()));
+
+        // Create the event
+        onView(withId(R.id.buttonCreateEvent)).perform(click());
+        Thread.sleep(2000);
+
+        onView(withId(R.id.nav_my_events)).perform(click());
+        Thread.sleep(1000);
+
+        // Scroll to the item with the specific title and click it
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
+
+        Thread.sleep(1000);
+
+        intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
+
+        onView(withId(R.id.editButton)).perform(click());
+
+        Thread.sleep(1000);
+
+        // Create and add a new blue test image
+        Uri blueImageUri = addImageToGallery(Color.BLUE);
+
+        // Update the intent stub with new image
+        Instrumentation.ActivityResult newResult = new Instrumentation.ActivityResult(
+                Activity.RESULT_OK,
+                new Intent().setData(blueImageUri)
+        );
+
+        intending(hasAction(MediaStore.ACTION_PICK_IMAGES))
+                .respondWith(newResult);
+
+        // Select new image
+        onView(withId(R.id.updateImageButton)).perform(scrollTo(), click());
+        Thread.sleep(500);
+
+        // Verify image card view is still visible
+        onView(withId(R.id.eventImageCardView))
+                .check(matches(isDisplayed()));
+
+        // Save the updated event
+        onView(withId(R.id.saveButton)).perform(click());
+        Thread.sleep(3000);
+
+        // Verify the event was updated with a new image
+        final String[] originalImageUrl = {null};
+        final String[] updatedImageUrl = {null};
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        DocumentSnapshot eventDoc = queryDocumentSnapshots.getDocuments().get(0);
+                        updatedImageUrl[0] = eventDoc.getString("imageUrl");
+                    }
+                    latch.countDown();
+                });
+
+        // Wait for Firestore query to complete
+        assertTrue("Firestore query timed out", latch.await(5, TimeUnit.SECONDS));
+
+        // Verify new image was uploaded and URL is different
+        assertNotNull("Event should have an image URL stored", updatedImageUrl[0]);
+        assertNotEquals("Image URL should be different after update", imageUri.toString(), updatedImageUrl[0]);
     }
 
     /**
