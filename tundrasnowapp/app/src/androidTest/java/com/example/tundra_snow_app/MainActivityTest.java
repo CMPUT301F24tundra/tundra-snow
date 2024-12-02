@@ -183,7 +183,7 @@ public class MainActivityTest {
 
 
         // Submit the sign-up form
-        onView(withId(R.id.signupButton)).perform(scrollTo(), click());
+        onView(withId(R.id.signupButton)).perform(click());
 
         Thread.sleep(2000);
 
@@ -229,7 +229,7 @@ public class MainActivityTest {
         onView(withId(R.id.editTextFacilityLocation)).perform(replaceText(facilityLocation));
 
         // Submit the sign-up form
-        onView(withId(R.id.signupButton)).perform(scrollTo(), click());
+        onView(withId(R.id.signupButton)).perform(click());
 
         Thread.sleep(2000); // Wait for account creation to complete
 

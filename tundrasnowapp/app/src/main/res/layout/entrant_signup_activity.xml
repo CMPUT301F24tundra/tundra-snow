@@ -1,5 +1,6 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black">
@@ -159,19 +160,6 @@
                 android:text="Allow Geolocation"
                 android:textColor="@color/white" />
 
-            <EditText
-                android:id="@+id/editTextPassword"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/rounded_edittext"
-                android:hint="Password"
-                android:inputType="textPassword"
-                android:minHeight="48dp"
-                android:padding="8dp"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white"
-                android:textSize="14sp" />
 
             <CheckBox
                 android:id="@+id/checkBoxNotifications"
@@ -181,58 +169,9 @@
                 android:text="Allow Notifications"
                 android:textColor="@color/white" />
 
-            <CheckBox
-                android:id="@+id/checkBoxNotifications"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Allow Notifications"
-                android:textColor="@color/white" />
 
-            <CheckBox
-                android:id="@+id/checkBoxOrganizer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Register as Organizer"
-                android:textColor="@color/white" />
 
-            <LinearLayout
-                android:id="@+id/facilityLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical"
-                android:visibility="gone">
 
-                <EditText
-                    android:id="@+id/editTextFacility"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="#FFFFFF"
-                    android:hint="Facility Name"
-                    android:minHeight="48dp"
-                    android:padding="8dp"
-                    android:textColor="@color/white"
-                    android:textColorHint="@color/white"
-                    android:textSize="14sp" />
-
-                <EditText
-                    android:id="@+id/editTextFacilityLocation"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:backgroundTint="#FFFFFF"
-                    android:hint="Facility Location"
-                    android:minHeight="48dp"
-                    android:padding="8dp"
-                    android:textColor="@color/white"
-                    android:textColorHint="@color/white"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-        </LinearLayout>
-    </ScrollView>
 
 
 
@@ -244,11 +183,11 @@
         android:id="@+id/buttonBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
         android:background="#000000"
         android:elevation="4dp"
         android:gravity="end"
-        android:orientation="horizontal"
-        android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <Button
