@@ -80,9 +80,14 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -98,6 +103,9 @@ public class OrganizerTests {
     private FirebaseFirestore db;
 
     String testEventTitle = "";
+
+    private String testUserId;  // Store the created user's ID
+    private static final String TEST_USER_EMAIL = "333testuser333@example.com";
 
     Set<String> generatedTitles  = new HashSet<>();
 
@@ -121,17 +129,6 @@ public class OrganizerTests {
         auth.signOut();
         Intents.release();
 
-        // Clean up test images from MediaStore
-        Context context = ApplicationProvider.getApplicationContext();
-        ContentResolver resolver = context.getContentResolver();
-
-        // Delete test images from gallery
-        resolver.delete(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                MediaStore.Images.Media.DISPLAY_NAME + " LIKE ?",
-                new String[]{"test_image_%"}
-        );
-
         for (String title : generatedTitles) {
             // Query and delete test events with the specified title
             db.collection("events")
@@ -151,6 +148,58 @@ public class OrganizerTests {
                         }
                     });
         }
+
+        // Clean up test user if one was created
+        if (testUserId != null) {
+            db.collection("users")
+                    .document(testUserId)
+                    .delete()
+                    .addOnSuccessListener(aVoid -> Log.d("TearDown", "Test user deleted successfully"))
+                    .addOnFailureListener(e -> Log.e("TearDown", "Error deleting test user", e));
+        }
+
+        Thread.sleep(1000);
+    }
+
+    private void createTestUserAndAddToWaitlist(String eventId) throws InterruptedException {
+        testUserId = UUID.randomUUID().toString();
+
+        // Create user document
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("userID", testUserId);
+        userMap.put("firstName", "Test");
+        userMap.put("lastName", "User");
+        userMap.put("email", TEST_USER_EMAIL);
+        userMap.put("password", "testpass");
+        userMap.put("dateOfBirth", "01/01/2000");
+        userMap.put("phoneNumber", "1234567890");
+        userMap.put("notificationsEnabled", true);
+        userMap.put("geolocationEnabled", false);
+        userMap.put("deviceID", "test_device");
+        userMap.put("location", "Test Location");
+        userMap.put("roles", Arrays.asList("user"));
+        userMap.put("userEventList", new ArrayList<>());
+
+        // Add user to Firestore
+        final CountDownLatch userLatch = new CountDownLatch(1);
+        db.collection("users")
+                .document(testUserId)
+                .set(userMap)
+                .addOnSuccessListener(aVoid -> userLatch.countDown())
+                .addOnFailureListener(e -> userLatch.countDown());
+
+        assertTrue("Creating test user timed out", userLatch.await(5, TimeUnit.SECONDS));
+
+        // Add test user to event's waiting list
+        final CountDownLatch waitlistLatch = new CountDownLatch(1);
+        db.collection("events")
+                .document(eventId)
+                .update("entrantList", FieldValue.arrayUnion(testUserId))
+                .addOnSuccessListener(aVoid -> waitlistLatch.countDown())
+                .addOnFailureListener(e -> waitlistLatch.countDown());
+
+        assertTrue("Adding test user to waitlist timed out", waitlistLatch.await(5, TimeUnit.SECONDS));
+        Thread.sleep(1000);
     }
 
     private void toggleToOrganizerMode() {
@@ -193,7 +242,8 @@ public class OrganizerTests {
     }
 
     private void createListTestEvent() throws InterruptedException {
-        testEventTitle = "Organizer List Testing Event";
+        int randomNumber = new Random().nextInt(1000);
+        testEventTitle = "List Testing Event " + randomNumber;
         generatedTitles.add(testEventTitle);
         createTestEvent(testEventTitle, Boolean.FALSE);
     }
@@ -1070,14 +1120,115 @@ public class OrganizerTests {
     }
 
     /**
-     * TODO US 02.05.03 As an organizer I want to be able to draw a replacement applicant from
-     *  the pooling system when a previously selected applicant cancels or rejects the invitation
+     * US 02.05.03 As an organizer I want to be able to draw a replacement applicant from
+     * the pooling system when a previously selected applicant cancels or rejects the invitation
      * @throws InterruptedException
      */
-    @Ignore
     @Test
-    public void testDrawingReplacement(){
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void testDrawingReplacement() throws InterruptedException {
+        // Create test event with capacity of 1
+        testEventTitle = "Drawing Replacement Test Event";
+        generatedTitles.add(testEventTitle);
+
+        // Switch to organizer mode
+        toggleToOrganizerMode();
+
+        // Navigate to event creation screen
+        onView(withId(R.id.addEventButton)).perform(click());
+        Thread.sleep(1000);
+
+        // Fill out event details with capacity of 1
+        onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
+        onView(withId(R.id.editTextEventDescription))
+                .perform(replaceText("Test event for drawing replacements"));
+        onView(withId(R.id.editTextLocation)).perform(scrollTo(), replaceText("Test Location"));
+        onView(withId(R.id.editTextCapacity)).perform(scrollTo(), replaceText("1"));
+
+        fillOutDates();
+
+        onView(withId(R.id.buttonCreateEvent)).perform(click());
+        Thread.sleep(2000);
+
+        // Get event ID and current user ID
+        final String[] eventId = {null};
+        final String[] currentUserId = {null};
+        final CountDownLatch idLatch = new CountDownLatch(1);
+
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        eventId[0] = queryDocumentSnapshots.getDocuments().get(0).getId();
+                        currentUserId[0] = queryDocumentSnapshots.getDocuments().get(0).getString("organizer");
+                    }
+                    idLatch.countDown();
+                });
+
+        assertTrue("Getting event ID timed out", idLatch.await(5, TimeUnit.SECONDS));
+
+        // Create test user and add both users to waitlist
+        createTestUserAndAddToWaitlist(eventId[0]);
+        addUserToWaitingList(eventId[0], currentUserId[0]);
+        Thread.sleep(1000);
+
+        // Navigate to event's waiting list
+        onView(withId(R.id.nav_my_events)).perform(click());
+        Thread.sleep(1000);
+
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        // Select first user from waiting list
+        onView(withId(R.id.selectRegSampleButton)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        // Go to chosen list and cancel the selected user
+        onView(withId(R.id.backButton)).perform(click());
+        Thread.sleep(1000);
+
+        onView(withId(R.id.viewChosenList)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        onView(withId(R.id.cancelUserButton)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        onView(withId(R.id.backButton)).perform(click());
+        Thread.sleep(1000);
+
+        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        // Draw replacement from remaining waitlist
+        onView(withId(R.id.selectReplaceButton)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        // Verify the remaining user was moved to chosen list
+        final CountDownLatch verifyLatch = new CountDownLatch(1);
+        final boolean[] replacementDrawn = {false};
+
+        db.collection("events")
+                .document(eventId[0])
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        java.util.List<String> chosenList =
+                                (java.util.List<String>) documentSnapshot.get("chosenList");
+                        java.util.List<String> waitingList =
+                                (java.util.List<String>) documentSnapshot.get("entrantList");
+
+                        // Verify one user is in chosen list and waiting list is empty
+                        replacementDrawn[0] = (chosenList != null && chosenList.size() == 1) &&
+                                (waitingList == null || waitingList.isEmpty());
+                    }
+                    verifyLatch.countDown();
+                });
+
+        assertTrue("Verifying replacement draw timed out", verifyLatch.await(5, TimeUnit.SECONDS));
+        assertTrue("Replacement should be drawn from waiting list", replacementDrawn[0]);
     }
 
     /**
