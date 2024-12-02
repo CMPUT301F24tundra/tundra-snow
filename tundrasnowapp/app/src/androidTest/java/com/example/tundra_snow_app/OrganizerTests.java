@@ -98,7 +98,6 @@ public class OrganizerTests {
     private FirebaseFirestore db;
 
     String testEventTitle = "";
-    String testEventId = "";
 
     Set<String> generatedTitles  = new HashSet<>();
 
@@ -1183,25 +1182,97 @@ public class OrganizerTests {
     }
 
     /**
-     * TODO Testing US 02.06.04 As an organizer I want to cancel entrants that
+     * Testing US 02.06.04 As an organizer I want to cancel entrants that
      *  did not sign up for the event
      * @throws InterruptedException
      */
-    @Ignore
     @Test
-    public void testDeletingEntrantFromWaitlist() throws InterruptedException {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+    public void testDeletingUserFromChosenList() throws InterruptedException {
+        // Create test event
+        createListTestEvent();
+        Thread.sleep(1000);
 
-    /**
-     * TODO US 02.06.04 As an organizer I want to cancel entrants that did not
-     *  sign up for the event
-     * @throws InterruptedException
-     */
-    @Ignore
-    @Test
-    public void testCancellingEntrants() throws InterruptedException {
-        throw new UnsupportedOperationException("Not yet implemented");
+        // First store current user ID and get event info
+        final String[] eventId = {null};
+        final String[] userId = {null};
+        final CountDownLatch idLatch = new CountDownLatch(1);
+
+        // Get the event ID and user ID
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        eventId[0] = queryDocumentSnapshots.getDocuments().get(0).getId();
+                        userId[0] = queryDocumentSnapshots.getDocuments().get(0).getString("organizer");
+                    }
+                    idLatch.countDown();
+                });
+
+        assertTrue("Getting event ID timed out", idLatch.await(5, TimeUnit.SECONDS));
+        assertNotNull("Event ID should not be null", eventId[0]);
+        assertNotNull("User ID should not be null", userId[0]);
+
+        // Add user to entrant list directly
+        final CountDownLatch addLatch = new CountDownLatch(1);
+        db.collection("events")
+                .document(eventId[0])
+                .update("chosenList", FieldValue.arrayUnion(userId[0]))
+                .addOnSuccessListener(aVoid -> addLatch.countDown())
+                .addOnFailureListener(e -> addLatch.countDown());
+
+        assertTrue("Adding user to chosen list timed out", addLatch.await(5, TimeUnit.SECONDS));
+        Thread.sleep(1000);
+
+        // Switch to organizer mode
+        toggleToOrganizerMode();
+        Thread.sleep(1000);
+
+        // Navigate to organizer's events
+        onView(withId(R.id.nav_my_events)).perform(click());
+        Thread.sleep(1000);
+
+        // Click on the test event
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        // Verify we're in organizer event detail activity
+        intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
+
+        // Click to view chosen list
+        onView(withId(R.id.viewChosenList)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        // Verify we're in the chosen list activity
+        intended(hasComponent(ViewChosenParticipantListActivity.class.getName()));
+
+        // Click cancel button for the user
+        onView(withId(R.id.cancelUserButton)).perform(scrollTo(), click());
+        Thread.sleep(2000);
+
+        // Verify user was removed from chosen list and added to declined list
+        final CountDownLatch verifyLatch = new CountDownLatch(1);
+        final boolean[] isMovedCorrectly = {false};
+
+        db.collection("events")
+                .document(eventId[0])
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        java.util.List<String> chosenList =
+                                (java.util.List<String>) documentSnapshot.get("chosenList");
+                        java.util.List<String> declinedList =
+                                (java.util.List<String>) documentSnapshot.get("declinedList");
+
+                        boolean removedFromChosen = chosenList == null || !chosenList.contains(userId[0]);
+
+                        isMovedCorrectly[0] = removedFromChosen;
+                    }
+                    verifyLatch.countDown();
+                });
+
+        assertTrue("Verifying user status change timed out", verifyLatch.await(5, TimeUnit.SECONDS));
+        assertTrue("User should be removed from chosen list", isMovedCorrectly[0]);
     }
 
     /**
