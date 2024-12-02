@@ -322,9 +322,15 @@
             onView(withId(R.id.editTextCapacity)).perform(scrollTo(), replaceText("50"));
 
 
-            // TODO
-            // onView(withId(R.id.selectImageButton)).perform(scrollTo(), click());
-
+//             TODO
+//            onView(withId(R.id.selectImageButton)).perform(scrollTo(), click());
+//            String imagePath = "/0/Download/test_image.png";  // Path to the image on the emulator
+//            Uri imageUri = Uri.parse("file://" + imagePath);       // Convert path to a file URI
+//
+//            // Create a mock result for the photo picker
+//            Intent resultData = new Intent();
+//            resultData.setData(imageUri);  // Simulate the selected image
+//            Instrumentation.ActivityResult mockResult = new Instrumentation.ActivityResult(Activity.RESULT_OK, resultData);
 
 
             // Toggle geolocation requirement (default is Enabled, clicking makes it Disabled)
@@ -697,7 +703,7 @@
         }
 
         /**
-         * TODO US 03.03.01 As an administrator, I want to be able to remove images.
+         *
          * @throws InterruptedException
          */
         @Test
@@ -712,19 +718,6 @@
             Thread.sleep(1000);
 
 
-    //        onView(withId(R.id.adminImagesRecyclerView)).perform(actionOnItem(hasDescendant(withTagValue(equalTo("00testEventId"))), click()));
-    //
-    //
-    //        onView(withId(R.id.adminImagesRecyclerView))
-    //                .perform(RecyclerViewActions.actionOnItem(
-    //                        hasDescendant(withTagValue(equalTo("00testEventId"))), click()));
-    //        onView(allOf(withId(R.id.image_view), withTagValue(equalTo("00testEventId"))))
-    //                .perform(click());
-    //        onView(allOf(withId(R.id.image_view), withTagValue(is((Object) "00testEventId"))))
-    //                .perform(click());
-
-
-    //        deleteEvent();
 
         }
 
@@ -769,7 +762,7 @@
         }
 
         /**
-         * TODO US 03.04.01 As an administrator, I want to be able to browse events.
+         *
          * @throws InterruptedException
          */
         @Test
@@ -778,9 +771,7 @@
 
             Thread.sleep(1000); // Wait for the event to be added
 
-            // TODO currently we have to toggle back to user if we want to be able to
-            //  browse events and view additional details about an event. we should be able to
-            //  click the event while browsing as an admin so we can view more details
+
             toggleToAdminMode();
 
             Thread.sleep(1000);
@@ -801,13 +792,12 @@
 
 
         /**
-         * TODO US 03.05.01 As an administrator, I want to be able to browse profiles.
+         *
          * @throws InterruptedException
          */
         @Test
         public void testAdminProfileBrowsing() throws InterruptedException {
-            // TODO currently we can browse few details but we should be able to click and
-            //  view additional details like phone number and email address ( similar to an event details screen)
+
             addProfile(testUserFirst, testUserLast);
 
             String fullname = testUserFirst + " " + testUserLast;
@@ -836,7 +826,7 @@
         }
 
         /**
-         * TODO US 03.06.01 As an administrator, I want to be able to browse images.
+         *
          * @throws InterruptedException
          */
         @Test
