@@ -11,6 +11,7 @@ import static androidx.test.espresso.intent.Intents.intending;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom;
+import static androidx.test.espresso.matcher.ViewMatchers.isChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withHint;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -42,6 +43,7 @@ import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.Checkable;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -51,6 +53,7 @@ import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.PerformException;
 import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
+import androidx.test.espresso.ViewAssertion;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.espresso.util.HumanReadables;
@@ -173,6 +176,27 @@ public class OrganizerTests {
         }
 
         Thread.sleep(1000);
+    }
+
+    /**
+     *  Method to determine the current state of the notifications checkbox.
+     *
+     * @return true if the checkbox is checked, false otherwise.
+     */
+    private boolean isNotificationsCheckedState() {
+        final boolean[] isChecked = {false};  // Default to false
+
+        // Check if the checkbox is currently checked
+        onView(withId(R.id.notificationsCheckbox)).check(new ViewAssertion() {
+            @Override
+            public void check(View view, NoMatchingViewException noViewFoundException) {
+                if (view instanceof Checkable) {
+                    isChecked[0] = ((Checkable) view).isChecked();
+                }
+            }
+        });
+
+        return isChecked[0];
     }
 
     private void createTestUserAndAddToWaitlist(String eventId) throws InterruptedException {
@@ -1087,6 +1111,23 @@ public class OrganizerTests {
         assertNotNull("Event ID should not be null", eventId[0]);
         assertNotNull("User ID should not be null", userId[0]);
 
+        Thread.sleep(3000);
+
+        onView(withId(R.id.nav_settings)).perform(click());
+
+        Thread.sleep(1000);
+
+        boolean isChecked = isNotificationsCheckedState();
+        if (!isChecked) {
+            onView(withId(R.id.notificationsCheckbox)).perform(click());
+            onView(withId(R.id.notificationsCheckbox)).check(matches(isChecked()));
+        }
+        Thread.sleep(2000);
+
+        onView(withId(R.id.nav_events)).perform(click());
+
+        Thread.sleep(2000);
+
         // Add current user to waiting list
         addUserToWaitingList(eventId[0], userId[0]);
 
@@ -1523,8 +1564,22 @@ public class OrganizerTests {
         testEventTitle = "Organizer Test Event " + randomNumber;
         createTestEvent(testEventTitle, Boolean.FALSE);
         toggleToUserMode();
+        Thread.sleep(3000);
+
+        onView(withId(R.id.nav_settings)).perform(click());
+
         Thread.sleep(1000);
 
+        boolean isChecked = isNotificationsCheckedState();
+        if (!isChecked) {
+            onView(withId(R.id.notificationsCheckbox)).perform(click());
+            onView(withId(R.id.notificationsCheckbox)).check(matches(isChecked()));
+        }
+        Thread.sleep(2000);
+
+        onView(withId(R.id.nav_events)).perform(click());
+
+        Thread.sleep(2000);
 
         onView(withId(R.id.eventsRecyclerView))
                 .perform(scrollToItemWithText(testEventTitle));
@@ -1562,8 +1617,22 @@ public class OrganizerTests {
         testEventTitle = "Organizer Test Event " + randomNumber;
         createTestEvent(testEventTitle, Boolean.FALSE);
         toggleToUserMode();
-        Thread.sleep(4000);
+        Thread.sleep(3000);
 
+        onView(withId(R.id.nav_settings)).perform(click());
+
+        Thread.sleep(1000);
+
+        boolean isChecked = isNotificationsCheckedState();
+        if (!isChecked) {
+            onView(withId(R.id.notificationsCheckbox)).perform(click());
+            onView(withId(R.id.notificationsCheckbox)).check(matches(isChecked()));
+        }
+        Thread.sleep(2000);
+
+        onView(withId(R.id.nav_events)).perform(click());
+
+        Thread.sleep(2000);
 
         onView(withId(R.id.eventsRecyclerView))
                 .perform(scrollToItemWithText(testEventTitle));
@@ -1657,6 +1726,22 @@ public class OrganizerTests {
         assertNotNull("Event ID should not be null", eventId[0]);
         assertNotNull("User ID should not be null", userId[0]);
 
+        Thread.sleep(3000);
+
+        onView(withId(R.id.nav_settings)).perform(click());
+
+        Thread.sleep(1000);
+
+        boolean isChecked = isNotificationsCheckedState();
+        if (!isChecked) {
+            onView(withId(R.id.notificationsCheckbox)).perform(click());
+            onView(withId(R.id.notificationsCheckbox)).check(matches(isChecked()));
+        }
+        Thread.sleep(2000);
+
+        onView(withId(R.id.nav_events)).perform(click());
+
+        Thread.sleep(2000);
 
         onView(withId(R.id.eventsRecyclerView))
                 .perform(scrollToItemWithText(testEventTitle));
