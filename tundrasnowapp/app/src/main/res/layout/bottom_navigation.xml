@@ -8,8 +8,9 @@
     android:background="@drawable/bottom_nav_background"
     app:menu="@menu/bottom_navigation_menu"
     app:labelVisibilityMode="unlabeled"
+    app:itemActiveIndicatorStyle="@drawable/nav_item_background"
+    app:itemBackground="@drawable/nav_item_background"
     app:itemIconTint="@color/white"
-    app:itemTextColor="@color/white"
     app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintEnd_toEndOf="parent" />

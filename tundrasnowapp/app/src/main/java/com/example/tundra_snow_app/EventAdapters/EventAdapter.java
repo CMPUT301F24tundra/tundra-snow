@@ -4,16 +4,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 
+import com.bumptech.glide.Glide;
 import com.example.tundra_snow_app.EventActivities.CreateEventActivity;
 import com.example.tundra_snow_app.EventActivities.EventDetailActivity;
 import com.example.tundra_snow_app.Models.Events;
 import com.example.tundra_snow_app.R;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 
 import java.text.SimpleDateFormat;
@@ -30,6 +34,8 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     // Date formatter
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy, h:mm a", Locale.getDefault());
     private final Context context;
+    private final FirebaseFirestore db;
+
 
     /**
      * Constructor for the EventAdapter class.
@@ -39,6 +45,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     public EventAdapter(Context context, List<Events> eventList) {
         this.context = context;
         this.eventList = eventList;
+        this.db = FirebaseFirestore.getInstance();
     }
 
     /**
@@ -76,6 +83,8 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             holder.dateTextView.setText("Date TBD");
         }
 
+        loadImageIntoView(event.getEventID(), holder.eventIcon);
+
         holder.itemView.setOnClickListener(v -> {
 
             Intent intent;
@@ -89,8 +98,40 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
             // Pass event ID to either activity
             intent.putExtra("eventID", event.getEventID());
+            intent.putExtra("fromEventView", true);
             context.startActivity(intent);
         });
+    }
+
+    /**
+     * Loads the event image from Firestore and binds it to the specified ImageView.
+     * @param eventID The ID of the event whose image is to be loaded
+     * @param imageView The ImageView to bind the image to
+     */
+    private void loadImageIntoView(String eventID, ImageView imageView) {
+        db.collection("events").document(eventID).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String imageUrl = documentSnapshot.getString("imageUrl");
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            Glide.with(context)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.event_placeholder) // Optional placeholder
+                                    .error(R.drawable.event_error) // Optional error image
+                                    .into(imageView);
+                        } else {
+                            Log.e("EventAdapter", "Image URL is null or empty for eventID: " + eventID);
+                            imageView.setImageResource(R.drawable.event_placeholder); // Fallback
+                        }
+                    } else {
+                        Log.e("EventAdapter", "Document does not exist for eventID: " + eventID);
+                        imageView.setImageResource(R.drawable.event_placeholder); // Fallback
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventAdapter", "Failed to fetch image URL for eventID: " + eventID, e);
+                    imageView.setImageResource(R.drawable.event_error); // Fallback on failure
+                });
     }
 
     /**
@@ -107,12 +148,14 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
      */
     public static class EventViewHolder extends RecyclerView.ViewHolder {
         TextView dateTextView, titleTextView, locationTextView;
+        ImageView eventIcon;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
             dateTextView = itemView.findViewById(R.id.eventDateTime);
             titleTextView = itemView.findViewById(R.id.eventName);
             locationTextView = itemView.findViewById(R.id.eventLocation);
+            eventIcon = itemView.findViewById(R.id.eventIcon);
         }
     }
 }

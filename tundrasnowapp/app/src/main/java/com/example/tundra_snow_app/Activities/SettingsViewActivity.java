@@ -1,16 +1,22 @@
 package com.example.tundra_snow_app.Activities;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.tundra_snow_app.Helpers.DeviceUtils;
 import com.example.tundra_snow_app.Helpers.NavigationBarHelper;
+import com.example.tundra_snow_app.MainActivity;
 import com.example.tundra_snow_app.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -28,8 +34,9 @@ public class SettingsViewActivity extends AppCompatActivity {
 
     private CheckBox notificationsCheckbox, geolocationCheckbox;
     private FirebaseFirestore db;
-    private String userId;
+    private String currentUserID;
     private FusedLocationProviderClient fusedLocationClient;
+    private Button logoutButton;
 
     /**
      * This method is called when the activity is first created.
@@ -47,34 +54,117 @@ public class SettingsViewActivity extends AppCompatActivity {
 
         notificationsCheckbox = findViewById(R.id.notificationsCheckbox);
         geolocationCheckbox = findViewById(R.id.geolocationCheckbox);
+        logoutButton = findViewById(R.id.logoutButton);
 
         db = FirebaseFirestore.getInstance();
 
         // Load user ID from the latest session first
-        fetchUserIdFromSession();
+        fetchUserIdFromSession(() -> {
+            Log.d("LogoutProcess", "Fetched current user ID: " + currentUserID);
+
+            loadUserSettings();
+            loadSessionSettings();
+            logoutButton.setOnClickListener(v -> showLogoutConfirmationDialog());
+        });
+    }
+
+
+    /**
+     * Shows a confirmation dialog for logout.
+     */
+    private void showLogoutConfirmationDialog() {
+        Log.d("LogoutProcess", "Displaying logout confirmation dialog.");
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout and exit the application?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    Log.d("LogoutProcess", "User confirmed logout.");
+                    logoutAndExit();
+                })
+                .setNegativeButton("No", (dialog, which) -> {
+                    Log.d("LogoutProcess", "User canceled logout.");
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
+    /**
+     * Logs out the user by deleting the current session and exits the application.
+     */
+    private void logoutAndExit() {
+        if (currentUserID == null) {
+            Log.w("LogoutProcess", "No user session found. Unable to log out.");
+            Toast.makeText(this, "No user session found. Unable to log out.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Log.d("LogoutProcess", "Fetching the latest session to delete.");
+        // Find and delete the current session
+        db.collection("sessions")
+                .whereEqualTo("userId", currentUserID)
+                .orderBy("loginTimestamp", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        // Delete the latest session document
+                        String sessionId = querySnapshot.getDocuments().get(0).getId();
+                        Log.d("LogoutProcess", "Found session to delete: " + sessionId);
+                        db.collection("sessions").document(sessionId)
+                                .delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("LogoutProcess", "Successfully deleted session: " + sessionId);
+                                    Toast.makeText(this, "Logged out successfully!", Toast.LENGTH_SHORT).show();
+                                    redirectToMainActivity();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("LogoutProcess", "Error deleting session: ", e);
+                                    Toast.makeText(this, "Error logging out. Please try again.", Toast.LENGTH_SHORT).show();
+                                });
+                    } else {
+                        Log.w("LogoutProcess", "No active session found to delete.");
+                        Toast.makeText(this, "No active session found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("LogoutProcess", "Error fetching session to delete: ", e);
+                    Toast.makeText(this, "Error logging out. Please try again.", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    /**
+     * Redirects the user to the MainActivity (login screen) and clears the activity stack.
+     */
+    private void redirectToMainActivity() {
+        Log.d("LogoutProcess", "Redirecting to MainActivity.");
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear activity stack
+        startActivity(intent);
+        finish();
     }
 
     /**
      * Fetches the user ID from the latest session in Firestore.
      */
-    private void fetchUserIdFromSession() {
+    private void fetchUserIdFromSession(@NonNull Runnable onComplete) {
         CollectionReference sessionsRef = db.collection("sessions");
         sessionsRef.orderBy("loginTimestamp", Query.Direction.DESCENDING).limit(1)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         DocumentSnapshot latestSession = task.getResult().getDocuments().get(0);
-                        userId = latestSession.getString("userId");
+                        currentUserID = latestSession.getString("userId");
+                        Log.d("LogoutProcess", "Successfully fetched current user ID: " + currentUserID);
 
-                        // Fetch user-specific settings
-                        loadUserSettings();
-                        loadSessionSettings();
+                        onComplete.run();
                     } else {
-                        Toast.makeText(this, "Session information not found.", Toast.LENGTH_SHORT).show();
+                        Log.w("LogoutProcess", "No active session found.");
+                        Toast.makeText(this, "No active session found.", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load session information.", Toast.LENGTH_SHORT).show();
+                    Log.e("LogoutProcess", "Error fetching session data: ", e);
+                    Toast.makeText(this, "Error fetching session data.", Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -113,9 +203,9 @@ public class SettingsViewActivity extends AppCompatActivity {
      * Loads the user's settings from Firestore.
      */
     private void loadUserSettings() {
-        if (userId == null) return;
+        if (currentUserID == null) return;
 
-        db.collection("users").document(userId)
+        db.collection("users").document(currentUserID)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -145,7 +235,7 @@ public class SettingsViewActivity extends AppCompatActivity {
      */
     private void onNotificationToggle(boolean isChecked) {
         // Update the user's notification setting in Firestore
-        db.collection("users").document(userId)
+        db.collection("users").document(currentUserID)
                 .update("notificationsEnabled", isChecked)
                 .addOnSuccessListener(aVoid -> Toast.makeText(this, "Notification settings updated.", Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to update settings.", Toast.LENGTH_SHORT).show());
@@ -192,7 +282,7 @@ public class SettingsViewActivity extends AppCompatActivity {
             Log.d("SettingsViewActivity", "Geolocation disabled. Setting location to null in Firestore.");
 
             // Update users geolocation setting
-            db.collection("users").document(userId)
+            db.collection("users").document(currentUserID)
                     .update("location", null, "geolocationEnabled", false)
                     .addOnSuccessListener(aVoid -> {
                         Log.d("SettingsViewActivity", "Geolocation disabled successfully in Firestore.");
@@ -236,7 +326,7 @@ public class SettingsViewActivity extends AppCompatActivity {
                             Log.d("SettingsViewActivity", "Address fetched from location: " + address);
 
                             // Update users Firestore document
-                            db.collection("users").document(userId)
+                            db.collection("users").document(currentUserID)
                                     .update("location", address, "geolocationEnabled", true)
                                     .addOnSuccessListener(aVoid -> {
                                         Log.d("SettingsViewActivity", "Location updated successfully in Firestore.");

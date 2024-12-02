@@ -12,61 +12,40 @@
         android:padding="10dp"
         android:gravity="center_vertical">
 
-        <FrameLayout
+        <!-- Left Section with Icon -->
+        <ImageView
+            android:id="@+id/eventIcon"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_gravity="center"
-            android:background="@drawable/circular_mask">
+            android:layout_marginEnd="10dp" />
 
-            <!-- Left Section with Icon -->
-            <ImageView
-                android:id="@+id/userIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/circular_outline"
-                android:contentDescription="Profile Picture"
-                android:layout_marginEnd="10dp"
-                android:clipToOutline="true" />
-
-        </FrameLayout>
-
-        <!-- Center Section with Event Details -->
+        <!-- Center Section with QR Hash Text -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="15dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- User Full Name -->
+            <!-- QR Hash Text -->
             <TextView
-                android:id="@+id/userFullName"
+                android:id="@+id/qrHashText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:text="John Doe" />
-
-            <!-- User Email -->
-            <TextView
-                android:id="@+id/userEmail"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#D3D3D3"
-                android:textSize="11sp"
-                android:text="johnDoe@gmail.com" />
+                android:text="Networking Conference" />
         </LinearLayout>
 
-        <!-- Right Button to delete -->
+        <!-- Right Button to Delete -->
         <Button
-            android:id="@+id/removeUserButton"
+            android:id="@+id/removeQRButton"
             android:layout_width="82dp"
             android:layout_height="45dp"
             android:text="Delete"
             android:textColor="@color/black"
             android:textSize="11sp"
-            android:backgroundTint="#D3D3D3"/>
+            android:backgroundTint="#D3D3D3" />
     </LinearLayout>
 
     <!-- Bottom Separator -->

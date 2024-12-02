@@ -1,16 +1,21 @@
 package com.example.tundra_snow_app.AdminAdapters;
 
 import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.example.tundra_snow_app.AdminActivities.AdminUserProfileViewActivity;
 import com.example.tundra_snow_app.Models.Users;
 import com.example.tundra_snow_app.R;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -68,6 +73,8 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
 
         holder.userEmail.setText(user.getEmail() != null ? user.getEmail() : "No email available");
 
+        loadImageIntoView(user.getUserID(), holder.userIcon);
+
         // Delete button functionality
         holder.removeUserButton.setOnClickListener(v -> {
             String userID = user.getUserID();
@@ -83,6 +90,46 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
                         Toast.makeText(context, "Error deleting user.", Toast.LENGTH_SHORT).show();
                     });
         });
+
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent;
+            intent = new Intent(context, AdminUserProfileViewActivity.class);
+            intent.putExtra("userID", user.getUserID());
+
+            intent.putExtra("userID", user.getUserID());
+            context.startActivity(intent);
+        });
+    }
+
+    /**
+     * Loads the user image from Firestore and binds it to the specified ImageView.
+     * @param userID The ID of the event whose image is to be loaded
+     * @param imageView The ImageView to bind the image to
+     */
+    private void loadImageIntoView(String userID, ImageView imageView) {
+        db.collection("users").document(userID).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String imageUrl = documentSnapshot.getString("profilePictureUrl");
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            Glide.with(context)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.default_profile_picture) // Optional placeholder
+                                    .error(R.drawable.event_error) // Optional error image
+                                    .into(imageView);
+                        } else {
+                            Log.e("EventAdapter", "Image URL is null or empty for userID: " + userID);
+                            imageView.setImageResource(R.drawable.default_profile_picture); // Fallback
+                        }
+                    } else {
+                        Log.e("EventAdapter", "Document does not exist for userID: " + userID);
+                        imageView.setImageResource(R.drawable.default_profile_picture); // Fallback
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventAdapter", "Failed to fetch image URL for userID: " + userID, e);
+                    imageView.setImageResource(R.drawable.event_error); // Fallback on failure
+                });
     }
 
     /**
@@ -100,12 +147,14 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
     public static class UserViewHolder extends RecyclerView.ViewHolder {
         TextView userFullName, userEmail;
         Button removeUserButton;
+        ImageView userIcon;
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
             userFullName = itemView.findViewById(R.id.userFullName);
             userEmail = itemView.findViewById(R.id.userEmail);
             removeUserButton = itemView.findViewById(R.id.removeUserButton);
+            userIcon = itemView.findViewById(R.id.userIcon);
         }
     }
 }

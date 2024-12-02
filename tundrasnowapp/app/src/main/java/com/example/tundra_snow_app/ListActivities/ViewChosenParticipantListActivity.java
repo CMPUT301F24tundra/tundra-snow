@@ -13,9 +13,12 @@ import com.example.tundra_snow_app.ListAdapters.ChosenListAdapter;
 
 import com.example.tundra_snow_app.Models.Notifications;
 import com.example.tundra_snow_app.R;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Activity to view the list of chosen participants for an event.
@@ -115,17 +118,34 @@ public class ViewChosenParticipantListActivity extends AppCompatActivity {
         Log.d("Notifications", "User IDs: " + userIDs.toString());
         Log.d("Notifications", "Notification Text: " + notificationText);
 
+        // Create a map to track individual user statuses
+        Map<String, Boolean> userStatus = new HashMap<>();
+        for (String userID : userIDs) {
+            userStatus.put(userID, true);
+        }
+
         Notifications notification = new Notifications(
                 notificationID,
                 userIDs,
                 eventID,
                 eventName,
                 notificationText,
-                type
+                type,
+                userStatus
         );
 
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("notificationID", notification.getNotificationID());
+        notificationData.put("userIDs", notification.getUserIDs());
+        notificationData.put("eventID", notification.getEventID());
+        notificationData.put("eventName", notification.getEventName());
+        notificationData.put("text", notification.getText());
+        notificationData.put("notificationType", notification.getNotificationType());
+        notificationData.put("timestamp", System.currentTimeMillis());
+        notificationData.put("userStatus", notification.getUserStatus());
+
         db.collection("notifications").document(notificationID)
-                .set(notification)
+                .set(notificationData)
                 .addOnSuccessListener(aVoid -> Log.d("Notifications", "Notification (" + type + ") created successfully."))
                 .addOnFailureListener(e -> Log.e("Notifications", "Failed to create notification (" + type + "): ", e));
     }

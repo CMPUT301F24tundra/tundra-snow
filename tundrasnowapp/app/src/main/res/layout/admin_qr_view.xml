@@ -1,62 +1,58 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <FrameLayout
+    <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/header_underline"
-        android:paddingTop="13dp"
-        tools:ignore="MissingConstraints">
-
-        <ImageView
-            android:id="@+id/backButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:contentDescription="Back Button"
-            android:paddingTop="11dp"
-            android:paddingStart="17dp"
-            android:src="@drawable/back_30" />
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingTop="13dp">
 
         <TextView
-            android:layout_width="match_parent"
+            android:id="@+id/adminTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Admin: QR Hash"
+            android:textSize="20sp"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
-            android:gravity="center"
-            android:text="My Notifications"
             android:textColor="#FFFFFF"
-            android:textSize="25sp" />
-    </FrameLayout>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </LinearLayout>
 
-    <!-- Content area (e.g., for displaying notifications) -->
+
+
+
+    <!-- Content area (e.g., for displaying events) -->
     <LinearLayout
         android:id="@+id/contentLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="vertical"
         android:padding="16dp"
+        app:layout_constraintBottom_toTopOf="@id/adminBottomNavigationView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/header">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/myNotificationsRecyclerView"
+            android:id="@+id/adminQRRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false" />
     </LinearLayout>
 
+
     <!-- "No Events to List" message -->
     <LinearLayout
-        android:id="@+id/noNotificationsLayout"
+        android:id="@+id/noQRLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -76,7 +72,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No Notifications to List"
+            android:text="No QR Hash to List"
             android:textSize="20sp"
             android:textColor="#FFFFFF"
             android:layout_marginTop="8dp" />
@@ -84,42 +80,18 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="There are currently no notifications to list.."
+            android:text="Sorry! There are currently no QR Hash to list.."
             android:textSize="14sp"
             android:textColor="#AAAAAA"
             android:layout_marginTop="4dp" />
     </LinearLayout>
 
-    <!-- Notification turned off -->
-    <LinearLayout
-        android:id="@+id/notificationAccess"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:layout_gravity="center"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <!-- Bottom Navigation View -->
+    <include
+        android:id="@+id/adminBottomNavigationView"
+        layout="@layout/admin_bottom_navigation"
+        app:layout_constraintTop_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:src="@drawable/error_white" /> <!-- Replace with your exclamation icon drawable -->
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:padding="10dp"
-            android:text="Notifications turned off for this account. To receive notifications, turn them on in the settings tab."
-            android:textSize="20sp"
-            android:textColor="#FFFFFF"
-            android:layout_marginTop="8dp" />
-
-
-    </LinearLayout>
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
