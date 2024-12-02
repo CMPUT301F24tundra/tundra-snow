@@ -72,4 +72,5 @@ dependencies {
 
     implementation("com.github.bumptech.glide:glide:4.15.1")
     annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
+    implementation(files("C:\\Users\\Matthew\\AppData\\Local\\Android\\Sdk\\platforms\\android-34\\android.jar"))
 }
