@@ -22,6 +22,11 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import android.content.res.Resources;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.ContentResolver;
@@ -65,9 +70,9 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -91,9 +96,9 @@ public class OrganizerTests {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    String permanentEvent = "Important Test Event";
 
     String testEventTitle = "";
+    String testEventId = "";
 
     Set<String> generatedTitles  = new HashSet<>();
 
@@ -187,6 +192,13 @@ public class OrganizerTests {
             // Optionally handle the error case based on your app's needs
         }
     }
+
+    private void createListTestEvent() throws InterruptedException {
+        testEventTitle = "Organizer List Testing Event";
+        generatedTitles.add(testEventTitle);
+        createTestEvent(testEventTitle, Boolean.FALSE);
+    }
+
 
     private void createTestEvent(String testEventTitle, Boolean generateHash) throws InterruptedException {
 
@@ -361,6 +373,84 @@ public class OrganizerTests {
         }
 
         return imageUri;
+    }
+
+    private void addUserToWaitingList(String eventId, String userId) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        // Add user to the waitingList array in Firestore
+        db.collection("events")
+                .document(eventId)
+                .update("entrantList", FieldValue.arrayUnion(userId))
+                .addOnSuccessListener(aVoid -> latch.countDown())
+                .addOnFailureListener(e -> latch.countDown());
+
+        assertTrue("Adding user to waiting list timed out", latch.await(5, TimeUnit.SECONDS));
+    }
+
+    private void verifyUserMovedToEntrantList(String eventId, String userId) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final boolean[] isMoved = {false};
+
+        db.collection("events")
+                .document(eventId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Check if user is in entrantList and not in waitingList
+                        java.util.List<String> entrantList = (java.util.List<String>) documentSnapshot.get("chosenList");
+                        java.util.List<String> waitingList = (java.util.List<String>) documentSnapshot.get("entrantList");
+
+                        isMoved[0] = (entrantList != null && entrantList.contains(userId)) &&
+                                (waitingList == null || !waitingList.contains(userId));
+                    }
+                    latch.countDown();
+                });
+
+        assertTrue("Verifying user move timed out", latch.await(5, TimeUnit.SECONDS));
+        assertTrue("User should be moved to entrant list", isMoved[0]);
+    }
+
+    public static class RecyclerViewMatcher {
+        private final int recyclerViewId;
+
+        public RecyclerViewMatcher(int recyclerViewId) {
+            this.recyclerViewId = recyclerViewId;
+        }
+
+        public Matcher<View> atPosition(final int position) {
+            return new TypeSafeMatcher<View>() {
+                Resources resources = null;
+                View childView;
+
+                public void describeTo(Description description) {
+                    String idDescription = Integer.toString(recyclerViewId);
+                    if (resources != null) {
+                        idDescription = resources.getResourceName(recyclerViewId);
+                    }
+                    description.appendText("with id: " + idDescription + " at position: " + position);
+                }
+
+                public boolean matchesSafely(View view) {
+                    resources = view.getResources();
+
+                    if (childView == null) {
+                        RecyclerView recyclerView = view.getRootView().findViewById(recyclerViewId);
+                        if (recyclerView != null && recyclerView.getId() == recyclerViewId) {
+                            childView = recyclerView.findViewHolderForAdapterPosition(position).itemView;
+                        } else {
+                            return false;
+                        }
+                    }
+
+                    if (childView == null) {
+                        return false;
+                    }
+
+                    return view == childView;
+                }
+            };
+        }
     }
 
     /**
@@ -543,6 +633,8 @@ public class OrganizerTests {
     @Test
     public void testViewWaitingList() throws InterruptedException {
 
+        createListTestEvent();
+
         toggleToOrganizerMode();
 
         Thread.sleep(1000);
@@ -552,7 +644,7 @@ public class OrganizerTests {
         Thread.sleep(1000);
 
         // Scroll to the item with the specific title and click it
-        onView(withText(permanentEvent)).perform(scrollTo(), click());
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
 
         Thread.sleep(1000);
 
@@ -613,10 +705,10 @@ public class OrganizerTests {
         Thread.sleep(1000); // Allow time for the Create Event screen to load
 
         // Fill out basic event information
-        onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
+        onView(withId(R.id.editTextEventTitle)).perform(scrollTo(), replaceText(testEventTitle));
         onView(withId(R.id.editTextEventDescription))
-                .perform(replaceText("This is a description for the test event."));
-        onView(withId(R.id.editTextLocation)).perform(replaceText("Test Location"));
+                .perform(scrollTo(), replaceText("This is a description for the test event."));
+        onView(withId(R.id.editTextLocation)).perform(scrollTo(), replaceText("Test Location"));
 
         fillOutDates();
 
@@ -639,7 +731,6 @@ public class OrganizerTests {
         // Verify the event is visible
         onView(withText(testEventTitle)).check(matches(isDisplayed()));
     }
-
 
     /**
      * US 02.04.01 As an organizer I want to upload an event poster to provide
@@ -838,23 +929,145 @@ public class OrganizerTests {
     }
 
     /**
-     * TODO US 02.05.01 As an organizer I want to send a notification to chosen entrants
-     *  to sign up for events.
+     * US 02.05.01 As an organizer I want to send a notification to chosen entrants
+     * to sign up for events.
      * @throws InterruptedException
      */
     @Test
-    public void testNotifisToChosen(){
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void testNotifisToChosen() throws InterruptedException {
+        createListTestEvent();
+        Thread.sleep(1000);
+
+        // First store current user ID and get event info
+        final String[] eventId = {null};
+        final String[] userId = {null};
+        final CountDownLatch idLatch = new CountDownLatch(1);
+
+        // Get the event ID and user ID
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        eventId[0] = queryDocumentSnapshots.getDocuments().get(0).getId();
+                        userId[0] = queryDocumentSnapshots.getDocuments().get(0).getString("organizer");
+                    }
+                    idLatch.countDown();
+                });
+
+        assertTrue("Getting event ID timed out", idLatch.await(5, TimeUnit.SECONDS));
+        assertNotNull("Event ID should not be null", eventId[0]);
+        assertNotNull("User ID should not be null", userId[0]);
+
+        // Add current user to waiting list
+        addUserToWaitingList(eventId[0], userId[0]);
+
+        toggleToOrganizerMode();
+        Thread.sleep(1000);
+
+        onView(withId(R.id.nav_my_events)).perform(click());
+        Thread.sleep(1000);
+
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
+
+        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        intended(hasComponent(ViewParticipantListActivity.class.getName()));
+
+        onView(withId(R.id.selectRegSampleButton)).perform(scrollTo(), click());
+        Thread.sleep(5000);
+
+        // Verify user was moved to chosen list
+        verifyUserMovedToEntrantList(eventId[0], userId[0]);
+
+        onView(withId(R.id.backButton)).perform(click());
+        Thread.sleep(2000);
+
+        onView(withId(R.id.backButton)).perform(click());
+        Thread.sleep(2000);
+
+        onView(withId(R.id.nav_events)).perform(click());
+        Thread.sleep(1000);
+
+        // Switch back to user mode to check notifications
+        toggleToUserMode();
+        Thread.sleep(1000);
+
+        // Navigate to notifications
+        onView(withId(R.id.notificationButton)).perform(click());
+        Thread.sleep(3000);
+
+        // Check if the notification about being chosen is the first item
+        onView(new RecyclerViewMatcher(R.id.myNotificationsRecyclerView)
+                .atPosition(0))
+                .perform(click());
+
+        Thread.sleep(2000);
+
+        onView(withId(R.id.statusMessage)).check(matches(withText("You have been invited!")));
     }
 
     /**
-     * TODO US 02.05.02 As an organizer I want to set the system to sample a specified number
+     * US 02.05.02 As an organizer I want to set the system to sample a specified number
      *  of attendees to register for the event
      * @throws InterruptedException
      */
     @Test
-    public void testRegistrationSample(){
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void testRegistrationSample() throws InterruptedException {
+        createListTestEvent();
+
+        Thread.sleep(1000);
+
+        // First store current user ID since we're already logged in from setUp()
+        final String[] eventId = {null};
+        final String[] userId = {null};
+        final CountDownLatch idLatch = new CountDownLatch(1);
+
+        // Get the event ID and user ID
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        eventId[0] = queryDocumentSnapshots.getDocuments().get(0).getId();
+                        // The owner of the event is the current user
+                        userId[0] = queryDocumentSnapshots.getDocuments().get(0).getString("organizer");
+                    }
+                    idLatch.countDown();
+                });
+
+        assertTrue("Getting event ID timed out", idLatch.await(5, TimeUnit.SECONDS));
+        assertNotNull("Event ID should not be null", eventId[0]);
+        assertNotNull("User ID should not be null", userId[0]);
+
+        // Add current user to waiting list
+        addUserToWaitingList(eventId[0], userId[0]);
+
+        toggleToOrganizerMode();
+        Thread.sleep(1000);
+
+        onView(withId(R.id.nav_my_events)).perform(click());
+        Thread.sleep(1000);
+
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        intended(hasComponent(OrganizerEventDetailActivity.class.getName()));
+
+        onView(withId(R.id.viewWaitingList)).perform(scrollTo(), click());
+        Thread.sleep(1000);
+
+        intended(hasComponent(ViewParticipantListActivity.class.getName()));
+
+        onView(withId(R.id.selectRegSampleButton)).perform(scrollTo(), click());
+        Thread.sleep(5000);
+
+        // Verify that user was moved from waiting list to entrant list
+        verifyUserMovedToEntrantList(eventId[0], userId[0]);
     }
 
     /**
@@ -862,6 +1075,7 @@ public class OrganizerTests {
      *  the pooling system when a previously selected applicant cancels or rejects the invitation
      * @throws InterruptedException
      */
+    @Ignore
     @Test
     public void testDrawingReplacement(){
         throw new UnsupportedOperationException("Not yet implemented");
@@ -876,6 +1090,8 @@ public class OrganizerTests {
     @Test
     public void testViewChosenList() throws InterruptedException {
 
+        createListTestEvent();
+
         toggleToOrganizerMode();
 
         Thread.sleep(1000);
@@ -885,7 +1101,7 @@ public class OrganizerTests {
         Thread.sleep(1000);
 
         // Scroll to the item with the specific title and click it
-        onView(withText(permanentEvent)).perform(scrollTo(), click());
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
 
         Thread.sleep(1000);
 
@@ -907,6 +1123,8 @@ public class OrganizerTests {
     @Test
     public void testViewCancelledList() throws InterruptedException {
 
+        createListTestEvent();
+
         toggleToOrganizerMode();
 
         Thread.sleep(1000);
@@ -916,7 +1134,7 @@ public class OrganizerTests {
         Thread.sleep(1000);
 
         // Scroll to the item with the specific title and click it
-        onView(withText(permanentEvent)).perform(scrollTo(), click());
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
 
         Thread.sleep(1000);
 
@@ -939,6 +1157,8 @@ public class OrganizerTests {
     @Test
     public void testViewFinalEntrantList() throws InterruptedException {
 
+        createListTestEvent();
+
         toggleToOrganizerMode();
 
         Thread.sleep(1000);
@@ -948,7 +1168,7 @@ public class OrganizerTests {
         Thread.sleep(1000);
 
         // Scroll to the item with the specific title and click it
-        onView(withText(permanentEvent)).perform(scrollTo(), click());
+        onView(withText(testEventTitle)).perform(scrollTo(), click());
 
         Thread.sleep(1000);
 
@@ -967,6 +1187,7 @@ public class OrganizerTests {
      *  did not sign up for the event
      * @throws InterruptedException
      */
+    @Ignore
     @Test
     public void testDeletingEntrantFromWaitlist() throws InterruptedException {
         throw new UnsupportedOperationException("Not yet implemented");
@@ -977,6 +1198,7 @@ public class OrganizerTests {
      *  sign up for the event
      * @throws InterruptedException
      */
+    @Ignore
     @Test
     public void testCancellingEntrants() throws InterruptedException {
         throw new UnsupportedOperationException("Not yet implemented");
@@ -987,6 +1209,7 @@ public class OrganizerTests {
      *  on the waiting list
      * @throws InterruptedException
      */
+    @Ignore
     @Test
     public void testSendingNotifsToWaitlist() throws InterruptedException {
         throw new UnsupportedOperationException("Not yet implemented");
@@ -997,6 +1220,7 @@ public class OrganizerTests {
      *  selected entrants
      * @throws InterruptedException
      */
+    @Ignore
     @Test
     public void testSendingNotifsToSelected() throws InterruptedException {
         throw new UnsupportedOperationException("Not yet implemented");
@@ -1007,6 +1231,7 @@ public class OrganizerTests {
      *  cancelled entrants
      * @throws InterruptedException
      */
+    @Ignore
     @Test
     public void testSendingNotifsToCancelled() throws InterruptedException {
         throw new UnsupportedOperationException("Not yet implemented");
