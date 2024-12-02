@@ -7,21 +7,44 @@ import static androidx.test.espresso.action.ViewActions.scrollTo;
 import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
+import static androidx.test.espresso.intent.Intents.intending;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withHint;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.any;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import android.app.Activity;
+import android.app.Instrumentation;
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Environment;
 import android.os.SystemClock;
+import android.provider.MediaStore;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.test.core.app.ActivityScenario;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.PerformException;
 import androidx.test.espresso.UiController;
@@ -33,6 +56,9 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 
+import com.example.tundra_snow_app.Activities.QrScanActivity;
+import com.example.tundra_snow_app.EventActivities.CreateEventActivity;
+import com.example.tundra_snow_app.EventActivities.MyEventDetailActivity;
 import com.example.tundra_snow_app.EventActivities.OrganizerEventDetailActivity;
 import com.example.tundra_snow_app.ListActivities.ViewCancelledParticipantListActivity;
 import com.example.tundra_snow_app.ListActivities.ViewChosenParticipantListActivity;
@@ -50,10 +76,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -93,6 +123,17 @@ public class OrganizerTests {
         // Log out after all tests
         auth.signOut();
         Intents.release();
+
+        // Clean up test images from MediaStore
+        Context context = ApplicationProvider.getApplicationContext();
+        ContentResolver resolver = context.getContentResolver();
+
+        // Delete test images from gallery
+        resolver.delete(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Images.Media.DISPLAY_NAME + " LIKE ?",
+                new String[]{"test_image_%"}
+        );
 
         for (String title : generatedTitles) {
             // Query and delete test events with the specified title
@@ -163,6 +204,45 @@ public class OrganizerTests {
 
     }
 
+    private void createTestEvent(String testEventTitle, Boolean generateHash) throws InterruptedException {
+
+        generatedTitles.add(testEventTitle);
+
+        // Switch to organizer mode before creating event
+        toggleToOrganizerMode();
+
+        // Navigate to event creation screen
+        onView(withId(R.id.addEventButton)).perform(click());
+        Thread.sleep(1000); // Allow time for the Create Event screen to load
+
+        // Fill out basic event information
+        onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
+        onView(withId(R.id.editTextEventDescription))
+                .perform(replaceText("This is a description for the test event."));
+        onView(withId(R.id.editTextLocation)).perform(scrollTo(), replaceText("Test Location"));
+
+        fillOutDates();
+
+        // Set event capacity
+        onView(withId(R.id.editTextCapacity)).perform(scrollTo(), replaceText("50"));
+
+        // Toggle geolocation requirement (default is Enabled, clicking makes it Disabled)
+        onView(withId(R.id.toggleGeolocationRequirement)).perform(scrollTo(), click());
+
+        if (generateHash)
+        {
+            onView(withId(R.id.generateHashInformation)).perform(scrollTo(), click());
+        }
+
+        // Create the event
+        onView(withId(R.id.buttonCreateEvent)).perform(click());
+        Thread.sleep(2000); // Allow time for event creation and database update
+
+        // Switch back to attendee mode to verify event is visible
+        toggleToUserMode();
+        Thread.sleep(1000);
+    }
+
     public static ViewAction scrollToItemWithText(final String text) {
         return new ViewAction() {
             @Override
@@ -222,25 +302,190 @@ public class OrganizerTests {
         };
     }
 
-    /**
-     * TODO US 02.01.01 As an organizer I want to create a new event and
-     *  generate a unique promotional QR code that links to the event description
-     *  and event poster in the app
-     * @throws InterruptedException
-     */
-    @Test
-    public void testHashGeneration(){
-        throw new UnsupportedOperationException("Not yet implemented");
+    private void fillOutDates() {
+        LocalDate today = LocalDate.now();
+
+        // Registration start (tomorrow)
+        String regStartDate = formatDate(today.plusDays(1));
+        onView(withId(R.id.editRegistrationStartDate)).perform(scrollTo(), replaceText(regStartDate));
+        onView(withId(R.id.editRegistrationStartTime)).perform(scrollTo(), replaceText("09:00"));
+
+        // Registration end (day after tomorrow)
+        String regEndDate = formatDate(today.plusDays(2));
+        onView(withId(R.id.editRegistrationEndDate)).perform(scrollTo(), replaceText(regEndDate));
+        onView(withId(R.id.editRegistrationEndTime)).perform(scrollTo(), replaceText("17:00"));
+
+        // Event start (in 3 days)
+        String eventStartDate = formatDate(today.plusDays(3));
+        onView(withId(R.id.editTextStartDate)).perform(scrollTo(), replaceText(eventStartDate));
+        onView(withId(R.id.editTextStartTime)).perform(scrollTo(), replaceText("10:00"));
+
+        // Event end (in 4 days)
+        String eventEndDate = formatDate(today.plusDays(4));
+        onView(withId(R.id.editTextEndDate)).perform(scrollTo(), replaceText(eventEndDate));
+        onView(withId(R.id.editTextEndTime)).perform(scrollTo(), replaceText("16:00"));
+    }
+
+    private String formatDate(LocalDate date) {
+        return String.format("%02d/%02d/%d",
+                date.getDayOfMonth(),
+                date.getMonthValue(),
+                date.getYear());
+    }
+
+    // Helper method to add image to gallery
+    private Uri addImageToGallery() {
+        // Get the app's context
+        Context context = ApplicationProvider.getApplicationContext();
+
+        // Create a test image (a simple colored bitmap)
+        Bitmap bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawColor(Color.RED);  // Create a red square image
+
+        // Save bitmap to MediaStore (gallery)
+        String imageFileName = "test_image_" + System.currentTimeMillis() + ".jpg";
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, imageFileName);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
+            values.put(MediaStore.Images.Media.IS_PENDING, 1);
+        }
+
+        ContentResolver resolver = context.getContentResolver();
+        Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        try {
+            if (imageUri != null) {
+                OutputStream out = resolver.openOutputStream(imageUri);
+                if (out != null) {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                    out.close();
+                }
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    values.clear();
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    resolver.update(imageUri, values, null, null);
+                }
+            }
+        } catch (IOException e) {
+            Log.e("TestSetup", "Error saving image to gallery", e);
+            return null;
+        }
+
+        return imageUri;
     }
 
     /**
-     * TODO US 02.01.02 As an organizer I want to store the generated QR code
-     *  in my database
+     * US 02.01.01 As an organizer I want to create a new event and
+     * generate a unique promotional QR code that links to the event description
+     * and event poster in the app
      * @throws InterruptedException
      */
     @Test
-    public void testHashGenerationStored(){
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void testHashGeneration() throws InterruptedException {
+        // Generate a random event title to ensure uniqueness
+        int randomNumber = new Random().nextInt(1000);
+        testEventTitle = "Organizer Test Event " + randomNumber;
+
+        // Create event with QR code generation enabled
+        createTestEvent(testEventTitle, Boolean.TRUE);
+        Thread.sleep(2000); // Allow time for event creation and database update
+
+        // Query Firestore to get the generated QR hash for the event
+        final String[] qrHash = new String[1];
+        final String[] eventId = new String[1];
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    DocumentSnapshot eventDoc = queryDocumentSnapshots.getDocuments().get(0);
+                    qrHash[0] = eventDoc.getString("qrHash");
+                    eventId[0] = eventDoc.getString("eventID");
+                    latch.countDown();
+                });
+
+        // Wait for Firestore query to complete
+        latch.await(5, TimeUnit.SECONDS);
+
+        // Verify that a QR hash was generated
+        assertNotNull("QR hash should not be null", qrHash[0]);
+        assertFalse("QR hash should not be empty", qrHash[0].isEmpty());
+
+        // Navigate to QR scanner activity
+        onView(withId(R.id.nav_qr)).perform(click());
+        Thread.sleep(1000);
+
+        // Simulate scanning the QR code by directly calling handleScannedQRCode
+        Intent qrScanIntent = new Intent(ApplicationProvider.getApplicationContext(), QrScanActivity.class);
+        ActivityScenario<QrScanActivity> qrScanScenario = ActivityScenario.launch(qrScanIntent);
+
+        // Simulate scanning the QR code
+        qrScanScenario.onActivity(activity -> {
+            activity.handleScannedQRCode(qrHash[0]);
+        });
+        Thread.sleep(2000);
+        Thread.sleep(2000);
+
+        // Verify that we're taken to the event details screen
+        intended(hasComponent(MyEventDetailActivity.class.getName()));
+
+        // Verify we're viewing the correct event
+        onView(withId(R.id.detailEventTitle))
+                .check(matches(withText(testEventTitle)));
+
+        // Clean up - delete test event
+        db.collection("events")
+                .document(eventId[0])
+                .delete();
+    }
+
+    /**
+     * US 02.01.02 As an organizer I want to store the generated QR code
+     * in my database
+     * @throws InterruptedException
+     */
+    @Test
+    public void testHashGenerationStored() throws InterruptedException {
+        // Generate a random event title to ensure uniqueness
+        int randomNumber = new Random().nextInt(1000);
+        String testEventTitle = "QR Storage Test Event " + randomNumber;
+
+        // Create event with QR code generation enabled
+        createTestEvent(testEventTitle, Boolean.TRUE);
+        Thread.sleep(2000); // Allow time for event creation and database update
+
+        // Create a latch to wait for the async Firestore query
+        final CountDownLatch latch = new CountDownLatch(1);
+        final boolean[] hasQrHash = {false};
+
+        // Query Firestore to check if QR hash exists for the event
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        DocumentSnapshot eventDoc = queryDocumentSnapshots.getDocuments().get(0);
+                        String qrHash = eventDoc.getString("qrHash");
+                        hasQrHash[0] = qrHash != null && !qrHash.isEmpty();
+                    }
+                    latch.countDown();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("TestHashStorage", "Error querying Firestore", e);
+                    latch.countDown();
+                });
+
+        // Wait for the Firestore query to complete (with timeout)
+        assertTrue("Firestore query timed out", latch.await(5, TimeUnit.SECONDS));
+
+        // Assert that the QR hash was found in the database
+        assertTrue("QR hash should be stored in the database", hasQrHash[0]);
     }
 
     /**
@@ -346,79 +591,8 @@ public class OrganizerTests {
         // Generate a random event title to ensure uniqueness
         int randomNumber = new Random().nextInt(1000);
         testEventTitle = "Organizer Test Event " + randomNumber;
-        generatedTitles.add(testEventTitle);
 
-        // Switch to organizer mode before creating event
-        toggleToOrganizerMode();
-
-        // Navigate to event creation screen
-        onView(withId(R.id.addEventButton)).perform(click());
-        Thread.sleep(1000); // Allow time for the Create Event screen to load
-
-        // Fill out basic event information
-        onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
-        onView(withId(R.id.editTextEventDescription))
-                .perform(replaceText("This is a description for the test event."));
-        onView(withId(R.id.editTextLocation)).perform(replaceText("Test Location"));
-
-        // Calculate dates that ensure everything is in the future with proper spacing
-        LocalDate today = LocalDate.now();
-
-        // Registration starts tomorrow morning
-        LocalDate registrationStart = today.plusDays(1);
-        String registrationStartFormatted = String.format("%02d/%02d/%d",
-                registrationStart.getDayOfMonth(),
-                registrationStart.getMonthValue(),
-                registrationStart.getYear());
-
-        // Registration ends the next day in the afternoon
-        LocalDate registrationEnd = today.plusDays(2);
-        String registrationEndFormatted = String.format("%02d/%02d/%d",
-                registrationEnd.getDayOfMonth(),
-                registrationEnd.getMonthValue(),
-                registrationEnd.getYear());
-
-        // Event starts the day after registration ends
-        LocalDate eventStart = today.plusDays(3);
-        String eventStartFormatted = String.format("%02d/%02d/%d",
-                eventStart.getDayOfMonth(),
-                eventStart.getMonthValue(),
-                eventStart.getYear());
-
-        // Event ends the next day
-        LocalDate eventEnd = today.plusDays(4);
-        String eventEndFormatted = String.format("%02d/%02d/%d",
-                eventEnd.getDayOfMonth(),
-                eventEnd.getMonthValue(),
-                eventEnd.getYear());
-
-        // Set registration period
-        // Registration starts tomorrow at 9:00 AM
-        onView(withId(R.id.editRegistrationStartDate)).perform(scrollTo(), replaceText(registrationStartFormatted));
-        onView(withId(R.id.editRegistrationStartTime)).perform(scrollTo(), replaceText("09:00"));
-
-        // Registration ends the next day at 5:00 PM
-        onView(withId(R.id.editRegistrationEndDate)).perform(scrollTo(), replaceText(registrationEndFormatted));
-        onView(withId(R.id.editRegistrationEndTime)).perform(scrollTo(), replaceText("17:00"));
-
-        // Set event dates and times
-        // Event starts the day after registration ends at 10:00 AM
-        onView(withId(R.id.editTextStartDate)).perform(scrollTo(), replaceText(eventStartFormatted));
-        onView(withId(R.id.editTextStartTime)).perform(scrollTo(), replaceText("10:00"));
-
-        // Event ends the next day at 4:00 PM
-        onView(withId(R.id.editTextEndDate)).perform(scrollTo(), replaceText(eventEndFormatted));
-        onView(withId(R.id.editTextEndTime)).perform(scrollTo(), replaceText("16:00"));
-
-        // Set event capacity
-        onView(withId(R.id.editTextCapacity)).perform(scrollTo(), replaceText("50"));
-
-        // Toggle geolocation requirement (default is Enabled, clicking makes it Disabled)
-        onView(withId(R.id.toggleGeolocationRequirement)).perform(scrollTo(), click());
-
-        // Create the event
-        onView(withId(R.id.buttonCreateEvent)).perform(click());
-        Thread.sleep(2000); // Allow time for event creation and database update
+        createTestEvent(testEventTitle, Boolean.FALSE);
 
         // Switch back to attendee mode to verify event is visible
         toggleToUserMode();
@@ -460,54 +634,7 @@ public class OrganizerTests {
                 .perform(replaceText("This is a description for the test event."));
         onView(withId(R.id.editTextLocation)).perform(replaceText("Test Location"));
 
-        // Calculate dates that ensure everything is in the future with proper spacing
-        LocalDate today = LocalDate.now();
-
-        // Registration starts tomorrow morning
-        LocalDate registrationStart = today.plusDays(1);
-        String registrationStartFormatted = String.format("%02d/%02d/%d",
-                registrationStart.getDayOfMonth(),
-                registrationStart.getMonthValue(),
-                registrationStart.getYear());
-
-        // Registration ends the next day in the afternoon
-        LocalDate registrationEnd = today.plusDays(2);
-        String registrationEndFormatted = String.format("%02d/%02d/%d",
-                registrationEnd.getDayOfMonth(),
-                registrationEnd.getMonthValue(),
-                registrationEnd.getYear());
-
-        // Event starts the day after registration ends
-        LocalDate eventStart = today.plusDays(3);
-        String eventStartFormatted = String.format("%02d/%02d/%d",
-                eventStart.getDayOfMonth(),
-                eventStart.getMonthValue(),
-                eventStart.getYear());
-
-        // Event ends the next day
-        LocalDate eventEnd = today.plusDays(4);
-        String eventEndFormatted = String.format("%02d/%02d/%d",
-                eventEnd.getDayOfMonth(),
-                eventEnd.getMonthValue(),
-                eventEnd.getYear());
-
-        // Set registration period
-        // Registration starts tomorrow at 9:00 AM
-        onView(withId(R.id.editRegistrationStartDate)).perform(scrollTo(), replaceText(registrationStartFormatted));
-        onView(withId(R.id.editRegistrationStartTime)).perform(scrollTo(), replaceText("09:00"));
-
-        // Registration ends the next day at 5:00 PM
-        onView(withId(R.id.editRegistrationEndDate)).perform(scrollTo(), replaceText(registrationEndFormatted));
-        onView(withId(R.id.editRegistrationEndTime)).perform(scrollTo(), replaceText("17:00"));
-
-        // Set event dates and times
-        // Event starts the day after registration ends at 10:00 AM
-        onView(withId(R.id.editTextStartDate)).perform(scrollTo(), replaceText(eventStartFormatted));
-        onView(withId(R.id.editTextStartTime)).perform(scrollTo(), replaceText("10:00"));
-
-        // Event ends the next day at 4:00 PM
-        onView(withId(R.id.editTextEndDate)).perform(scrollTo(), replaceText(eventEndFormatted));
-        onView(withId(R.id.editTextEndTime)).perform(scrollTo(), replaceText("16:00"));
+        fillOutDates();
 
         // Toggle geolocation requirement (default is Enabled, clicking makes it Disabled)
         onView(withId(R.id.toggleGeolocationRequirement)).perform(scrollTo(), click());
@@ -529,14 +656,85 @@ public class OrganizerTests {
         onView(withText(testEventTitle)).check(matches(isDisplayed()));
     }
 
+
     /**
-     * TODO US 02.04.01 As an organizer I want to upload an event poster to provide
-     *  visual information to entrants
+     * US 02.04.01 As an organizer I want to upload an event poster to provide
+     * visual information to entrants
      * @throws InterruptedException
      */
     @Test
-    public void testEventPosterUpload(){
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void testEventPosterUpload() throws InterruptedException {
+        // First add a test image to the emulator's gallery
+        Uri imageUri = addImageToGallery();
+
+        // Register the ActivityResult before launching the activity
+        Instrumentation.ActivityResult result = new Instrumentation.ActivityResult(
+                Activity.RESULT_OK,
+                new Intent().setData(imageUri)
+        );
+
+        // Set up intent stub for photo picker
+        intending(hasAction(MediaStore.ACTION_PICK_IMAGES))
+                .respondWith(result);
+
+        // Generate a random event title to ensure uniqueness
+        int randomNumber = new Random().nextInt(1000);
+        String testEventTitle = "Poster Test Event " + randomNumber;
+        generatedTitles.add(testEventTitle);
+
+        // Switch to organizer mode
+        toggleToOrganizerMode();
+        Thread.sleep(1000);
+
+        // Navigate to event creation screen
+        onView(withId(R.id.addEventButton)).perform(click());
+        Thread.sleep(1000);
+
+        // Fill out required event details first so we can scroll properly
+        onView(withId(R.id.editTextEventTitle)).perform(replaceText(testEventTitle));
+        onView(withId(R.id.editTextEventDescription))
+                .perform(replaceText("Test event with poster"));
+        onView(withId(R.id.editTextLocation)).perform(scrollTo(), replaceText("Test Location"));
+
+        fillOutDates();
+
+        // Scroll back to top to access image selection and trigger the picker
+        onView(withId(R.id.selectImageButton)).perform(scrollTo(), click());
+
+        // The photo picker will automatically return our registered result
+        // So we don't need to interact with the system UI
+
+        Thread.sleep(2000);
+
+        // Verify image card view becomes visible
+        onView(withId(R.id.eventImageCardView))
+                .check(matches(isDisplayed()));
+
+        // Create the event
+        onView(withId(R.id.buttonCreateEvent)).perform(click());
+        Thread.sleep(2000);
+
+        // Verify the event was created with an image
+        final boolean[] hasImage = {false};
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        db.collection("events")
+                .whereEqualTo("title", testEventTitle)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        DocumentSnapshot eventDoc = queryDocumentSnapshots.getDocuments().get(0);
+                        String imageUrl = eventDoc.getString("imageUrl");
+                        hasImage[0] = imageUrl != null && !imageUrl.isEmpty();
+                    }
+                    latch.countDown();
+                });
+
+        // Wait for Firestore query to complete
+        assertTrue("Firestore query timed out", latch.await(5, TimeUnit.SECONDS));
+
+        // Verify image was uploaded
+        assertTrue("Event should have an image URL stored", hasImage[0]);
     }
 
     /**
