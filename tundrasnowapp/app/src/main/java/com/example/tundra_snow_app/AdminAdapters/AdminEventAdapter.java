@@ -172,6 +172,11 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ev
         }
     }
 
+    /**
+     * Returns the list of events currently managed by the adapter.
+     *
+     * @return The list of events.
+     */
     public List<Events> getEventList() {
         return eventList;
     }

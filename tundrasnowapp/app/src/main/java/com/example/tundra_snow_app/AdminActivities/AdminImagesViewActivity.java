@@ -19,6 +19,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * AdminImagesViewActivity displays a grid of event-related images for administrators.
+ * This activity retrieves images from Firestore and allows admins to view and manage them.
+ *
+ * Features:
+ * - Displays images in a grid layout using a RecyclerView.
+ * - Fetches image URLs and their corresponding event IDs from Firestore.
+ * - Integrates with a custom adapter to handle image display and interactions.
+ * - Includes navigation through the admin-specific bottom navigation bar.
+ *
+ * This class extends {@link AppCompatActivity}.
+ */
 public class AdminImagesViewActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
@@ -26,6 +38,13 @@ public class AdminImagesViewActivity extends AppCompatActivity {
     private List<String> imageUrls;
     private Map<String, String> imageUrlToEventIdMap; // Map of image URLs to event IDs
 
+
+    /**
+     * Called when the activity is created. Sets up the UI components, initializes the adapter,
+     * and fetches images from Firestore to display in the RecyclerView.
+     *
+     * @param savedInstanceState The saved instance state.
+     */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +64,11 @@ public class AdminImagesViewActivity extends AppCompatActivity {
         fetchImagesFromDatabase();
     }
 
+    /**
+     * Fetches event-related images from Firestore and updates the RecyclerView.
+     * The method retrieves all documents from the "events" collection, extracts
+     * image URLs and their corresponding event IDs, and populates the RecyclerView.
+     */
     private void fetchImagesFromDatabase() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("events") // Adjust to your collection name

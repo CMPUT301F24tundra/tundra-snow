@@ -20,6 +20,11 @@ import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import java.util.List;
 
+/**
+ * Adapter class for displaying QR codes associated with events in an admin interface.
+ * This adapter is used in a RecyclerView to display event titles and their corresponding
+ * QR codes, along with a delete option.
+ */
 public class AdminQRAdapter extends RecyclerView.Adapter<AdminQRAdapter.ViewHolder> {
 
     private final Context context;
@@ -28,6 +33,15 @@ public class AdminQRAdapter extends RecyclerView.Adapter<AdminQRAdapter.ViewHold
     private final List<String> eventIds;
     private final OnDeleteClickListener deleteClickListener;
 
+    /**
+     * Constructor for the AdminQRAdapter class.
+     *
+     * @param context The context of the calling activity.
+     * @param eventTitles The list of event titles to display.
+     * @param qrHashes The list of QR hash strings to generate QR codes.
+     * @param eventIds The list of event IDs associated with the QR codes.
+     * @param deleteClickListener Listener for handling delete button actions.
+     */
     public AdminQRAdapter(Context context, List<String> eventTitles, List<String> qrHashes, List<String> eventIds, OnDeleteClickListener deleteClickListener) {
         this.context = context;
         this.eventTitles = eventTitles;
@@ -36,6 +50,13 @@ public class AdminQRAdapter extends RecyclerView.Adapter<AdminQRAdapter.ViewHold
         this.deleteClickListener = deleteClickListener;
     }
 
+    /**
+     * Creates a new ViewHolder object for the RecyclerView.
+     *
+     * @param parent The parent ViewGroup into which the new View will be added.
+     * @param viewType The view type of the new View.
+     * @return A new ViewHolder instance.
+     */
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -43,6 +64,12 @@ public class AdminQRAdapter extends RecyclerView.Adapter<AdminQRAdapter.ViewHold
         return new ViewHolder(view);
     }
 
+    /**
+     * Binds data to the ViewHolder, including event title, QR code generation, and delete actions.
+     *
+     * @param holder The ViewHolder to bind data to.
+     * @param position The position of the item within the adapter's data set.
+     */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String title = eventTitles.get(position);
@@ -71,16 +98,29 @@ public class AdminQRAdapter extends RecyclerView.Adapter<AdminQRAdapter.ViewHold
         });
     }
 
+    /**
+     * Returns the number of items in the list of events.
+     *
+     * @return The total number of events in the list.
+     */
     @Override
     public int getItemCount() {
         return eventTitles.size();
     }
 
+    /**
+     * ViewHolder class for the RecyclerView. Represents a single QR code item.
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView eventTitleText;
         ImageView qrImageView;
         Button deleteButton;
 
+        /**
+         * Constructor for the ViewHolder class. Initializes the views in the item layout.
+         *
+         * @param itemView The View representing the item layout.
+         */
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             eventTitleText = itemView.findViewById(R.id.qrHashText); // Use for event title
@@ -89,7 +129,9 @@ public class AdminQRAdapter extends RecyclerView.Adapter<AdminQRAdapter.ViewHold
         }
     }
 
-    // Interface for delete button click
+    /**
+     * Interface for handling delete button actions.
+     */
     public interface OnDeleteClickListener {
         void onDelete(int position);
     }

@@ -345,6 +345,14 @@ public class CreateEventActivity extends AppCompatActivity{
         }
     }
 
+    /**
+     * Saves the provided event details to Firestore under the "events" collection.
+     *
+     * @param event A {@code Map<String, Object>} containing the details of the event to be saved.
+     *              The map should include fields like title, description, location, capacity,
+     *              start and end dates/times, and any other relevant event data.
+     *
+     */
     private void saveEventToFirestore(Map<String, Object> event) {
         db.collection("events").document(eventID)
                 .set(event)
@@ -759,6 +767,9 @@ public class CreateEventActivity extends AppCompatActivity{
         }
     }
 
+    /**
+     * Generates a hashed string and corresponding QR code based on event details.
+     */
     private void generateHashAndQRCode() {
         if (validateInputs()) {
             return;
@@ -773,6 +784,12 @@ public class CreateEventActivity extends AppCompatActivity{
         generateAndDisplayQRCode(hashedData);
     }
 
+    /**
+     * Generates a hash of the event data using SHA-256.
+     *
+     * @param data The input string to hash.
+     * @return A SHA-256 hashed string.
+     */
     private String hashEventData(String data) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -795,6 +812,11 @@ public class CreateEventActivity extends AppCompatActivity{
         }
     }
 
+    /**
+     * Displays a QR code on the UI.
+     *
+     * @param hashedData The data to encode in the QR code.
+     */
     private void generateAndDisplayQRCode(String hashedData) {
         try {
             BarcodeEncoder barcodeEncoder = new BarcodeEncoder();

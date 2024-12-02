@@ -400,6 +400,13 @@ public class EventViewActivity extends AppCompatActivity {
                     });
         }
 
+    /**
+     * Updates the notification badge displayed in the UI. This method checks the current mode
+     * and ensures that the badge is only shown in "user" mode. It then fetches the notifications
+     * for the current user and updates the badge with the count of new notifications.
+     *
+     * If notifications are disabled or the user has no new notifications, the badge is hidden.
+     */
     private void updateNotificationBadge() {
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String currentMode = preferences.getString(MODE_KEY, "user");

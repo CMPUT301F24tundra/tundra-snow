@@ -18,8 +18,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Activity class for the admin facility view. This class is responsible for displaying
- * the list of facilities in the RecyclerView.
+ * AdminFacilityViewActivity displays a list of facilities for administrators,
+ * allowing them to manage facilities using a RecyclerView. The activity fetches
+ * facility data from Firestore and provides a structured view for administrators.
+ *
+ * Features:
+ * - Displays facilities in a RecyclerView.
+ * - Integrates with Firebase Firestore for data retrieval.
+ * - Provides seamless navigation through an admin-specific bottom navigation bar.
+ *
+ * This class extends {@link AppCompatActivity}.
  */
 public class AdminFacilityViewActivity extends AppCompatActivity {
 

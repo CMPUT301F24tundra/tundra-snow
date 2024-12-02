@@ -5,6 +5,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 
+/**
+ * Utility class for generating Identicons, which are visual representations
+ * derived from hash values. Identicons are commonly used for user avatars
+ * when no profile image is provided.
+ */
 public class IdenticonGenerator {
 
     /**

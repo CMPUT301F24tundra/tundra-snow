@@ -51,7 +51,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Activity for viewing and editing the user's profile information.
+ * ProfileViewActivity allows users to view, edit, and manage their profile information.
+ * It includes features for:
+ * - Viewing and updating personal information such as name, email, and phone number.
+ * - Uploading, generating, or removing profile pictures.
+ * - Managing facilities for organizer roles.
+ * - Switching roles between user, organizer, and admin modes.
+ *
+ * This class integrates with Firebase for authentication, Firestore for data storage,
+ * and Firebase Storage for managing profile pictures.
+ *
+ * This class extends {@link AppCompatActivity}.
  */
 public class ProfileViewActivity extends AppCompatActivity {
 
@@ -82,8 +92,11 @@ public class ProfileViewActivity extends AppCompatActivity {
     private TextView profileTitle;
 
     /**
-     * Initializes the activity and sets up the UI elements.
-     * @param savedInstanceState The saved instance state.
+     * Called when the activity is created. Sets up UI components, Firebase instances, and
+     * registers listeners for profile-related actions.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
+     *                           this Bundle contains the most recent data supplied. Otherwise, null.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,6 +159,10 @@ public class ProfileViewActivity extends AppCompatActivity {
         setupMenuButton();
     }
 
+    /**
+     * Generates an identicon (a visual representation of a hash) based on the user ID
+     * and uploads it as the user's profile picture.
+     */
     private void generateIdenticonProfilePicture() {
         if (userId == null || userId.isEmpty()) {
             Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
@@ -160,6 +177,19 @@ public class ProfileViewActivity extends AppCompatActivity {
         saveBitmapToFirebase(identicon);
     }
 
+
+    /**
+     * Saves a generated bitmap image as the user's profile picture in Firebase Storage
+     * and updates the profile picture URL in Firestore.
+     * <p>
+     * The method compresses the bitmap into a JPEG format, converts it to a byte array,
+     * and uploads it to a predefined location in Firebase Storage. Once uploaded, it retrieves
+     * the download URL and updates the user's Firestore document with the new profile picture URL.
+     * Additionally, the image is loaded into the profile picture view using Glide.
+     * </p>
+     *
+     * @param bitmap The {@link Bitmap} object representing the generated image to be saved.
+     */
     private void saveBitmapToFirebase(Bitmap bitmap) {
         if (userId == null || userId.isEmpty()) {
             Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
@@ -236,6 +266,10 @@ public class ProfileViewActivity extends AppCompatActivity {
                 });
     }
 
+
+    /**
+     * Loads the user's profile picture from Firestore. If unavailable, sets a default picture.
+     */
     private void loadProfilePicture() {
         if (userId == null || userId.isEmpty()) {
             Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
@@ -274,12 +308,20 @@ public class ProfileViewActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Opens the system's photo picker to allow the user to select a new profile picture.
+     */
     private void openPhotoPicker() {
         photoPickerLauncher.launch(new PickVisualMediaRequest.Builder()
                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                 .build());
     }
 
+    /**
+     * Uploads a new profile picture to Firebase Storage and updates the user's Firestore document.
+     *
+     * @param imageUri The URI of the selected image.
+     */
     private void uploadProfilePictureToFirebase(Uri imageUri) {
         if (userId == null || userId.isEmpty()) {
             Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();
@@ -302,6 +344,11 @@ public class ProfileViewActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Saves the URL of the uploaded profile picture to Firestore.
+     *
+     * @param imageUrl The URL of the uploaded image.
+     */
     private void saveProfilePictureUrlToDatabase(String imageUrl) {
         if (userId == null || userId.isEmpty()) {
             Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();

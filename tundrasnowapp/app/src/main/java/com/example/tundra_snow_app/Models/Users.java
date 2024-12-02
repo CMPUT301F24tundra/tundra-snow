@@ -145,7 +145,11 @@ public class Users {
         return new ArrayList<>(permissionsSet);
     }
 
-    // add other constructors for if users want to skip certain fields?
+    /**
+     * Constructor to create a user with minimal required details.
+     *
+     * @return userID Unique user ID
+     */
     public String getUserID() {
         return userID;
     }
