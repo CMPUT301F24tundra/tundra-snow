@@ -71,6 +71,13 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
         notifyDataSetChanged();  // Refresh the list when mode changes
     }
 
+    /**
+     * Inflates the layout for individual event items and returns a ViewHolder.
+     *
+     * @param parent The parent ViewGroup.
+     * @param viewType The type of the view (not used here).
+     * @return A new EventViewHolder instance.
+     */
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -78,6 +85,12 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
         return new EventViewHolder(view);
     }
 
+    /**
+     * Binds event data to the views in the ViewHolder for the given position.
+     *
+     * @param holder The ViewHolder to bind data to.
+     * @param position The position of the event in the list.
+     */
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         // Get the current event
@@ -153,6 +166,12 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
                 });
     }
 
+    /**
+     * Fetches and determines the status of the current user for the specified event.
+     *
+     * @param eventID The ID of the event.
+     * @param statusTextView The TextView to display the user's status.
+     */
     private void fetchUserStatus(String eventID, TextView statusTextView) {
         // Declare lists as final to avoid reassigning them
         final List<String> entrantList = new ArrayList<>();
@@ -226,6 +245,11 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
                 });
     }
 
+    /**
+     * Returns the total number of events in the list.
+     *
+     * @return The size of the event list.
+     */
     @Override
     public int getItemCount() {
         return eventList.size();
@@ -235,6 +259,9 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.EventV
         TextView dateTextView, titleTextView, locationTextView, statusTextView;
         ImageView eventIcon;
 
+        /**
+         * ViewHolder class for the RecyclerView. Holds references to the views used to display an event item.
+         */
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
             dateTextView = itemView.findViewById(R.id.eventDateTime);

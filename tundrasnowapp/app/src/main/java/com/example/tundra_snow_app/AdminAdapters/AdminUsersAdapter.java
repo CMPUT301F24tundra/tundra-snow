@@ -149,6 +149,12 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
         Button removeUserButton;
         ImageView userIcon;
 
+
+        /**
+         * Constructor for the ViewHolder class. Initializes the views in the item layout.
+         *
+         * @param itemView The View representing the item layout.
+         */
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
             userFullName = itemView.findViewById(R.id.userFullName);

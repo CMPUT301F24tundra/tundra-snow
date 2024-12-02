@@ -27,7 +27,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Activity for viewing and editing the user's profile information.
+ * AdminUserProfileViewActivity allows administrators to view detailed information
+ * about a user's profile. The activity retrieves user data from Firestore and displays
+ * the user's profile information and profile picture.
+ *
+ * Features:
+ * - Fetch and display user profile details such as name, email, and phone number.
+ * - Load and display the user's profile picture using Glide.
+ * - Minimalistic UI tailored for administrative tasks.
+ *
+ * This class extends {@link AppCompatActivity}.
  */
 public class AdminUserProfileViewActivity extends AppCompatActivity {
 
@@ -108,6 +117,10 @@ public class AdminUserProfileViewActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to load event details", Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Loads the user's profile picture from Firestore and displays it in the ImageView.
+     * If no profile picture is available, a default placeholder is used.
+     */
     private void loadProfilePicture() {
         if (userID == null || userID.isEmpty()) {
             Toast.makeText(this, "User ID is not set", Toast.LENGTH_SHORT).show();

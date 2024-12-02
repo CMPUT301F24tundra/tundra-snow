@@ -20,8 +20,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Activity class for the admin users view. This class is responsible for displaying
- * the list of users in the RecyclerView.
+ * AdminUsersViewActivity displays a list of users for administrators.
+ * The activity retrieves user data from Firestore, filters users with the "user" role,
+ * and displays them in a RecyclerView.
+ *
+ * Features:
+ * - Displays user information in a RecyclerView.
+ * - Filters users based on their roles to ensure only valid "user" roles are displayed.
+ * - Integrates with Firebase Firestore for real-time data retrieval.
+ * - Provides seamless navigation through the admin-specific bottom navigation bar.
+ *
+ * This class extends {@link AppCompatActivity}.
  */
 public class AdminUsersViewActivity extends AppCompatActivity {
     private RecyclerView usersRecyclerView; // RecyclerView for users

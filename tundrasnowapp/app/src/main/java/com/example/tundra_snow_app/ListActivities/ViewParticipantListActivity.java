@@ -78,6 +78,11 @@ public class ViewParticipantListActivity extends AppCompatActivity {
         repSample.setOnClickListener(view -> selectReplacementSample());
     }
 
+    /**
+     * Loads the participant list for the event from Firestore and updates the UI with
+     * the entrant, chosen, confirmed, and other participant lists. Handles cases
+     * where the event is at full capacity, requires replacements, or has no capacity set.
+     */
     private void loadParticipantList() {
         db.collection("events").document(eventID).get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
@@ -172,6 +177,12 @@ public class ViewParticipantListActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Updates the RecyclerView with the list of participants. Initializes the adapter
+     * if not already set and refreshes the UI.
+     *
+     * @param entrantList The list of participants to display in the RecyclerView.
+     */
     private void updateRecyclerView(List<String> entrantList) {
         if (entrantList != null && !entrantList.isEmpty()) {
             if (adapter == null) {
@@ -363,6 +374,11 @@ public class ViewParticipantListActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Selects a replacement sample of participants from the entrant list to fill
+     * available slots in the chosen list when cancellations occur. Updates the Firestore
+     * database and sends notifications to the selected replacements.
+     */
     private void selectReplacementSample() {
         db.collection("events").document(eventID).get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {

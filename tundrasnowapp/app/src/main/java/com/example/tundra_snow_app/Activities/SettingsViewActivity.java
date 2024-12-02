@@ -27,8 +27,17 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
 /**
- * Activity class for the settings view. This class is responsible for displaying
- * the user's settings and updating them in Firestore.
+ * SettingsViewActivity allows users to view and update their settings, including
+ * notification preferences and geolocation settings. It also provides a logout option
+ * that deletes the user's current session and redirects them to the login screen.
+ *
+ * Features:
+ * - Manage notification and geolocation preferences.
+ * - Update settings in Firestore for both the user and their current session.
+ * - Fetch and update the user's location in Firestore.
+ * - Logout functionality with session deletion.
+ *
+ * This class extends {@link AppCompatActivity}.
  */
 public class SettingsViewActivity extends AppCompatActivity {
 
@@ -310,7 +319,8 @@ public class SettingsViewActivity extends AppCompatActivity {
     }
 
     /**
-     *
+     * Fetches the user's current location using the location provider and updates
+     * it in Firestore for both the user and their current session.
      */
     private void fetchUserLocationAndUpdate() {
         Log.d("SettingsViewActivity", "Fetching user location...");

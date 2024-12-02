@@ -181,6 +181,12 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
             photoPickerLauncher.launch(new PickVisualMediaRequest.Builder().build());
         });
     }
+
+    /**
+     * Called when the Google Map is ready to be used. Sets the map instance and loads participant locations.
+     *
+     * @param map The Google Map object ready for use.
+     */
     @Override
     public void onMapReady(GoogleMap map) {
         googleMap = map;
@@ -190,30 +196,45 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
         loadParticipantLocations();
     }
 
+    /**
+     * Resumes the MapView lifecycle when the activity is resumed.
+     */
     @Override
     protected void onResume() {
         super.onResume();
         mapView.onResume();
     }
 
+    /**
+     * Pauses the MapView lifecycle when the activity is paused.
+     */
     @Override
     protected void onPause() {
         super.onPause();
         mapView.onPause();
     }
 
+    /**
+     * Cleans up the MapView lifecycle when the activity is destroyed.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
     }
 
+    /**
+     * Handles low memory situations by delegating to the MapView lifecycle.
+     */
     @Override
     public void onLowMemory() {
         super.onLowMemory();
         mapView.onLowMemory();
     }
 
+    /**
+     * Uploads the selected image to Firebase Storage and updates the event's image URL in Firestore.
+     */
     private void uploadImageToFirebase() {
         if (selectedImageUri != null) {
             StorageReference fileReference = FirebaseStorage.getInstance()
@@ -240,6 +261,11 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
         }
     }
 
+    /**
+     * Updates the event's image URL in Firestore with the given download URL.
+     *
+     * @param downloadUrl The URL of the uploaded image.
+     */
     private void updateImageInFirestore(String downloadUrl) {
         db.collection("events").document(eventID)
                 .update("imageUrl", downloadUrl)
@@ -252,7 +278,9 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
                 });
     }
 
-
+    /**
+     * Fetches participant locations for the event from Firestore and places markers on the map.
+     */
     private void loadParticipantLocations() {
         db.collection("events").document(eventID)
                 .get()
@@ -278,6 +306,11 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
                 .addOnFailureListener(e -> Log.e("OrganizerEventDetail", "Error fetching event details", e));
     }
 
+    /**
+     * Fetches the location of a user by their ID and adds a marker to the map at their location.
+     *
+     * @param userId The ID of the user whose location needs to be fetched.
+     */
     private void fetchUserLocationAndAddPin(String userId) {
         Log.d("OrganizerEventDetail", "Fetching location for user ID: " + userId);
 
@@ -320,6 +353,12 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
                 .addOnFailureListener(e -> Log.e("OrganizerEventDetail", "Error fetching user document for user ID: " + userId, e));
     }
 
+    /**
+     * Converts a string address into a LatLng object using the Geocoder.
+     *
+     * @param address The address to convert into coordinates.
+     * @return The LatLng object representing the location, or null if conversion fails.
+     */
     private LatLng getLatLngFromAddress(String address) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
@@ -342,6 +381,12 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
         return null;
     }
 
+    /**
+     * Adjusts marker positions slightly to avoid overlapping markers for duplicate coordinates.
+     *
+     * @param latLng The original LatLng object.
+     * @return A new LatLng object adjusted for duplicates.
+     */
     private LatLng adjustForDuplicateMarkers(LatLng latLng) {
         String key = latLng.latitude + "," + latLng.longitude;
 
@@ -354,6 +399,9 @@ public class OrganizerEventDetailActivity extends AppCompatActivity implements O
         return new LatLng(latLng.latitude + offset, latLng.longitude + offset);
     }
 
+    /**
+     * Adjusts the Google Map camera to include all markers or default to a city view if no markers exist.
+     */
     private void adjustCameraBounds() {
         LatLng edmontonCenter = new LatLng(53.5461, -113.4938);
 

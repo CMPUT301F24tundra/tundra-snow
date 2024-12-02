@@ -50,6 +50,14 @@ public class MyEventDetailActivity extends AppCompatActivity {
     private ImageView eventImageView;
 
 
+    /**
+     * Called when the activity is created. Initializes the UI components, sets up
+     * Firebase Firestore, retrieves the event ID passed via intent, and fetches the
+     * current user's session details before loading the event details.
+     *
+     * @param savedInstanceState The saved instance state containing any previous
+     *                           data for this activity, or null if no data is available.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
